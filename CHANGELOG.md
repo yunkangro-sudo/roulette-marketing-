@@ -12,6 +12,9 @@
 - `docs/migrations/` — Supabase 대시보드 DB 변경사항 추적 폴더 (멀티 환경 작업 시 Git에 안 남는 부분 보완)
 - `/staff` 계산대 검증 화면 — 직원용, 인증 없이 접근 (추후 비밀번호 추가 예정). 쿠폰 코드 조회 후 상태별 버튼 분기(사용 처리 / 확인함·미확인 처리 / 사용 완료 안내 / 기간 만료 안내)
 - `GET /api/coupons/lookup`, `POST /api/coupons/verify`, `POST /api/coupons/use` — 쿠폰 상태머신 전환 API. 클라이언트 버튼 노출 로직과 별개로 서버에서도 상태·유효기간을 재검증해 잘못된 전환을 막음
+- `docs/당근인형뽑기_게임설계도.md` — 프로젝트 단일 진실 소스(SSOT) 문서 추가. 3~4절(확률/재고 로직)을 실제 구현(수량 기반 자동계산)에 맞게 갱신, 9절 데이터 모델도 `tier_usage_counters` 삭제/`prize_tiers`·`events` 스키마 변경 반영
+- `.cursor/rules/project-rules.mdc` — 검증 습관(금전 로직엔 테스트 필수)/진행 기록/개발 순서(로직 우선, 설계도=SSOT) 규칙을 항상 적용되는 Cursor 규칙으로 등록
+- README.md "배포 전 반드시 확인할 것" 섹션 — 카카오 미연동, `/staff` 무인증, 만료 배치 미구현 등 임시 처리 항목 추적용
 
 ### 변경
 - `prize_tiers` 확률 관리 방식을 확률(%) 직접입력에서 **수량 기반 자동계산**으로 전환 (`total_quantity`/`remaining_quantity`/`computed_probability`). 추첨 가중치는 고정된 `computed_probability`만 사용하고, `remaining_quantity`는 품절 시 꽝으로 강제 전환하는 안전장치로만 사용

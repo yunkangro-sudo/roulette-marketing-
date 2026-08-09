@@ -28,7 +28,8 @@
 ## 참고 문서 우선순위
 
 막힐 때 이 순서로 확인:
-1. `docs/02-system-architecture.md` — 구조·권한 관련
-2. `docs/04-data-api-security.md` — 데이터/API 스펙 관련
-3. `docs/03-game-cta-design.md` — 게임/CTA 플로우 관련
-4. `docs/01-marketing-strategy.md` — 비즈니스 맥락 관련
+1. `docs/당근인형뽑기_게임설계도.md` — 게임/쿠폰/포인트 로직 관련 (단일 진실 소스, 3~4/6/8/9/13/14절)
+2. `docs/02-system-architecture.md` — 구조·권한 관련
+3. `docs/04-data-api-security.md` — 데이터/API 스펙 관련
+4. `docs/03-game-cta-design.md` — 게임/CTA 플로우 관련
+5. `docs/01-marketing-strategy.md` — 비즈니스 맥락 관련
