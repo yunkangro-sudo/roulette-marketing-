@@ -1,0 +1,39 @@
+---
+description: 집/회사 멀티 환경 Git 동기화 워크플로우
+alwaysApply: true
+---
+
+# Git 멀티 환경 워크플로우
+
+## 세션 시작 시 (코드 건드리기 전에 반드시)
+
+```bash
+cd "C:\YOON JOB\dang2026\project-starter\project-starter"
+git pull origin main
+```
+
+세션 시작 때 git pull 여부를 확인하고, 아직 안 했다면 먼저 실행할 것.
+
+## 세션 종료 시 (작업 마칠 때마다)
+
+1. README.md의 "진행 로그" 체크리스트에서 오늘 완료한 항목 체크
+2. 커밋 & 푸시:
+
+```bash
+git add .
+git commit -m "작업 내용 한 줄 요약"
+git push origin main
+```
+
+## 주의사항
+
+- `.env.local`은 Git에 포함되지 않음 → 각 컴퓨터에 별도 생성 필요
+- 회사 컴퓨터 처음 세팅 시: `.env.example` 참고해서 `.env.local` 작성
+- 충돌(conflict) 발생 시 `git pull` 먼저 하고 해결 후 push
+
+## 세션 시작 시 AI에게 상기 요청
+
+사용자가 새 세션을 시작하면:
+1. "git pull 하셨나요?" 확인
+2. 아직이라면 pull 명령 실행 제안
+3. 세션 종료 시 push 여부 확인
