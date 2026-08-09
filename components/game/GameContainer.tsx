@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { GamePhase, PrizeResult } from './types'
 import StartScreen from './StartScreen'
 import OnboardingOverlay from './OnboardingOverlay'
@@ -9,7 +9,12 @@ import ResultScreen from './ResultScreen'
 
 const ONBOARDING_KEY = 'game_onboarding_seen'
 
-export default function GameContainer() {
+interface Props {
+  /** 게임 결과 발생 시 외부에서 처리 (DB 저장 등). 없으면 독립 실행. */
+  onGameResult?: (result: PrizeResult) => void
+}
+
+export default function GameContainer({ onGameResult }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>('start')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
@@ -28,6 +33,7 @@ export default function GameContainer() {
   const handleResult = (r: PrizeResult) => {
     setResult(r)
     setPhase('result')
+    onGameResult?.(r)
   }
 
   const handleReplay = () => {
