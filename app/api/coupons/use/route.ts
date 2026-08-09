@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getEffectiveStatus } from '@/lib/coupons/getEffectiveStatus'
 
 /**
  * POST /api/coupons/use — 인증 불필요(requires_verification=false) 쿠폰 즉시 사용 처리.
@@ -32,19 +33,21 @@ export async function POST(request: Request) {
     )
   }
 
-  if (coupon.status === 'used') {
+  const effectiveStatus = getEffectiveStatus(coupon)
+
+  if (effectiveStatus === 'expired') {
+    return NextResponse.json({ error: '사용기간이 지난 쿠폰입니다' }, { status: 409 })
+  }
+
+  if (effectiveStatus === 'used') {
     return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 409 })
   }
 
-  if (coupon.status !== 'issued') {
+  if (effectiveStatus !== 'issued') {
     return NextResponse.json(
-      { error: `현재 상태(${coupon.status})에서는 사용 처리할 수 없습니다` },
+      { error: `현재 상태(${effectiveStatus})에서는 사용 처리할 수 없습니다` },
       { status: 409 }
     )
-  }
-
-  if (new Date(coupon.valid_until) < new Date()) {
-    return NextResponse.json({ error: '사용기간이 지난 쿠폰입니다' }, { status: 409 })
   }
 
   const { data: updated, error: updateError } = await supabase

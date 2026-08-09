@@ -15,6 +15,7 @@
 - `docs/당근인형뽑기_게임설계도.md` — 프로젝트 단일 진실 소스(SSOT) 문서 추가. 3~4절(확률/재고 로직)을 실제 구현(수량 기반 자동계산)에 맞게 갱신, 9절 데이터 모델도 `tier_usage_counters` 삭제/`prize_tiers`·`events` 스키마 변경 반영
 - `.cursor/rules/project-rules.mdc` — 검증 습관(금전 로직엔 테스트 필수)/진행 기록/개발 순서(로직 우선, 설계도=SSOT) 규칙을 항상 적용되는 Cursor 규칙으로 등록
 - README.md "배포 전 반드시 확인할 것" 섹션 — 카카오 미연동, `/staff` 무인증, 만료 배치 미구현 등 임시 처리 항목 추적용
+- `lib/coupons/getEffectiveStatus.ts` — 쿠폰의 "실제 유효 상태"(DB status + valid_until 비교)를 판정하는 단일 함수. `lookup`/`verify`/`use` 3개 API가 모두 재사용하도록 통일 (6~7단계 관리자 대시보드에서도 재사용 예정) + `node:test` 4개
 
 ### 변경
 - `prize_tiers` 확률 관리 방식을 확률(%) 직접입력에서 **수량 기반 자동계산**으로 전환 (`total_quantity`/`remaining_quantity`/`computed_probability`). 추첨 가중치는 고정된 `computed_probability`만 사용하고, `remaining_quantity`는 품절 시 꽝으로 강제 전환하는 안전장치로만 사용

@@ -42,8 +42,9 @@ export default function StaffPage() {
   const [showReasonPicker, setShowReasonPicker] = useState(false)
   const [selectedReason, setSelectedReason] = useState<string>('')
 
-  const isExpired = coupon ? new Date(coupon.valid_until) < new Date() : false
-
+  // coupon.status는 /api/coupons/lookup이 getEffectiveStatus()로 계산해서 내려주는
+  // "실제 유효 상태"다 (lib/coupons/getEffectiveStatus.ts) — 만료 여부를 여기서
+  // 다시 계산하지 않고 서버 응답을 그대로 신뢰한다.
   async function lookup(target: string) {
     const res = await fetch(`/api/coupons/lookup?code=${encodeURIComponent(target)}`)
     const data = await res.json()
@@ -162,12 +163,10 @@ export default function StaffPage() {
               </span>
 
               <span className="text-gray-500">현재 상태</span>
-              <span className="font-bold text-gray-900 text-right">
-                {isExpired ? STATUS_LABEL.expired : STATUS_LABEL[coupon.status]}
-              </span>
+              <span className="font-bold text-gray-900 text-right">{STATUS_LABEL[coupon.status]}</span>
             </div>
 
-            {isExpired ? (
+            {coupon.status === 'expired' ? (
               <div className="bg-gray-100 text-gray-700 rounded-lg px-4 py-4 text-center text-lg font-bold">
                 사용기간이 지난 쿠폰입니다
               </div>

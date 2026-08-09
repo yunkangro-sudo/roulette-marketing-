@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getEffectiveStatus } from '@/lib/coupons/getEffectiveStatus'
 
-/** GET /api/coupons/lookup?code=<coupon.id> — 계산대 화면(/staff)용 쿠폰 상세 조회 */
+/**
+ * GET /api/coupons/lookup?code=<coupon.id> — 계산대 화면(/staff)용 쿠폰 상세 조회.
+ * 응답의 status는 DB 원본 값이 아니라 getEffectiveStatus()로 계산한 "실제 유효 상태"다
+ * (만료 판정을 프론트에서 따로 계산하지 않도록 여기서 이미 반영해서 내려준다).
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')?.trim()
@@ -30,5 +35,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: '쿠폰을 찾을 수 없습니다. 코드를 다시 확인해주세요' }, { status: 404 })
   }
 
-  return NextResponse.json({ coupon })
+  return NextResponse.json({
+    coupon: {
+      ...coupon,
+      status: getEffectiveStatus(coupon),
+    },
+  })
 }

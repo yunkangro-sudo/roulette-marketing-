@@ -73,9 +73,17 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] README "배포 전 반드시 확인할 것" 섹션 신설 — 임시 처리 항목(카카오 미연동, `/staff` 무인증, 만료 배치 미구현 등) 추적
 - [x] `.cursorrules`의 "참고 문서 우선순위"에 새 설계도 문서를 1순위로 추가
 
+### 2026-08-09 (5단계 마무리 — 만료 판정 로직 통일)
+- [x] **UI 확인**: `/staff`에서 `status='used'` 쿠폰 조회 시 버튼 없이 "이미 사용된 쿠폰입니다" 안내만 뜨는지 확인 — ternary 체인 구조상 원래도 배타적이라 문제 없었음, API 레벨 테스트로 재확인 완료
+- [x] `lib/coupons/getEffectiveStatus.ts` 신설 — "쿠폰의 실제 유효 상태"(DB status + valid_until 비교)를 계산하는 단일 함수. `GET /api/coupons/lookup`, `POST /api/coupons/verify`, `POST /api/coupons/use` 3곳 모두 이 함수로 통일 (기존엔 만료 판정이 각 API/프론트에 따로 흩어져 있었음)
+- [x] **버그성 엣지케이스 발견/수정**: 기존엔 프론트에서 `valid_until`만 비교해 만료를 판정했는데, 만약 DB `status`가 이미 `'expired'`로 저장돼 있는 경우(지금은 아무 코드도 이렇게 안 하지만 나중에 배치가 생기면 가능)를 화면이 놓치는 구조였음 — `getEffectiveStatus`가 "status가 이미 used/expired면 그대로 신뢰, 아니면 valid_until로 판정"하는 우선순위를 명확히 하며 해결
+- [x] `lookup` API 응답의 `status`가 이제 DB 원본이 아니라 `getEffectiveStatus()` 계산값 — 프론트(`/staff`)는 더 이상 자체적으로 만료를 계산하지 않고 서버 응답만 신뢰하도록 단순화
+- [x] `lib/coupons/getEffectiveStatus.test.ts` — `node:test` 4개 (정상/만료/이미사용/DB에 expired로 저장된 경우)
+- [x] 만료 테스트 쿠폰(`valid_until`=어제)을 직접 시드해서 실제 확인: lookup 응답 `status='expired'`, `/use` 재시도 시 409 차단 — 모두 통과
+
 ### 다음 세션 예정
 - [ ] 6단계: 관리자 화면 (캠페인 관리, 쿠폰 현황, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI)
-- [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 정리하는 크론/스케줄 작업, 지금은 조회 시점에만 만료 판정)
+- [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 실제 갱신하는 크론/스케줄 작업 — 지금은 의도적으로 생략, `getEffectiveStatus()`로 조회 시점에만 계산)
 - [ ] 7단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
 ---
@@ -86,7 +94,7 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 
 - [ ] **카카오 로그인 미연동** — `lib/auth/mockLogin.ts`로 대체 중 (실제 계정 인증 없음). 교체 방법은 README "카카오 연동 보류" 섹션 참고
 - [ ] **`/staff` 계산대 화면 인증 없음** — 누구나 URL로 접근해서 쿠폰을 사용/확인 처리할 수 있음. 최소 비밀번호 정도는 배포 전 추가 필요
-- [ ] **쿠폰 만료 배치 미구현** — `valid_until`이 지난 쿠폰의 `status`가 실제로 `expired`로 바뀌지 않고, 조회 시점에만 "기간 만료"로 판정해서 보여줌 (DB에는 계속 `issued`/`pending_verify` 등으로 남음)
+- [ ] **쿠폰 만료 배치 미구현** — `valid_until`이 지난 쿠폰의 `status`가 실제로 `expired`로 바뀌지 않고, 조회 시점에 `lib/coupons/getEffectiveStatus.ts`가 판정해서 보여줌 (DB에는 계속 `issued`/`pending_verify` 등으로 남음). 규모가 커지면 배치를 추가하되, 그래도 조회 시점 판정 로직은 안전망으로 유지하는 게 안전
 - [ ] **당근 단골 추가 실제 연동 없음** — `VerificationCtaScreen`은 화면과 쿠폰 코드 표시만 하고, 실제 당근 비즈프로필 딥링크 연결과 클릭 로그(`damgeun_click_logs`)는 미구현
 - [ ] **동시 접속자 방어(트랜잭션 락) 없음** — `/api/games/play`의 재고 차감이 단순 조회→차감 흐름 (로컬 소규모 사용자 기준으로 의도적 생략, `docs/당근인형뽑기_게임설계도.md` 4.3절 참고)
 - [ ] **관리자 화면 전체 미구현** — 이벤트 등록/수정, 확률 자동계산 UI, 쿠폰 현황 대시보드 모두 아직 없음. 지금은 SQL로 직접 시드/조회
