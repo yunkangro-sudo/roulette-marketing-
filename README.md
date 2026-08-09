@@ -224,11 +224,13 @@ npm run dev
 작업 시작 전에 아래를 순서대로 반드시 먼저 확인해줘:
 
 1. git pull origin main 으로 최신 코드 동기화
-2. README.md 전체 (특히 "진행 로그" 최신 날짜 항목)
+2. README.md 전체 (특히 "진행 로그" 최신 날짜 항목, "배포 전 반드시 확인할 것" 섹션)
 3. CHANGELOG.md
-4. AI_HANDOFF.md
-5. docs/migrations/ 폴더 안의 모든 SQL 파일 (Supabase 대시보드에서 실행된 DB 변경사항 — 실제 DB에 이미 적용된 것으로 간주할 것)
-6. .env.example (새로 추가된 환경변수가 있는지, 내 .env.local에 빠진 게 없는지 확인)
+4. docs/당근인형뽑기_게임설계도.md (게임/쿠폰/포인트 로직의 단일 진실 소스 — v2.1로 실제 구현과 동기화되어 있음)
+5. .cursor/rules/project-rules.mdc, .cursor/rules/git-workflow.mdc (항상 적용되는 프로젝트 규칙)
+6. AI_HANDOFF.md
+7. docs/migrations/ 폴더 안의 모든 SQL 파일 (Supabase 대시보드에서 실행된 DB 변경사항 — 실제 DB에 이미 적용된 것으로 간주할 것)
+8. .env.example (새로 추가된 환경변수가 있는지, 내 .env.local에 빠진 게 없는지 확인)
 
 다 확인했으면 "현재 상태 요약"을 먼저 나에게 말해주고, 내가 확인/승인하면 작업을 시작해줘.
 기존 아키텍처와 코드 스타일은 그대로 유지하고, 불필요한 재작성은 하지 마.
