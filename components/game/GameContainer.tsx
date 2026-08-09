@@ -12,9 +12,11 @@ const ONBOARDING_KEY = 'game_onboarding_seen'
 interface Props {
   /** 게임 결과 발생 시 외부에서 처리 (DB 저장 등). 없으면 독립 실행. */
   onGameResult?: (result: PrizeResult) => void
+  /** "처음부터 다시 보기" 클릭 시 외부 핸들러. 있으면 내부 리셋 대신 외부로 위임. */
+  onReplay?: () => void
 }
 
-export default function GameContainer({ onGameResult }: Props = {}) {
+export default function GameContainer({ onGameResult, onReplay }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>('start')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
@@ -37,8 +39,14 @@ export default function GameContainer({ onGameResult }: Props = {}) {
   }
 
   const handleReplay = () => {
-    setResult(null)
-    setPhase('play')
+    if (onReplay) {
+      // PlayFlow 안에서 쓰일 때: 외부로 위임 (로그인/참여 재체크)
+      onReplay()
+    } else {
+      // game-demo 단독 실행 시: 내부에서 리셋
+      setResult(null)
+      setPhase('play')
+    }
   }
 
   return (

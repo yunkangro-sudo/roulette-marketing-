@@ -130,7 +130,17 @@ export default function PlayFlow({ storeId, event }: Props) {
 
   // ── 게임 플레이 (1단계 컴포넌트 재사용)
   if (step === 'playing') {
-    return <GameContainer onGameResult={handleGameResult} />
+    return (
+      <GameContainer
+        onGameResult={handleGameResult}
+        onReplay={() => {
+          // "처음부터 다시 보기" → 로그인 화면으로 돌아가서 참여 재체크
+          logout()
+          setUser(null)
+          setStep('login')
+        }}
+      />
+    )
   }
 
   return null
