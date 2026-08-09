@@ -10,6 +10,8 @@
 - `lib/game-engine/prizeDraw.ts`, `lib/game-engine/probability.ts`, `lib/game-engine/couponValidity.ts` — 추첨/확률계산/유효기간계산 순수 함수
 - `VerificationCtaScreen` — 고액(인증 필요) 당첨 후 당근 단골 추가 유도 화면
 - `docs/migrations/` — Supabase 대시보드 DB 변경사항 추적 폴더 (멀티 환경 작업 시 Git에 안 남는 부분 보완)
+- `/staff` 계산대 검증 화면 — 직원용, 인증 없이 접근 (추후 비밀번호 추가 예정). 쿠폰 코드 조회 후 상태별 버튼 분기(사용 처리 / 확인함·미확인 처리 / 사용 완료 안내 / 기간 만료 안내)
+- `GET /api/coupons/lookup`, `POST /api/coupons/verify`, `POST /api/coupons/use` — 쿠폰 상태머신 전환 API. 클라이언트 버튼 노출 로직과 별개로 서버에서도 상태·유효기간을 재검증해 잘못된 전환을 막음
 
 ### 변경
 - `prize_tiers` 확률 관리 방식을 확률(%) 직접입력에서 **수량 기반 자동계산**으로 전환 (`total_quantity`/`remaining_quantity`/`computed_probability`). 추첨 가중치는 고정된 `computed_probability`만 사용하고, `remaining_quantity`는 품절 시 꽝으로 강제 전환하는 안전장치로만 사용
