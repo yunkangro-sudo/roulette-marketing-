@@ -20,3 +20,4 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 | 003 | [`003_grant_prize_tiers.sql`](./003_grant_prize_tiers.sql) | `prize_tiers`, `tier_usage_counters`에 `service_role` GRANT 추가 (permission denied 수정) |
 | 004 | [`004_quantity_based_prize_tiers.sql`](./004_quantity_based_prize_tiers.sql) | `prize_tiers` 확률(%) 직접입력 → 수량 기반(`total_quantity`/`remaining_quantity`/`computed_probability`) 자동계산으로 전환, `tier_usage_counters` 삭제, `events.expected_daily_participants` 추가 |
 | 005 | [`005_normalize_prize_tier_probability.sql`](./005_normalize_prize_tier_probability.sql) | `computed_probability`가 이벤트당 합계 100%가 안 되던 문제 수정 (정규화 적용) |
+| 006 | [`006_add_coupons.sql`](./006_add_coupons.sql) | `coupons` 테이블 추가 (게임 당첨 쿠폰 발급), `events.coupon_validity_type`/`coupon_validity_value` 추가 |

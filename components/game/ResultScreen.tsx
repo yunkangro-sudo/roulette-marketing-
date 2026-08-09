@@ -6,9 +6,16 @@ import type { PrizeResult } from './types'
 interface Props {
   result: PrizeResult
   onReplay: () => void
+  /** 고액(인증 필요) 당첨일 때만 전달됨. 있으면 "처음부터 다시 보기" 대신 이 버튼을 우선 노출 */
+  onVerificationCta?: () => void
 }
 
-export default function ResultScreen({ result, onReplay }: Props) {
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+}
+
+export default function ResultScreen({ result, onReplay, onVerificationCta }: Props) {
   const isBig = result.tier === 'big'
   const isSmall = result.tier === 'small'
   const isMiss = result.tier === 'miss'
@@ -54,33 +61,56 @@ export default function ResultScreen({ result, onReplay }: Props) {
         {isMiss && (
           <p className="text-gray-500 text-sm mt-3">다음엔 꼭 당첨되실 거예요!</p>
         )}
+
+        {result.coupon && (
+          <div className="mt-4 bg-black/20 rounded-xl p-3 text-left">
+            <p className="text-white/70 text-xs">쿠폰 코드</p>
+            <p className="text-white font-mono text-xs break-all mt-0.5">{result.coupon.id}</p>
+            <p className="text-white/70 text-xs mt-2">
+              사용기간: {formatDate(result.coupon.issuedAt)} ~ {formatDate(result.coupon.validUntil)}
+            </p>
+            {isBig && (
+              <p className="text-white/90 text-sm font-semibold mt-2 pt-2 border-t border-white/10">
+                당근마켓 단골 추가 인증 후 사용 가능
+              </p>
+            )}
+          </div>
+        )}
+
         {isSmall && (
           <p className="text-white/80 text-sm mt-3">
             매장에서 직원에게 화면을 보여주세요
           </p>
         )}
-        {isBig && (
-          <div className="mt-3 bg-black/20 rounded-xl p-3">
-            <p className="text-white/90 text-sm font-semibold">
-              당근마켓 단골 추가 인증 후 사용 가능
-            </p>
-            <p className="text-white/60 text-xs mt-1">
-              당근에서 단골 추가 → 매장에서 확인
-            </p>
-          </div>
-        )}
       </motion.div>
 
-      {/* 다시 하기 버튼 */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        onClick={onReplay}
-        className="text-gray-400 text-sm border border-gray-700 hover:border-gray-500 px-8 py-3 rounded-full transition-colors"
-      >
-        처음부터 다시 보기
-      </motion.button>
+      {/* 고액(인증 필요) 당첨: 단골추가 CTA 우선 노출, 다시 하기는 보조 링크로 */}
+      {isBig && onVerificationCta ? (
+        <>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            onClick={onVerificationCta}
+            className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
+          >
+            당근 단골 추가하러 가기
+          </motion.button>
+          <button onClick={onReplay} className="text-gray-500 text-xs">
+            처음부터 다시 보기
+          </button>
+        </>
+      ) : (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          onClick={onReplay}
+          className="text-gray-400 text-sm border border-gray-700 hover:border-gray-500 px-8 py-3 rounded-full transition-colors"
+        >
+          처음부터 다시 보기
+        </motion.button>
+      )}
     </div>
   )
 }

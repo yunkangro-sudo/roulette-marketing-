@@ -49,10 +49,18 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] 실제 API 반복 호출(200회 + 소진 테스트)로 검증: 재고가 줄어도 비율 안정적으로 유지, 특정 티어 소진 시 이후 절대 안 나오는 것까지 확인
 - [x] **버그 수정**: `computed_probability`를 티어별로 독립 계산만 하고 정규화하지 않아 이벤트당 합계가 100%가 안 되던 문제(91.667%) 발견/수정 — `lib/game-engine/probability.ts`에 `normalizeProbabilities()` 추가, `npm test`(node:test 기반) 테스트 5개로 합계 100% 보장 검증, DB 기존 값도 정규화 재적용 (54.545/27.273/18.182 = 100)
 
+### 2026-08-09 (4단계: 쿠폰 발급/상태머신 — 게임 당첨분 source_type='game_win'만)
+- [x] `coupons` 테이블 추가 (`kakao_user_id` 포함 — 지시문엔 없었지만 "내 쿠폰함" 조회를 위해 필수라 판단해 추가). `game_event_id`는 아직 참조할 "게임 세션" 테이블이 없어서 생략, `event_id`만 사용
+- [x] `events.coupon_validity_type`/`coupon_validity_value` 추가 (테스트 이벤트는 relative_days/14로 시드)
+- [x] `lib/game-engine/couponValidity.ts` — `valid_until` 계산 순수 함수 + `node:test` 5개 (14일 계산, 월 넘어가는 경우 등)
+- [x] `/api/games/play`가 당첨(꽝 제외) 시 `coupons` row 생성 — 인증 불필요면 `issued`, 인증 필요면 `pending_verify`로 즉시 기록
+- [x] 결과화면에 쿠폰 코드/사용기간 표시 추가, 고액 당첨 시 "당근 단골 추가 유도" 화면(`VerificationCtaScreen`)으로 연결 (실제 당근 연동은 다음 단계)
+- [x] 실제 반복 플레이로 검증: 1,000원권→`issued`, 10,000원권→`pending_verify`, `valid_until`이 발급일+14일 정확히 계산됨, 꽝은 쿠폰 미생성 — 모두 확인 완료
+
 ### 다음 세션 예정
-- [ ] 쿠폰 발급/참여자 저장 — `/api/games/play` 결과를 `participants`/`coupons` 테이블에 연결
-- [ ] 4단계: 관리자 화면 (캠페인 관리, 쿠폰 현황, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI)
-- [ ] 5단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
+- [ ] 5단계: 관리자 화면 (캠페인 관리, 쿠폰 현황, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI)
+- [ ] 쿠폰 사용처리 화면 (직원용, status → used) / 만료 배치 (status → expired)
+- [ ] 6단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
 ---
 

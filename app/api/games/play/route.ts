@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { drawPrizeTier, applyStockSafetyNet } from '@/lib/game-engine/prizeDraw'
+import { computeValidUntil, type CouponValidityType } from '@/lib/game-engine/couponValidity'
 
 /**
  * POST /api/games/play
  * body: { event_id: string, kakao_user_id: string }
  *
- * 서버에서 확률을 계산해 당첨 결과만 반환한다 (설계 원칙: 게임 결과는 반드시 서버 확정).
- * 쿠폰 발급/참여자 저장은 다음 단계에서 연결 예정 — 지금은 결과 반환까지만.
+ * 서버에서 확률을 계산해 당첨 결과를 확정하고, 당첨(꽝 제외)인 경우 coupons에
+ * row를 생성한다. requires_verification=false면 즉시 issued, true면 pending_verify.
  *
  * 동시접속자 방어(트랜잭션 락)는 이번 프로젝트 규모에선 불필요하다고 판단해
- * 이번 단계에선 구현하지 않는다 (단순 read → decrement).
+ * 이번 단계에선 구현하지 않는다 (단순 read → decrement/insert).
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
@@ -26,13 +27,23 @@ export async function POST(request: Request) {
 
   const supabase = createServerClient()
 
-  const { data: tiers, error } = await supabase
-    .from('prize_tiers')
-    .select('id, label, amount, computed_probability, remaining_quantity, requires_verification')
-    .eq('event_id', eventId)
+  const [tiersResult, eventResult] = await Promise.all([
+    supabase
+      .from('prize_tiers')
+      .select('id, label, amount, computed_probability, remaining_quantity, requires_verification')
+      .eq('event_id', eventId),
+    supabase
+      .from('events')
+      .select('store_id, coupon_validity_type, coupon_validity_value')
+      .eq('id', eventId)
+      .maybeSingle(),
+  ])
 
-  if (error) {
-    console.error('[api/games/play] prize_tiers 조회 실패:', error)
+  const { data: tiers, error: tiersError } = tiersResult
+  const { data: event, error: eventError } = eventResult
+
+  if (tiersError) {
+    console.error('[api/games/play] prize_tiers 조회 실패:', tiersError)
     return NextResponse.json({ error: '경품 정보를 불러오지 못했습니다' }, { status: 500 })
   }
 
@@ -41,6 +52,11 @@ export async function POST(request: Request) {
       { error: '이 이벤트에 등록된 경품이 없습니다' },
       { status: 404 }
     )
+  }
+
+  if (eventError || !event) {
+    console.error('[api/games/play] 이벤트 조회 실패:', eventError)
+    return NextResponse.json({ error: '이벤트 정보를 불러오지 못했습니다' }, { status: 500 })
   }
 
   let finalTier
@@ -65,9 +81,77 @@ export async function POST(request: Request) {
     }
   }
 
+  // 꽝이면 쿠폰을 발급하지 않는다
+  if (finalTier.amount <= 0) {
+    return NextResponse.json({
+      label: finalTier.label,
+      amount: finalTier.amount,
+      requiresVerification: finalTier.requires_verification,
+    })
+  }
+
+  if (!event.coupon_validity_type || !event.coupon_validity_value) {
+    console.error('[api/games/play] 이벤트에 coupon_validity 설정이 없습니다:', eventId)
+    // 결과 자체는 유효하므로 쿠폰 정보 없이 결과만 반환
+    return NextResponse.json({
+      label: finalTier.label,
+      amount: finalTier.amount,
+      requiresVerification: finalTier.requires_verification,
+    })
+  }
+
+  const issuedAt = new Date()
+  let validUntil: Date
+  try {
+    validUntil = computeValidUntil(
+      issuedAt,
+      event.coupon_validity_type as CouponValidityType,
+      event.coupon_validity_value
+    )
+  } catch (err) {
+    console.error('[api/games/play] valid_until 계산 오류:', err)
+    return NextResponse.json({
+      label: finalTier.label,
+      amount: finalTier.amount,
+      requiresVerification: finalTier.requires_verification,
+    })
+  }
+
+  const { data: coupon, error: couponError } = await supabase
+    .from('coupons')
+    .insert({
+      event_id: eventId,
+      kakao_user_id: kakaoUserId,
+      store_id: event.store_id,
+      amount: finalTier.amount,
+      source_type: 'game_win',
+      requires_verification: finalTier.requires_verification,
+      status: finalTier.requires_verification ? 'pending_verify' : 'issued',
+      issued_at: issuedAt.toISOString(),
+      valid_until: validUntil.toISOString(),
+    })
+    .select('id, status, issued_at, valid_until')
+    .single()
+
+  if (couponError) {
+    // 쿠폰 저장이 실패해도 게임 결과 자체는 이미 확정됐으므로 결과는 반환한다 (쿠폰 정보만 빠짐)
+    console.error('[api/games/play] 쿠폰 발급 실패:', couponError)
+    return NextResponse.json({
+      label: finalTier.label,
+      amount: finalTier.amount,
+      requiresVerification: finalTier.requires_verification,
+    })
+  }
+
   return NextResponse.json({
     label: finalTier.label,
     amount: finalTier.amount,
     requiresVerification: finalTier.requires_verification,
+    coupon: {
+      id: coupon.id,
+      status: coupon.status,
+      issuedAt: coupon.issued_at,
+      validUntil: coupon.valid_until,
+    },
   })
 }

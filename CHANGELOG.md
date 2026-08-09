@@ -5,8 +5,10 @@
 ## [Unreleased]
 
 ### 추가
-- `POST /api/games/play` — 게임 결과 서버 확정 API (경품 가중 랜덤 추첨, 클라이언트는 결과만 받아 애니메이션 재생)
-- `lib/game-engine/prizeDraw.ts`, `lib/game-engine/probability.ts` — 추첨/확률계산 순수 함수
+- `POST /api/games/play` — 게임 결과 서버 확정 API (경품 가중 랜덤 추첨, 클라이언트는 결과만 받아 애니메이션 재생) + 당첨 시 `coupons` 발급까지 연결
+- `coupons` 테이블 — `source_type='game_win'`만 다룸. 인증 불필요 당첨은 `issued`, 인증 필요 당첨은 `pending_verify`로 즉시 기록
+- `lib/game-engine/prizeDraw.ts`, `lib/game-engine/probability.ts`, `lib/game-engine/couponValidity.ts` — 추첨/확률계산/유효기간계산 순수 함수
+- `VerificationCtaScreen` — 고액(인증 필요) 당첨 후 당근 단골 추가 유도 화면
 - `docs/migrations/` — Supabase 대시보드 DB 변경사항 추적 폴더 (멀티 환경 작업 시 Git에 안 남는 부분 보완)
 
 ### 변경

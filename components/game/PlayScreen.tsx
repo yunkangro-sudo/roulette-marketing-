@@ -39,6 +39,7 @@ async function drawResult(eventId?: string, kakaoUserId?: string): Promise<Prize
     label: data.label,
     amount: data.amount,
     requiresVerification: data.requiresVerification,
+    coupon: data.coupon,
   }
 }
 

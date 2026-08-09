@@ -6,6 +6,7 @@ import StartScreen from './StartScreen'
 import OnboardingOverlay from './OnboardingOverlay'
 import PlayScreen from './PlayScreen'
 import ResultScreen from './ResultScreen'
+import VerificationCtaScreen from './VerificationCtaScreen'
 
 const ONBOARDING_KEY = 'game_onboarding_seen'
 
@@ -66,7 +67,17 @@ export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUs
       )}
 
       {phase === 'result' && result && (
-        <ResultScreen result={result} onReplay={handleReplay} />
+        <ResultScreen
+          result={result}
+          onReplay={handleReplay}
+          onVerificationCta={
+            result.requiresVerification ? () => setPhase('verification_cta') : undefined
+          }
+        />
+      )}
+
+      {phase === 'verification_cta' && result && (
+        <VerificationCtaScreen result={result} onDone={handleReplay} />
       )}
     </div>
   )
