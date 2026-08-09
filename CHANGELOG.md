@@ -23,6 +23,7 @@
 
 ### 수정
 - `daily_participation_log` RLS로 인해 참여 기록 저장이 조용히 실패하던 버그 수정 (하루 1회 참여 제한 무력화 문제) — [`docs/migrations/001_disable_rls_daily_participation_log.sql`](./docs/migrations/001_disable_rls_daily_participation_log.sql)
+- "참고 문서 우선순위"가 레거시 `.cursorrules`에만 있고 신형식 `.cursor/rules/project-rules.mdc`엔 없던 문제 수정 — `project-rules.mdc`로 이전, `.cursorrules`엔 이전 위치 안내만 남김
 - `computed_probability`가 티어별 독립 계산만 되고 정규화가 없어 이벤트당 합계가 100%를 보장하지 못하던 문제 수정 (`normalizeProbabilities()` 추가) — [`docs/migrations/005_normalize_prize_tier_probability.sql`](./docs/migrations/005_normalize_prize_tier_probability.sql)
 
 ### 테스트

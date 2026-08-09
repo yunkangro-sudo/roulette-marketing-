@@ -81,6 +81,11 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `lib/coupons/getEffectiveStatus.test.ts` — `node:test` 4개 (정상/만료/이미사용/DB에 expired로 저장된 경우)
 - [x] 만료 테스트 쿠폰(`valid_until`=어제)을 직접 시드해서 실제 확인: lookup 응답 `status='expired'`, `/use` 재시도 시 409 차단 — 모두 통과
 
+### 2026-08-09 (검증: 참여제한 로직 무영향 확인 + 규칙 파일 정리)
+- [x] **확인 1**: 설계도 3.4절("일/주/월 한도 폐기") 수정이 `daily_participation_log`(손님 하루 1회 참여 제한, 2단계 기능)에 영향 없음을 확인 — `lib/game/participation.ts`는 2단계 커밋(`e4e06fe`) 이후 한 번도 수정된 적 없음(`git log --follow`로 확인). 3.4절은 프라이즈 티어(경품) 한도, 5절/9절의 `daily_participation_log`는 완전히 별개 테이블·로직이라 애초에 겹치지 않음
+- [x] **확인 2**: "참고 문서 우선순위"가 `.cursorrules`(레거시 형식)에만 있고 `.cursor/rules/project-rules.mdc`(신형식)엔 없던 문제 발견 — `project-rules.mdc`로 이전하고, `.cursorrules`엔 이전 위치를 가리키는 안내만 남김 (두 곳에 중복 관리하면 드리프트 위험이 있어 한 곳으로 통일)
+- [x] **확인 3**: `git-workflow.mdc`는 이번 대화에서 만든 파일이 아니라, 오늘 오후 5:52 커밋(`82a9ad6`, "게임 코어 프로토타입 + Git 워크플로우 설정")에서 이미 생성된 파일 — 1단계 작업 세션에서 함께 만들어진 것으로 추정 (파일 내용에 회사 컴퓨터 경로가 남아있음)
+
 ### 다음 세션 예정
 - [ ] 6단계: 관리자 화면 (캠페인 관리, 쿠폰 현황, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI)
 - [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 실제 갱신하는 크론/스케줄 작업 — 지금은 의도적으로 생략, `getEffectiveStatus()`로 조회 시점에만 계산)
