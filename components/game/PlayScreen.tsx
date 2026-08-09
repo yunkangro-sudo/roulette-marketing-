@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, useAnimation, AnimatePresence } from 'framer-motion'
-import { rollPrize } from './gameUtils'
+import { rollPrize, resolveTier } from './gameUtils'
 import type { PrizeResult } from './types'
 
 // 진열장에 배치할 인형 (이후 실제 이미지로 교체 예정)
@@ -11,9 +11,38 @@ const CLAW_DROP_PX = 170 // 크레인 하강 거리(px)
 
 interface Props {
   onResult: (result: PrizeResult) => void
+  /** 있으면 /api/games/play로 서버 추첨, 없으면(데모 모드) 클라이언트 로컬 추첨 */
+  eventId?: string
+  kakaoUserId?: string
 }
 
-export default function PlayScreen({ onResult }: Props) {
+/** 서버에서 결과를 받아온다 (실서비스). eventId가 없으면 데모용 로컬 추첨으로 폴백한다. */
+async function drawResult(eventId?: string, kakaoUserId?: string): Promise<PrizeResult> {
+  if (!eventId || !kakaoUserId) {
+    return rollPrize()
+  }
+
+  const res = await fetch('/api/games/play', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_id: eventId, kakao_user_id: kakaoUserId }),
+  })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `게임 결과 요청 실패 (HTTP ${res.status})`)
+  }
+
+  const data = await res.json()
+  return {
+    tier: resolveTier(data.amount, data.requiresVerification),
+    label: data.label,
+    amount: data.amount,
+    requiresVerification: data.requiresVerification,
+  }
+}
+
+export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
   const railContainerRef = useRef<HTMLDivElement>(null)
   const [constraints, setConstraints] = useState({ left: -140, right: 140 })
   const [isAnimating, setIsAnimating] = useState(false)
@@ -58,8 +87,15 @@ export default function PlayScreen({ onResult }: Props) {
     setIsAnimating(true)
     setShowFallback(false)
 
-    // 서버 결정 대신 클라이언트 랜덤 (3단계에서 서버로 교체 예정)
-    const result = rollPrize()
+    let result: PrizeResult
+    try {
+      result = await drawResult(eventId, kakaoUserId)
+    } catch (err) {
+      console.error('게임 결과 요청 오류:', err)
+      alert('오류가 발생했습니다. 다시 시도해주세요.')
+      setIsAnimating(false)
+      return
+    }
 
     // 잡을 인형 선택 (visible 중 랜덤)
     const available = Array.from({ length: TOTAL_DOLLS }, (_, i) => i).filter(
@@ -97,7 +133,7 @@ export default function PlayScreen({ onResult }: Props) {
 
     setIsAnimating(false)
     onResult(result)
-  }, [isAnimating, clawControls, removedDolls, onResult])
+  }, [isAnimating, clawControls, removedDolls, onResult, eventId, kakaoUserId])
 
   const handleDragEnd = useCallback(() => {
     triggerDrop()

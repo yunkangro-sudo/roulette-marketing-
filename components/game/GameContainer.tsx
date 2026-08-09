@@ -14,9 +14,12 @@ interface Props {
   onGameResult?: (result: PrizeResult) => void
   /** "처음부터 다시 보기" 클릭 시 외부 핸들러. 있으면 내부 리셋 대신 외부로 위임. */
   onReplay?: () => void
+  /** 있으면 서버(/api/games/play)에서 확률 계산, 없으면(데모 모드) 클라이언트 로컬 추첨 */
+  eventId?: string
+  kakaoUserId?: string
 }
 
-export default function GameContainer({ onGameResult, onReplay }: Props = {}) {
+export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUserId }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>('start')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
@@ -55,7 +58,7 @@ export default function GameContainer({ onGameResult, onReplay }: Props = {}) {
 
       {phase === 'play' && (
         <div className="relative w-full h-full">
-          <PlayScreen onResult={handleResult} />
+          <PlayScreen onResult={handleResult} eventId={eventId} kakaoUserId={kakaoUserId} />
           {showOnboarding && (
             <OnboardingOverlay onSkip={handleSkipOnboarding} />
           )}

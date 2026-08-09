@@ -132,6 +132,8 @@ export default function PlayFlow({ storeId, event }: Props) {
   if (step === 'playing') {
     return (
       <GameContainer
+        eventId={event.id}
+        kakaoUserId={user?.kakao_user_id}
         onGameResult={handleGameResult}
         onReplay={() => {
           // "처음부터 다시 보기" → 로그인 화면으로 돌아가서 참여 재체크

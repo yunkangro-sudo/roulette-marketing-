@@ -1,0 +1,28 @@
+-- ============================================================
+-- 001. daily_participation_log RLS 비활성화
+-- 날짜: 2026-08-09
+-- 실행 위치: Supabase 대시보드 → SQL Editor
+-- 실행자: (집 컴퓨터 세션)
+-- ============================================================
+--
+-- 문제:
+--   test-user-1 / test-user-2 로그인 → 게임 플레이 시나리오를 재현 테스트한 결과,
+--   게임 완료 후 recordParticipation()이 daily_participation_log에 INSERT를 시도할 때
+--   아래 에러로 실패하고 있었음:
+--
+--     HTTP 401 { code: '42501', message: 'new row violates row-level security
+--     policy for table "daily_participation_log"' }
+--
+--   원인: docs/sql-setup.sql에는 "개발 단계 RLS 비활성화"라고 되어 있었지만,
+--   실제 DB에는 이 테이블의 RLS가 켜져 있었고 INSERT를 허용하는 정책이 없었음.
+--
+--   영향: PlayFlow.tsx의 handleGameResult()가 이 에러를 console.error로만 남기고
+--   사용자에게는 표시하지 않기 때문에, 겉으로는 게임이 정상 종료된 것처럼 보이지만
+--   실제로는 참여 기록이 저장되지 않아 "하루 1회 참여 제한"이 전혀 동작하지 않았음.
+--
+-- 조치: docs/sql-setup.sql이 원래 의도한 상태(RLS 비활성화)로 되돌림.
+--
+-- ⚠️ 배포(프로덕션) 전에는 반드시 RLS를 다시 활성화하고,
+--    적절한 INSERT/SELECT 정책으로 교체해야 한다 (docs/sql-setup.sql 상단 주석 참고).
+
+alter table daily_participation_log disable row level security;
