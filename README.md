@@ -86,9 +86,21 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] **확인 2**: "참고 문서 우선순위"가 `.cursorrules`(레거시 형식)에만 있고 `.cursor/rules/project-rules.mdc`(신형식)엔 없던 문제 발견 — `project-rules.mdc`로 이전하고, `.cursorrules`엔 이전 위치를 가리키는 안내만 남김 (두 곳에 중복 관리하면 드리프트 위험이 있어 한 곳으로 통일)
 - [x] **확인 3**: `git-workflow.mdc`는 이번 대화에서 만든 파일이 아니라, 오늘 오후 5:52 커밋(`82a9ad6`, "게임 코어 프로토타입 + Git 워크플로우 설정")에서 이미 생성된 파일 — 1단계 작업 세션에서 함께 만들어진 것으로 추정 (파일 내용에 회사 컴퓨터 경로가 남아있음)
 
+### 2026-08-11 (결제금액 실측 + 성과 리포트 + 에이전시 대시보드)
+- [x] **설계 변경**: 실결제금액 실측 기록 기능을 핵심 증명 수단으로 재분류 — 기존 Phase 3(후순위) → 6~7단계와 통합해 우선 구현
+- [x] `payment_logs` 테이블 신설 (coupon_id nullable, store_id, kakao_user_id, amount, recorded_at) — `docs/migrations/007_payment_logs_and_store_settings.sql`
+- [x] `store_settings` 테이블 신설 (월광고비, 평균객단가, 매장명) — SQL 동일 파일
+- [x] `POST /api/payments/record` — 계산대에서 결제금액 선택 기록
+- [x] `/staff` 화면 수정 — "사용 처리"/"확인함" 클릭 전 결제금액 선택 입력 단계 추가 (필수 아님, 건너뛰기 가능)
+- [x] `GET /api/admin/report` — 월별 퍼널 집계 API (광고비→참여자→발급→사용→재방문→추가매출→ROI)
+- [x] `/admin/report` 신설 — 사장님용 성과 리포트 화면 (실측/추정 배지 절대 생략 안 함)
+- [x] `GET /api/admin/dashboard` — 전체 매장 지표 집계 API
+- [x] `/admin/dashboard` 신설 — 에이전시용 다매장 비교 대시보드 (전체 평균 ROI 영업자료용 큰 숫자 표시)
+
 ### 다음 세션 예정
-- [ ] 6단계: 관리자 화면 (캠페인 관리, 쿠폰 현황, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI)
-- [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 실제 갱신하는 크론/스케줄 작업 — 지금은 의도적으로 생략, `getEffectiveStatus()`로 조회 시점에만 계산)
+- [ ] **Supabase SQL 실행 필요**: `docs/migrations/007_payment_logs_and_store_settings.sql` → Supabase 대시보드 SQL Editor에서 실행
+- [ ] 6단계: 관리자 CRUD 화면 (캠페인 등록/수정, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI, store_settings 편집)
+- [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 실제 갱신하는 크론/스케줄 작업)
 - [ ] 7단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
 ---
@@ -102,7 +114,8 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [ ] **쿠폰 만료 배치 미구현** — `valid_until`이 지난 쿠폰의 `status`가 실제로 `expired`로 바뀌지 않고, 조회 시점에 `lib/coupons/getEffectiveStatus.ts`가 판정해서 보여줌 (DB에는 계속 `issued`/`pending_verify` 등으로 남음). 규모가 커지면 배치를 추가하되, 그래도 조회 시점 판정 로직은 안전망으로 유지하는 게 안전
 - [ ] **당근 단골 추가 실제 연동 없음** — `VerificationCtaScreen`은 화면과 쿠폰 코드 표시만 하고, 실제 당근 비즈프로필 딥링크 연결과 클릭 로그(`damgeun_click_logs`)는 미구현
 - [ ] **동시 접속자 방어(트랜잭션 락) 없음** — `/api/games/play`의 재고 차감이 단순 조회→차감 흐름 (로컬 소규모 사용자 기준으로 의도적 생략, `docs/당근인형뽑기_게임설계도.md` 4.3절 참고)
-- [ ] **관리자 화면 전체 미구현** — 이벤트 등록/수정, 확률 자동계산 UI, 쿠폰 현황 대시보드 모두 아직 없음. 지금은 SQL로 직접 시드/조회
+- [ ] **관리자 CRUD 화면 미구현** — 이벤트 등록/수정, 확률 자동계산 UI, 쿠폰 현황 대시보드 아직 없음. `/admin/report`, `/admin/dashboard`는 조회 전용으로 구현됨 (store_settings.monthly_ad_budget 수정은 아직 SQL 직접)
+- [ ] **`store_settings.monthly_ad_budget`/`average_order_value` 수동 입력** — Supabase SQL로 직접 업데이트 필요. 관리자 편집 UI는 6단계에서 추가 예정
 - [ ] **테스트 이벤트 데이터가 하드코딩** — `test-store-001`/`test-event-001` 기준으로만 검증됨, 실제 매장 온보딩 플로우 없음
 
 ---

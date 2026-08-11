@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 interface CouponData {
   id: string
+  store_id: string
+  kakao_user_id: string
   amount: number
   status: 'issued' | 'pending_verify' | 'used' | 'expired' | 'unverified'
   requires_verification: boolean
@@ -34,6 +36,8 @@ function formatDateTime(iso: string) {
   return `${formatDate(iso)} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+type PendingAction = 'use' | 'verify-confirm'
+
 export default function StaffPage() {
   const [code, setCode] = useState('')
   const [coupon, setCoupon] = useState<CouponData | null>(null)
@@ -42,9 +46,12 @@ export default function StaffPage() {
   const [showReasonPicker, setShowReasonPicker] = useState(false)
   const [selectedReason, setSelectedReason] = useState<string>('')
 
+  // 결제금액 입력 단계
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [paymentAmountInput, setPaymentAmountInput] = useState('')
+
   // coupon.status는 /api/coupons/lookup이 getEffectiveStatus()로 계산해서 내려주는
-  // "실제 유효 상태"다 (lib/coupons/getEffectiveStatus.ts) — 만료 여부를 여기서
-  // 다시 계산하지 않고 서버 응답을 그대로 신뢰한다.
+  // "실제 유효 상태"다 — 만료 여부를 여기서 다시 계산하지 않고 서버 응답을 신뢰한다.
   async function lookup(target: string) {
     const res = await fetch(`/api/coupons/lookup?code=${encodeURIComponent(target)}`)
     const data = await res.json()
@@ -63,6 +70,8 @@ export default function StaffPage() {
     setLoading(true)
     setShowReasonPicker(false)
     setSelectedReason('')
+    setPendingAction(null)
+    setPaymentAmountInput('')
     try {
       await lookup(target)
     } catch {
@@ -72,20 +81,61 @@ export default function StaffPage() {
     }
   }
 
-  async function handleUse() {
-    if (!coupon) return
+  // 결제금액 입력 단계 진입
+  function requestPaymentInput(action: PendingAction) {
+    setPaymentAmountInput('')
+    setPendingAction(action)
+  }
+
+  // 결제금액 입력 후 실제 쿠폰 처리 실행
+  async function confirmAction(skipPayment = false) {
+    if (!coupon || !pendingAction) return
     setLoading(true)
+
     try {
-      const res = await fetch('/api/coupons/use', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupon_id: coupon.id }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? '처리에 실패했습니다')
-        return
+      // 결제금액 기록 (입력된 경우에만)
+      const amountNum = parseInt(paymentAmountInput.replace(/,/g, ''), 10)
+      if (!skipPayment && !isNaN(amountNum) && amountNum > 0) {
+        await fetch('/api/payments/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            coupon_id: coupon.id,
+            store_id: coupon.store_id,
+            kakao_user_id: coupon.kakao_user_id,
+            amount: amountNum,
+          }),
+        })
+        // 결제금액 기록 실패해도 쿠폰 처리는 계속 진행 (silent)
       }
+
+      // 쿠폰 상태 변경
+      if (pendingAction === 'use') {
+        const res = await fetch('/api/coupons/use', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coupon_id: coupon.id }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.error ?? '처리에 실패했습니다')
+          return
+        }
+      } else if (pendingAction === 'verify-confirm') {
+        const res = await fetch('/api/coupons/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coupon_id: coupon.id, action: 'confirm' }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.error ?? '처리에 실패했습니다')
+          return
+        }
+      }
+
+      setPendingAction(null)
+      setPaymentAmountInput('')
       await lookup(coupon.id)
     } catch {
       setError('네트워크 오류가 발생했습니다')
@@ -94,14 +144,14 @@ export default function StaffPage() {
     }
   }
 
-  async function handleVerify(action: 'confirm' | 'unverified', reason?: string) {
+  async function handleVerifyUnverified(reason: string) {
     if (!coupon) return
     setLoading(true)
     try {
       const res = await fetch('/api/coupons/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupon_id: coupon.id, action, reason }),
+        body: JSON.stringify({ coupon_id: coupon.id, action: 'unverified', reason }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -118,6 +168,61 @@ export default function StaffPage() {
     }
   }
 
+  // 결제금액 입력 패널
+  if (pendingAction) {
+    return (
+      <div className="min-h-screen bg-gray-100 px-4 py-10">
+        <div className="max-w-lg mx-auto">
+          <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900 mb-1">이번 방문 결제금액</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              선택 입력 — 미입력 시 쿠폰 처리만 진행합니다
+            </p>
+
+            <div className="flex gap-2 mb-2">
+              <input
+                type="number"
+                inputMode="numeric"
+                value={paymentAmountInput}
+                onChange={(e) => setPaymentAmountInput(e.target.value)}
+                placeholder="예) 25000"
+                className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-xl font-bold text-gray-900 focus:border-orange-500 focus:outline-none"
+              />
+              <span className="flex items-center text-xl text-gray-500 font-bold">원</span>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">
+              실측치로 기록되어 성과 리포트에 반영됩니다
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => confirmAction(false)}
+                disabled={loading}
+                className="w-full bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors"
+              >
+                {paymentAmountInput ? `${parseInt(paymentAmountInput || '0').toLocaleString()}원 기록 후 쿠폰 처리` : '금액 없이 쿠폰 처리'}
+              </button>
+              <button
+                onClick={() => confirmAction(true)}
+                disabled={loading}
+                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg text-base font-bold disabled:opacity-40 transition-colors"
+              >
+                건너뛰기 (기록 안 함)
+              </button>
+              <button
+                onClick={() => setPendingAction(null)}
+                disabled={loading}
+                className="text-center text-sm text-gray-400 hover:text-gray-600 py-2"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
       <div className="max-w-lg mx-auto">
@@ -127,9 +232,7 @@ export default function StaffPage() {
           <input
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleLookup()
-            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleLookup() }}
             placeholder="쿠폰 코드 입력"
             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 focus:border-orange-500 focus:outline-none"
           />
@@ -176,7 +279,7 @@ export default function StaffPage() {
               </div>
             ) : coupon.status === 'issued' ? (
               <button
-                onClick={handleUse}
+                onClick={() => requestPaymentInput('use')}
                 disabled={loading}
                 className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40"
               >
@@ -186,7 +289,7 @@ export default function StaffPage() {
               !showReasonPicker ? (
                 <div className="flex gap-3">
                   <button
-                    onClick={() => handleVerify('confirm')}
+                    onClick={() => requestPaymentInput('verify-confirm')}
                     disabled={loading}
                     className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40"
                   >
@@ -220,16 +323,13 @@ export default function StaffPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => {
-                        setShowReasonPicker(false)
-                        setSelectedReason('')
-                      }}
+                      onClick={() => { setShowReasonPicker(false); setSelectedReason('') }}
                       className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-bold"
                     >
                       취소
                     </button>
                     <button
-                      onClick={() => selectedReason && handleVerify('unverified', selectedReason)}
+                      onClick={() => selectedReason && handleVerifyUnverified(selectedReason)}
                       disabled={!selectedReason || loading}
                       className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-40"
                     >
