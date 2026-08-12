@@ -39,6 +39,8 @@ export default function NewEventPage() {
   const [dailyParticipants, setDailyParticipants] = useState<number | ''>('')
   const [validityType, setValidityType] = useState<'relative_days' | 'fixed_date'>('relative_days')
   const [validityValue, setValidityValue] = useState('14')
+  const [fixedValidityStart, setFixedValidityStart] = useState('')
+  const [fixedValidityEnd, setFixedValidityEnd] = useState('')
   const [tiers, setTiers] = useState<Tier[]>([
     { label: '꽝', amount: 0, total_quantity: '', requires_verification: false },
     { label: '1,000원 쿠폰', amount: 1000, total_quantity: '', requires_verification: false },
@@ -74,6 +76,13 @@ export default function NewEventPage() {
     if (!startDate || !endDate) { setError('노출 기간을 설정해주세요'); return }
     if (new Date(endDate) < new Date(startDate)) { setError('종료일이 시작일보다 빠릅니다'); return }
     if (!dailyParticipants || Number(dailyParticipants) <= 0) { setError('예상 참여자 수를 입력해주세요'); return }
+    if (validityType === 'relative_days' && (!validityValue || Number(validityValue) <= 0)) {
+      setError('쿠폰 사용 기간(일 수)을 입력해주세요'); return
+    }
+    if (validityType === 'fixed_date') {
+      if (!fixedValidityStart || !fixedValidityEnd) { setError('쿠폰 사용 기간의 시작일과 종료일을 모두 선택해주세요'); return }
+      if (new Date(fixedValidityEnd) < new Date(fixedValidityStart)) { setError('쿠폰 사용 종료일이 시작일보다 빠릅니다'); return }
+    }
     if (tiers.length === 0) { setError('경품 티어를 1개 이상 추가해주세요'); return }
     for (const t of tiers) {
       if (!t.label.trim()) { setError('모든 티어의 등급명을 입력해주세요'); return }
@@ -92,7 +101,9 @@ export default function NewEventPage() {
           display_end_date: endDate,
           expected_daily_participants: Number(dailyParticipants),
           coupon_validity_type: validityType,
-          coupon_validity_value: validityValue,
+          coupon_validity_value: validityType === 'fixed_date'
+            ? `${fixedValidityStart}~${fixedValidityEnd}`
+            : validityValue,
           tiers: tiers.map((t) => ({
             label: t.label,
             amount: Number(t.amount),
@@ -187,8 +198,35 @@ export default function NewEventPage() {
               <span className="text-gray-500 text-sm">일 이내 사용 가능</span>
             </div>
           ) : (
-            <input type="date" value={validityValue} onChange={(e) => setValidityValue(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500" />
+            <div className="space-y-2">
+              <div className="flex gap-3 items-center">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">쿠폰 사용 시작일</label>
+                  <input
+                    type="date"
+                    value={fixedValidityStart}
+                    onChange={(e) => setFixedValidityStart(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <span className="text-gray-400 mt-5 shrink-0">~</span>
+                <div className="flex-1">
+                  <label className="text-xs text-gray-500 mb-1 block">쿠폰 사용 종료일</label>
+                  <input
+                    type="date"
+                    value={fixedValidityEnd}
+                    min={fixedValidityStart}
+                    onChange={(e) => setFixedValidityEnd(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              {fixedValidityStart && fixedValidityEnd && (
+                <p className="text-xs text-orange-500">
+                  {fixedValidityStart} ~ {fixedValidityEnd} 기간에만 쿠폰 사용 가능
+                </p>
+              )}
+            </div>
           )}
         </div>
 
