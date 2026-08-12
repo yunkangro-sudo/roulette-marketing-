@@ -5,7 +5,7 @@ import { login, logout, type MockUser } from '@/lib/auth/mockLogin'
 import { checkAlreadyParticipated, recordParticipation } from '@/lib/game/participation'
 import MockLoginScreen from '@/components/play/MockLoginScreen'
 import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
-import GameContainer from '@/components/game/GameContainer'
+import GameContainer from '@/components/game/claw_machine/GameContainer'
 import type { PrizeResult } from '@/components/game/types'
 
 type Step = 'landing' | 'login' | 'checking' | 'already_participated' | 'playing'

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { PrizeResult } from './types'
+// VerificationCtaScreen은 공통 컴포넌트 — 특정 game_type에 종속되지 않음
 
 interface Props {
   result: PrizeResult

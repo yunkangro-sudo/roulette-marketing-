@@ -1,0 +1,53 @@
+---
+description: 게임 교체 및 온라인 확장을 위한 상시 설계 원칙
+alwaysApply: true
+---
+
+# 확장성 원칙 (모든 작업에 항상 적용)
+
+## 1. 게임 교체 용이성
+
+현재 게임(당근 인형뽑기, `claw_machine`)은 나중에 `gacha_capsule` 등으로 교체되거나 이벤트마다 선택 가능해질 수 있다.
+
+### 구조 규칙
+
+- **결과 결정 로직(서버/확률)** 과 **화면 연출(애니메이션/이미지)** 은 항상 분리한다.
+  - 서버 로직: `/api/games/play` — 절대 UI 의존 금지
+  - 클라이언트 연출: `/components/game/[game_type]/` 폴더 안에만 위치
+- 게임 컴포넌트 폴더 구조:
+  ```
+  /components/game/
+    claw_machine/   ← 현재 인형뽑기 전용 컴포넌트
+    gacha_capsule/  ← 나중에 추가 예정 (지금은 생성 금지)
+    types.ts        ← 공통 타입 (PrizeResult, CouponInfo 등)
+    ResultScreen.tsx ← 공통 결과 화면
+  ```
+
+### 네이밍 규칙
+
+- 코드 변수·함수명에 `carrot`, `doll` 같은 소재명을 하드코딩하지 않는다.
+  - ❌ `carrotGrabbed`, `dollImage`
+  - ✅ `characterGrabbed`, `gameCharacter`
+- 화면 문구("당근 인형뽑기" 등)는 컴포넌트에 하드코딩하지 말고 이벤트 데이터(`events.name`)에서 가져온다.
+- 캐릭터 이미지는 의미 기반 포즈명 사용: `grabbed`, `standing`, `win_big`, `win_small`, `lose`
+
+### DB 규칙
+
+- `events` 테이블에 `game_type text DEFAULT 'claw_machine'` 컬럼 유지.
+- 두 번째 게임 로직은 지금 만들지 않는다 — 컬럼과 폴더 구조만 준비.
+
+## 2. 온라인 확장 대비 (유지만 하면 됨 — 새로 만들 것 없음)
+
+이미 충족된 원칙들:
+
+- `activity_log.event_type`은 오프라인 행동에 국한하지 않는다 (`purchase`, `visit_checkin` 이미 예약됨)
+- 게임 이벤트(GAME_START/COMPLETE)와 비즈니스 행동(COUPON_USED/PURCHASE)은 분리된 테이블 유지
+- `point_ledger`, `reward_catalog`, `missions` 조건을 "방문"/"매장"에 하드코딩하지 않는다
+- 고객 식별(`kakao_user_id`)과 매장/채널 분리 유지
+- CRM 판단 로직과 발송 채널 분리 유지
+
+## 3. 금지 사항
+
+- `merchant` 테이블 또는 온라인 채널 관련 테이블/화면을 지금 만들지 않는다
+- 두 번째 게임(`gacha_capsule` 등)의 실제 로직을 지금 만들지 않는다
+- "확장 가능하게"라는 이유만으로 당장 쓰이지 않는 필드/테이블을 추가하지 않는다 (이 문서에 명시된 항목 외 사전 작업 금지)

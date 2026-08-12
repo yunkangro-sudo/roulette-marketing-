@@ -3,10 +3,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, useAnimation, AnimatePresence } from 'framer-motion'
 import { rollPrize, resolveTier } from './gameUtils'
-import type { PrizeResult } from './types'
+import type { PrizeResult } from '../types'
 
-// 진열장에 배치할 인형 (이후 실제 이미지로 교체 예정)
-const TOTAL_DOLLS = 9
+// 진열장에 배치할 캐릭터 (이후 실제 이미지로 교체 예정)
+const TOTAL_CHARACTERS = 9
 const CLAW_DROP_PX = 170 // 크레인 하강 거리(px)
 
 interface Props {
@@ -49,8 +49,8 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
   const [isAnimating, setIsAnimating] = useState(false)
   const [showFallback, setShowFallback] = useState(false)
   const [idleTick, setIdleTick] = useState(0) // 증가할 때마다 타이머 리셋
-  const [removedDolls, setRemovedDolls] = useState<Set<number>>(new Set())
-  const [grabbedDoll, setGrabbedDoll] = useState<boolean>(false)
+  const [removedCharacters, setRemovedCharacters] = useState<Set<number>>(new Set())
+  const [characterGrabbed, setCharacterGrabbed] = useState<boolean>(false)
   const clawControls = useAnimation()
 
   // 컨테이너 너비 계산 → drag constraints 설정
@@ -98,9 +98,9 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
       return
     }
 
-    // 잡을 인형 선택 (visible 중 랜덤)
-    const available = Array.from({ length: TOTAL_DOLLS }, (_, i) => i).filter(
-      (i) => !removedDolls.has(i)
+    // 집을 캐릭터 선택 (visible 중 랜덤)
+    const available = Array.from({ length: TOTAL_CHARACTERS }, (_, i) => i).filter(
+      (i) => !removedCharacters.has(i)
     )
     const pickedIdx =
       available.length > 0
@@ -113,9 +113,9 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
       transition: { duration: 0.55, ease: 'easeIn' },
     })
 
-    // 2. 집기 — 당첨이면 인형 표시
+    // 2. 집기 — 당첨이면 캐릭터 표시
     if (result.tier !== 'miss' && pickedIdx !== null) {
-      setGrabbedDoll(true)
+      setCharacterGrabbed(true)
     }
     await new Promise((r) => setTimeout(r, 280))
 
@@ -126,15 +126,15 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
     })
     await new Promise((r) => setTimeout(r, 120))
 
-    // 4. 배출 — 인형 제거
+    // 4. 배출 — 캐릭터 제거
     if (result.tier !== 'miss' && pickedIdx !== null) {
-      setRemovedDolls((prev) => new Set([...prev, pickedIdx]))
+      setRemovedCharacters((prev) => new Set([...prev, pickedIdx]))
     }
-    setGrabbedDoll(false)
+    setCharacterGrabbed(false)
 
     setIsAnimating(false)
     onResult(result)
-  }, [isAnimating, clawControls, removedDolls, onResult, eventId, kakaoUserId])
+  }, [isAnimating, clawControls, removedCharacters, onResult, eventId, kakaoUserId])
 
   const handleDragEnd = useCallback(() => {
     triggerDrop()
@@ -192,9 +192,9 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
               />
             </div>
 
-            {/* 집힌 인형 (당첨 시 상승 중 표시) */}
+            {/* 집힌 캐릭터 (당첨 시 상승 중 표시) */}
             <AnimatePresence>
-              {grabbedDoll && (
+              {characterGrabbed && (
                 <motion.div
                   key="grabbed"
                   initial={{ opacity: 0, scale: 0.5 }}
@@ -210,15 +210,15 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
         </motion.div>
       </div>
 
-      {/* 진열장 — 인형 그리드 */}
+      {/* 진열장 — 캐릭터 그리드 */}
       <div className="absolute bottom-20 left-0 right-0 px-5">
         <div className="border border-gray-700 rounded-2xl p-4 bg-gray-800/60">
           <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: TOTAL_DOLLS }, (_, i) => (
+            {Array.from({ length: TOTAL_CHARACTERS }, (_, i) => (
               <motion.div
                 key={i}
                 animate={
-                  removedDolls.has(i)
+                  removedCharacters.has(i)
                     ? { opacity: 0, scale: 0 }
                     : { opacity: 1, scale: 1 }
                 }

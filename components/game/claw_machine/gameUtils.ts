@@ -1,4 +1,4 @@
-import type { PrizeResult, PrizeTier } from './types'
+import type { PrizeResult, PrizeTier } from '../types'
 
 /** 서버 응답(amount, requiresVerification)으로 화면 표시용 tier를 판단 */
 export function resolveTier(amount: number, requiresVerification: boolean): PrizeTier {

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import type { GamePhase, PrizeResult } from './types'
+import type { GamePhase, PrizeResult } from '../types'
 import StartScreen from './StartScreen'
 import OnboardingOverlay from './OnboardingOverlay'
 import PlayScreen from './PlayScreen'
-import ResultScreen from './ResultScreen'
-import VerificationCtaScreen from './VerificationCtaScreen'
+import ResultScreen from '../ResultScreen'
+import VerificationCtaScreen from '../VerificationCtaScreen'
 
 const ONBOARDING_KEY = 'game_onboarding_seen'
 
