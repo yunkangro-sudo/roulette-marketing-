@@ -29,11 +29,12 @@ export async function GET(req: Request) {
       reward_catalog (name, point_cost)
     `)
 
-  if (code.length === 8) {
-    query = query.eq('short_code', code)
-  } else {
-    query = query.eq('id', code)
-  }
+         // short_code(6자리) 또는 id(UUID) 모두 허용 (하위 호환)
+         if (code.length <= 8) {
+           query = query.eq('short_code', code)
+         } else {
+           query = query.eq('id', code)
+         }
 
   const { data, error } = await query.maybeSingle()
 

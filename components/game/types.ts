@@ -4,6 +4,7 @@ export type PrizeTier = 'miss' | 'small' | 'big'
 
 export interface CouponInfo {
   id: string
+  shortCode?: string      // 직원에게 보여줄 6자리 코드
   status: 'issued' | 'pending_verify'
   issuedAt: string
   validUntil: string

@@ -262,14 +262,14 @@ export default function StaffClient({ storeId, role }: Props) {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4 text-xs text-blue-700">
-            손님 앱에 표시된 <strong>8자리 코드</strong>를 입력하세요 (예: AB3K7PQR)
+            손님 화면에 표시된 <strong>6자리 코드</strong>를 입력하세요 (예: AB3K7P)
           </div>
 
           <div className="flex gap-2 mb-5">
             <input value={rewardCode} onChange={(e) => setRewardCode(e.target.value.toUpperCase())}
               onKeyDown={(e) => { if (e.key === 'Enter') handleRewardLookup() }}
-              placeholder="8자리 리워드 코드" maxLength={8}
-              className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 font-mono tracking-widest focus:border-orange-500 focus:outline-none" />
+            placeholder="6자리 리워드 코드" maxLength={6}
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 font-mono tracking-widest focus:border-orange-500 focus:outline-none" />
             <button onClick={handleRewardLookup} disabled={rewardLoading}
               className="bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-bold disabled:opacity-40">조회</button>
           </div>
@@ -320,13 +320,13 @@ export default function StaffClient({ storeId, role }: Props) {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4 text-xs text-blue-700">
-          손님 앱에 표시된 <strong>8자리 코드</strong>를 입력하세요 (예: AB3K7PQR)
+            손님 화면에 표시된 <strong>6자리 코드</strong>를 입력하세요 (예: AB3K7P)
         </div>
 
         <div className="flex gap-2 mb-5">
           <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
             onKeyDown={(e) => { if (e.key === 'Enter') handleLookup() }}
-            placeholder="8자리 쿠폰 코드" maxLength={8}
+            placeholder="6자리 쿠폰 코드" maxLength={6}
             className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 font-mono tracking-widest focus:border-orange-500 focus:outline-none" />
           <button onClick={handleLookup} disabled={loading}
             className="bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-bold disabled:opacity-40">조회</button>

@@ -162,7 +162,7 @@ export async function POST(request: Request) {
       issued_at: issuedAt.toISOString(),
       valid_until: validUntil.toISOString(),
     })
-    .select('id, status, issued_at, valid_until')
+    .select('id, short_code, status, issued_at, valid_until')
     .single()
 
   if (couponError) {
@@ -181,6 +181,7 @@ export async function POST(request: Request) {
     requiresVerification: finalTier.requires_verification,
     coupon: {
       id: coupon.id,
+      shortCode: coupon.short_code ?? undefined,
       status: coupon.status,
       issuedAt: coupon.issued_at,
       validUntil: coupon.valid_until,

@@ -63,11 +63,14 @@ export default function ResultScreen({ result, onReplay, onVerificationCta }: Pr
         )}
 
         {result.coupon && (
-          <div className="mt-4 bg-black/20 rounded-xl p-3 text-left">
-            <p className="text-white/70 text-xs">쿠폰 코드</p>
-            <p className="text-white font-mono text-xs break-all mt-0.5">{result.coupon.id}</p>
-            <p className="text-white/70 text-xs mt-2">
-              사용기간: {formatDate(result.coupon.issuedAt)} ~ {formatDate(result.coupon.validUntil)}
+          <div className="mt-4 bg-black/20 rounded-xl p-4 text-center">
+            {/* 6자리 인증 코드 — 직원에게 보여줄 코드 */}
+            <p className="text-white/60 text-xs mb-1">직원에게 보여주세요</p>
+            <p className="text-white font-mono font-black text-4xl tracking-[0.2em] mb-3">
+              {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+            </p>
+            <p className="text-white/50 text-xs">
+              사용기간 ~{formatDate(result.coupon.validUntil)}
             </p>
             {isBig && (
               <p className="text-white/90 text-sm font-semibold mt-2 pt-2 border-t border-white/10">
