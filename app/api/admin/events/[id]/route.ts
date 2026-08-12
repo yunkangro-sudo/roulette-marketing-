@@ -46,8 +46,8 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const supabase = createServerClient()
 
-  // 기존 이벤트 조회 (권한 확인용)
-  const { data: existing } = await supabase.from('events').select('store_id').eq('id', id).single()
+  // 기존 이벤트 조회 (권한 확인 + 상태 이력용)
+  const { data: existing } = await supabase.from('events').select('store_id, status').eq('id', id).single()
   if (!existing) return NextResponse.json({ error: '이벤트를 찾을 수 없습니다' }, { status: 404 })
 
   const allowedStoreId = getAllowedStoreId(session.account)
@@ -76,6 +76,17 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const { data, error } = await supabase.from('events').update(updateData).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: '수정 실패: ' + error.message }, { status: 500 })
+
+  // 상태가 변경된 경우 이력 기록
+  if (status !== undefined && status !== existing.status) {
+    await supabase.from('event_status_changes').insert({
+      event_id: id,
+      store_id: existing.store_id,
+      changed_by: session.account.id,
+      previous_status: existing.status,
+      new_status: status,
+    })
+  }
 
   return NextResponse.json({ ok: true, event: data })
 }

@@ -29,7 +29,10 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
             <Link href="/admin/events" className="hover:text-orange-500 transition-colors">이벤트 관리</Link>
             <Link href="/admin/report" className="hover:text-orange-500 transition-colors">성과 리포트</Link>
             {(account.role === 'super_admin' || account.role === 'agency') && (
-              <Link href="/admin/dashboard" className="hover:text-orange-500 transition-colors">전체 대시보드</Link>
+              <>
+                <Link href="/admin/dashboard" className="hover:text-orange-500 transition-colors">전체 대시보드</Link>
+                <Link href="/admin/companies" className="hover:text-orange-500 transition-colors">업체 리스트</Link>
+              </>
             )}
           </div>
         </div>

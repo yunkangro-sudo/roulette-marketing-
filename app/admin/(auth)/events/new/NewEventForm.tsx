@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { AdminRole } from '@/lib/admin/session'
 
 interface Tier {
@@ -16,7 +16,11 @@ interface Props {
   storeId: string | null  // advertiser: 고정값, super_admin/agency: null → 직접 입력
 }
 
-const DEFAULT_TIER: Tier = { label: '', amount: '', total_quantity: '', requires_verification: false }
+const DEFAULT_TIERS: Tier[] = [
+  { label: '꽝', amount: 0, total_quantity: '', requires_verification: false },
+  { label: '1,000원 쿠폰', amount: 1000, total_quantity: '', requires_verification: false },
+  { label: '10,000원 쿠폰', amount: 10000, total_quantity: '', requires_verification: true },
+]
 
 function calcProbabilities(tiers: Tier[], dailyParticipants: number, startDate: string, endDate: string): number[] {
   if (!startDate || !endDate || dailyParticipants <= 0) return tiers.map(() => 0)
@@ -36,11 +40,20 @@ function calcProbabilities(tiers: Tier[], dailyParticipants: number, startDate: 
 
 export default function NewEventForm({ role, storeId }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const needsStoreInput = !storeId  // super_admin, agency는 직접 입력
+  // 복사된 데이터가 있으면 초기값으로 사용
+  const copyData = (() => {
+    try {
+      const raw = searchParams.get('copy')
+      return raw ? JSON.parse(decodeURIComponent(raw)) : null
+    } catch { return null }
+  })()
+
+  const needsStoreInput = !storeId
   const [inputStoreId, setInputStoreId] = useState('')
 
-  const [name, setName] = useState('')
+  const [name, setName] = useState(copyData?.name ?? '')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [dailyParticipants, setDailyParticipants] = useState<number | ''>('')
@@ -48,11 +61,16 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [validityValue, setValidityValue] = useState('14')
   const [fixedValidityStart, setFixedValidityStart] = useState('')
   const [fixedValidityEnd, setFixedValidityEnd] = useState('')
-  const [tiers, setTiers] = useState<Tier[]>([
-    { label: '꽝', amount: 0, total_quantity: '', requires_verification: false },
-    { label: '1,000원 쿠폰', amount: 1000, total_quantity: '', requires_verification: false },
-    { label: '10,000원 쿠폰', amount: 10000, total_quantity: '', requires_verification: true },
-  ])
+  const [tiers, setTiers] = useState<Tier[]>(
+    copyData?.tiers?.length
+      ? copyData.tiers.map((t: Omit<Tier, 'amount'> & { amount: number }) => ({
+          label: t.label,
+          amount: t.amount,
+          total_quantity: t.total_quantity,
+          requires_verification: t.requires_verification,
+        }))
+      : DEFAULT_TIERS
+  )
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -137,6 +155,13 @@ export default function NewEventForm({ role, storeId }: Props) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 복사 안내 배너 */}
+        {copyData && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-lg px-4 py-3 text-sm">
+            📋 이벤트를 복사했습니다. 날짜와 예상 참여자 수를 새로 입력하면 확률이 자동 계산됩니다.
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm font-medium">
             {error}
