@@ -14,6 +14,14 @@ interface PrizeTier {
   requires_verification: boolean
 }
 
+interface HistoryEntry {
+  id: string
+  previous_quantity: number
+  new_quantity: number
+  changed_at: string
+  store_accounts: { email: string; role: string } | null
+}
+
 interface Event {
   id: string
   store_id: string
@@ -59,6 +67,69 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
+
+  // 티어 수량 증가 상태
+  const [addQtyMap, setAddQtyMap] = useState<Record<string, number>>({})
+  const [tierLoading, setTierLoading] = useState<Record<string, boolean>>({})
+  const [tierError, setTierError] = useState<Record<string, string>>({})
+  const [tierSuccess, setTierSuccess] = useState<Record<string, string>>({})
+
+  // 변경 이력
+  const [historyMap, setHistoryMap] = useState<Record<string, HistoryEntry[]>>({})
+  const [historyOpen, setHistoryOpen] = useState<Record<string, boolean>>({})
+  const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({})
+
+  const isActive = event.status === 'active'
+
+  async function handleAddQuantity(tier: PrizeTier) {
+    const add = addQtyMap[tier.id]
+    if (!add || add <= 0) {
+      setTierError((p) => ({ ...p, [tier.id]: '추가할 수량을 1 이상 입력해주세요' }))
+      return
+    }
+    setTierError((p) => ({ ...p, [tier.id]: '' }))
+    setTierSuccess((p) => ({ ...p, [tier.id]: '' }))
+    setTierLoading((p) => ({ ...p, [tier.id]: true }))
+    try {
+      const res = await fetch(`/api/admin/prize-tiers/${tier.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ add_quantity: add }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setTierError((p) => ({ ...p, [tier.id]: data.error ?? '수량 변경 실패' }))
+        return
+      }
+      setTierSuccess((p) => ({
+        ...p,
+        [tier.id]: `+${add}개 추가 완료 (총 ${data.new_total}개 / 잔여 ${data.new_remaining}개)`,
+      }))
+      setAddQtyMap((p) => ({ ...p, [tier.id]: 0 }))
+      router.refresh()
+    } catch {
+      setTierError((p) => ({ ...p, [tier.id]: '네트워크 오류' }))
+    } finally {
+      setTierLoading((p) => ({ ...p, [tier.id]: false }))
+    }
+  }
+
+  async function toggleHistory(tierId: string) {
+    const isOpen = historyOpen[tierId]
+    setHistoryOpen((p) => ({ ...p, [tierId]: !isOpen }))
+    if (!isOpen && !historyMap[tierId]) {
+      setHistoryLoading((p) => ({ ...p, [tierId]: true }))
+      try {
+        const res = await fetch(`/api/admin/prize-tiers/${tierId}/history`)
+        const data = await res.json()
+        setHistoryMap((p) => ({ ...p, [tierId]: data.history ?? [] }))
+      } catch {
+        setHistoryMap((p) => ({ ...p, [tierId]: [] }))
+      } finally {
+        setHistoryLoading((p) => ({ ...p, [tierId]: false }))
+      }
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -250,13 +321,26 @@ export default function EditEventForm({ event }: { event: Event }) {
         </button>
       </form>
 
-      {/* 경품 티어 (읽기 전용) */}
+      {/* 경품 티어 */}
       <div className="mt-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-3">경품 티어 현황</h2>
-        <div className="space-y-2">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-bold text-gray-900">경품 티어 현황</h2>
+          {isActive && (
+            <span className="text-xs text-green-600 font-medium">수량 추가 가능</span>
+          )}
+        </div>
+
+        {/* 확률 고정 안내 */}
+        <p className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-4">
+          확률은 이벤트 시작 시 고정되며, 수량 증가는 확률에 영향을 주지 않습니다.
+          {!isActive && ' 수량 변경은 진행 중(active) 이벤트에서만 가능합니다.'}
+        </p>
+
+        <div className="space-y-3">
           {event.prize_tiers?.map((tier) => (
             <div key={tier.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
-              <div className="flex items-center justify-between">
+              {/* 티어 기본 정보 */}
+              <div className="flex items-center justify-between mb-3">
                 <div>
                   <span className="font-semibold text-gray-900">{tier.label}</span>
                   {tier.amount > 0 && (
@@ -268,15 +352,100 @@ export default function EditEventForm({ event }: { event: Event }) {
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-black text-orange-500">{tier.computed_probability.toFixed(1)}%</p>
-                  <p className="text-xs text-gray-400">
-                    잔여 {tier.remaining_quantity} / 총 {tier.total_quantity}개
-                  </p>
+                  <p className="text-xs text-gray-400">잔여 {tier.remaining_quantity} / 총 {tier.total_quantity}개</p>
                 </div>
               </div>
+
+              {/* 수량 추가 입력 (active일 때만) */}
+              {isActive && (
+                <div className="border-t border-gray-100 pt-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 shrink-0">추가 수량</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={addQtyMap[tier.id] || ''}
+                      onChange={(e) => setAddQtyMap((p) => ({
+                        ...p,
+                        [tier.id]: e.target.value ? Math.max(1, parseInt(e.target.value)) : 0,
+                      }))}
+                      placeholder="예: 50"
+                      className="w-24 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-orange-500"
+                    />
+                    <span className="text-xs text-gray-400">개</span>
+                    <button
+                      type="button"
+                      onClick={() => handleAddQuantity(tier)}
+                      disabled={tierLoading[tier.id] || !addQtyMap[tier.id]}
+                      className="text-xs bg-orange-500 hover:bg-orange-400 text-white font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                    >
+                      {tierLoading[tier.id] ? '처리 중...' : '추가'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleHistory(tier.id)}
+                      className="text-xs text-gray-400 hover:text-gray-600 ml-auto"
+                    >
+                      변경 이력 {historyOpen[tier.id] ? '▲' : '▼'}
+                    </button>
+                  </div>
+                  {tierError[tier.id] && (
+                    <p className="text-xs text-red-500 mt-1">{tierError[tier.id]}</p>
+                  )}
+                  {tierSuccess[tier.id] && (
+                    <p className="text-xs text-green-600 mt-1">{tierSuccess[tier.id]}</p>
+                  )}
+                </div>
+              )}
+
+              {/* 변경 이력 (비active도 열람 가능) */}
+              {!isActive && (
+                <div className="border-t border-gray-100 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleHistory(tier.id)}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    변경 이력 보기 {historyOpen[tier.id] ? '▲' : '▼'}
+                  </button>
+                </div>
+              )}
+
+              {/* 이력 목록 */}
+              {historyOpen[tier.id] && (
+                <div className="mt-3 border-t border-gray-100 pt-3">
+                  {historyLoading[tier.id] ? (
+                    <p className="text-xs text-gray-400">로딩 중...</p>
+                  ) : (historyMap[tier.id]?.length ?? 0) === 0 ? (
+                    <p className="text-xs text-gray-400">변경 이력이 없습니다</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {historyMap[tier.id].map((h) => (
+                        <div key={h.id} className="flex items-center justify-between text-xs">
+                          <div className="text-gray-500">
+                            <span className="font-medium text-gray-700">{h.store_accounts?.email ?? '알 수 없음'}</span>
+                            <span className="ml-2">{new Date(h.changed_at).toLocaleString('ko-KR')}</span>
+                          </div>
+                          <div className="text-gray-700 font-medium">
+                            {h.previous_quantity}개 →{' '}
+                            <span className="text-green-600">{h.new_quantity}개</span>
+                            <span className="text-gray-400 ml-1">(+{h.new_quantity - h.previous_quantity})</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-2">※ 경품 티어 수량 변경은 현재 지원되지 않습니다. 이벤트를 종료하고 새로 등록해주세요.</p>
+
+        {/* 티어 변경 불가 안내 */}
+        <p className="text-xs text-gray-400 mt-3">
+          ※ 티어 삭제, 추가, 금액 변경은 지원되지 않습니다.
+          이런 변경이 필요하면 이 이벤트를 종료하고 새 이벤트를 만들어주세요.
+        </p>
       </div>
     </div>
   )
