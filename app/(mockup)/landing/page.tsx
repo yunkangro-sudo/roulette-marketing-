@@ -29,7 +29,6 @@ function Navbar() {
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm" style={{ color: 'rgba(20,21,26,0.6)' }}>
           <a href="#features" className="hover:text-[#14151A] transition-colors">서비스 소개</a>
-          <a href="#pricing" className="hover:text-[#14151A] transition-colors">요금제</a>
           <a href="#faq" className="hover:text-[#14151A] transition-colors">FAQ</a>
         </div>
         <div className="flex items-center gap-3">
@@ -1558,7 +1557,7 @@ export default function LandingPage() {
       <DanggeunSection />
       <KakaoSection />
       <DashboardSection />
-      <PricingSection />
+      {/* <PricingSection /> */}
       <IndustrySection />
       <FaqSection />
       <CtaBanner />
