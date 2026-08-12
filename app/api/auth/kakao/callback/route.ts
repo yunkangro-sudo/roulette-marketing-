@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   // state에서 storeId 파싱
   const storeId = state.startsWith('storeId:') ? state.slice('storeId:'.length) : ''
 
-  const appUrl     = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
 
   try {

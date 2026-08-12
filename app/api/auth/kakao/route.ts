@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const appUrl     = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  // .trim()으로 Vercel 환경변수 복사 시 들어올 수 있는 공백/개행 제거
+  const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
 
   // state: "storeId:[매장ID]" — 콜백에서 파싱
