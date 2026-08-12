@@ -112,9 +112,10 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `/admin/report`, `/admin/dashboard` → `/admin/(auth)/` 그룹으로 이동 (로그인 없이 접근 차단)
 
 ### 다음 세션 예정
-- [ ] **Supabase SQL 실행 필요**: `008_store_accounts.sql` + `007_payment_logs_and_store_settings.sql`
-- [ ] **첫 관리자 계정 생성**: `POST /api/admin/auth/setup` 호출 (Supabase SQL 실행 후)
-- [ ] 8단계: 포인트 시스템 (point_ledger, reward_catalog)
+- [x] **Supabase SQL 실행 완료**: `008_store_accounts.sql` + `007_payment_logs_and_store_settings.sql`
+- [x] **첫 관리자 계정 생성 완료**: `123@daum.net` / super_admin (Vercel 환경변수 등록 + 로그인 확인)
+- [x] **사용 메뉴얼 초안 작성**: `docs/ADMIN_MANUAL.md` (관리자·직원·에이전시용)
+- [ ] 9단계: 포인트 시스템 (point_ledger, reward_catalog)
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신)
 - [ ] 7단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
