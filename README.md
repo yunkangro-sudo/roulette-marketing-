@@ -115,9 +115,32 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] **Supabase SQL 실행 완료**: `008_store_accounts.sql` + `007_payment_logs_and_store_settings.sql`
 - [x] **첫 관리자 계정 생성 완료**: `123@daum.net` / super_admin (Vercel 환경변수 등록 + 로그인 확인)
 - [x] **사용 메뉴얼 초안 작성**: `docs/ADMIN_MANUAL.md` (관리자·직원·에이전시용)
-- [ ] 9단계: 포인트 시스템 (point_ledger, reward_catalog)
+
+### 2026-08-12 오전 (8단계: 포인트 적립/리워드 시스템)
+- [x] `docs/migrations/012_points_system.sql` — 5개 테이블 + RPC 2개 (Supabase SQL Editor 실행 필요)
+  - `customer_loyalty` (store_id+kakao_user_id 복합PK, point_balance, visit_count)
+  - `point_ledger` (earn/redeem 내역)
+  - `loyalty_settings` (매장별 적립 정책)
+  - `reward_catalog` (리워드 목록)
+  - `rewards_issued` (발급된 리워드, status: issued/used/expired)
+  - RPC `upsert_customer_loyalty` — 포인트 적립 + 방문횟수 원자 증가
+  - RPC `redeem_points_atomic` — 포인트 교환 원자 처리 (이중 차감 방지)
+- [x] `/api/games/play` 수정 — 게임 완료 시 포인트 자동 적립 (꽝 포함 무조건)
+- [x] `GET /api/me/points` — 손님용 포인트 잔액 + 카탈로그 + 내역 조회
+- [x] `POST /api/me/points/redeem` — 리워드 교환 (RPC 원자 처리)
+- [x] `/me/points` — 손님용 포인트 웹뷰 (잔액, 교환하기, 내역)
+- [x] `GET/POST /api/admin/loyalty-settings` — 포인트 정책 API
+- [x] `/admin/loyalty-settings` — 관리자 포인트 정책 설정 화면
+- [x] `GET/POST /api/admin/reward-catalog`, `PATCH /api/admin/reward-catalog/[id]` — 리워드 관리 API
+- [x] `/admin/reward-catalog` — 관리자 리워드 등록/수정/활성화 화면
+- [x] `GET /api/rewards/lookup`, `POST /api/rewards/use` — 계산대 리워드 조회/사용처리 API
+- [x] `/staff` 화면 — 쿠폰/리워드 탭 전환 UI 추가
+
+### 다음 예정
+- [ ] **Supabase SQL 실행 필요**: `012_points_system.sql` (Supabase Dashboard > SQL Editor)
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신)
-- [ ] 7단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
+- [ ] 9단계: 미션 시스템 (v2.1 6절 전제조건: 8단계 완료 후 진행)
+- [ ] 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
 ---
 
