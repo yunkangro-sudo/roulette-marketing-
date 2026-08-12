@@ -81,6 +81,38 @@ export async function POST(request: Request) {
     }
   }
 
+  // ── 포인트 적립 (꽝 포함 무조건 적립) ──────────────────────────
+  try {
+    const { data: loyaltySettings } = await supabase
+      .from('loyalty_settings')
+      .select('point_per_visit')
+      .eq('store_id', event.store_id)
+      .maybeSingle()
+
+    const pointsToAdd = loyaltySettings?.point_per_visit ?? 0
+
+    if (pointsToAdd > 0) {
+      // customer_loyalty upsert (복합 PK: store_id + kakao_user_id)
+      await supabase.rpc('upsert_customer_loyalty', {
+        p_store_id: event.store_id,
+        p_kakao_user_id: kakaoUserId,
+        p_points: pointsToAdd,
+      })
+
+      // point_ledger earn 기록
+      await supabase.from('point_ledger').insert({
+        store_id: event.store_id,
+        kakao_user_id: kakaoUserId,
+        type: 'earn',
+        amount: pointsToAdd,
+      })
+    }
+  } catch (err) {
+    // 포인트 적립 실패는 게임 결과에 영향 없음 (로그만)
+    console.error('[api/games/play] 포인트 적립 실패:', err)
+  }
+  // ─────────────────────────────────────────────────────────────
+
   // 꽝이면 쿠폰을 발급하지 않는다
   if (finalTier.amount <= 0) {
     return NextResponse.json({

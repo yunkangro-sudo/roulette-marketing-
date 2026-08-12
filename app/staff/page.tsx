@@ -2,6 +2,16 @@
 
 import { useState } from 'react'
 
+interface RewardIssuedData {
+  id: string
+  store_id: string
+  kakao_user_id: string
+  status: 'issued' | 'used' | 'expired'
+  issued_at: string
+  used_at: string | null
+  reward_catalog: { name: string; point_cost: number }
+}
+
 interface CouponData {
   id: string
   store_id: string
@@ -37,8 +47,10 @@ function formatDateTime(iso: string) {
 }
 
 type PendingAction = 'use' | 'verify-confirm'
+type StaffTab = 'coupon' | 'reward'
 
 export default function StaffPage() {
+  const [tab, setTab] = useState<StaffTab>('coupon')
   const [code, setCode] = useState('')
   const [coupon, setCoupon] = useState<CouponData | null>(null)
   const [error, setError] = useState('')
@@ -49,6 +61,13 @@ export default function StaffPage() {
   // 결제금액 입력 단계
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [paymentAmountInput, setPaymentAmountInput] = useState('')
+
+  // 리워드 탭
+  const [rewardCode, setRewardCode] = useState('')
+  const [rewardData, setRewardData] = useState<RewardIssuedData | null>(null)
+  const [rewardError, setRewardError] = useState('')
+  const [rewardLoading, setRewardLoading] = useState(false)
+  const [rewardSuccess, setRewardSuccess] = useState('')
 
   // coupon.status는 /api/coupons/lookup이 getEffectiveStatus()로 계산해서 내려주는
   // "실제 유효 상태"다 — 만료 여부를 여기서 다시 계산하지 않고 서버 응답을 신뢰한다.
@@ -144,6 +163,52 @@ export default function StaffPage() {
     }
   }
 
+  async function handleRewardLookup() {
+    const target = rewardCode.trim()
+    if (!target) return
+    setRewardLoading(true)
+    setRewardError('')
+    setRewardSuccess('')
+    setRewardData(null)
+    try {
+      const res = await fetch(`/api/rewards/lookup?code=${encodeURIComponent(target)}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setRewardError(data.error ?? '조회에 실패했습니다')
+      } else {
+        setRewardData(data.reward)
+      }
+    } catch {
+      setRewardError('네트워크 오류가 발생했습니다')
+    } finally {
+      setRewardLoading(false)
+    }
+  }
+
+  async function handleRewardUse() {
+    if (!rewardData) return
+    setRewardLoading(true)
+    setRewardError('')
+    try {
+      const res = await fetch('/api/rewards/use', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reward_issued_id: rewardData.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setRewardError(data.error ?? '처리 실패')
+      } else {
+        setRewardSuccess('✅ 리워드 사용 처리 완료!')
+        setRewardData({ ...rewardData, status: 'used' })
+      }
+    } catch {
+      setRewardError('네트워크 오류가 발생했습니다')
+    } finally {
+      setRewardLoading(false)
+    }
+  }
+
   async function handleVerifyUnverified(reason: string) {
     if (!coupon) return
     setLoading(true)
@@ -223,10 +288,99 @@ export default function StaffPage() {
     )
   }
 
+  // 리워드 탭 렌더
+  if (tab === 'reward') {
+    return (
+      <div className="min-h-screen bg-gray-100 px-4 py-10">
+        <div className="max-w-lg mx-auto">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">계산대 (리워드 처리)</h1>
+
+          {/* 탭 전환 */}
+          <div className="flex gap-2 mb-6">
+            <button onClick={() => setTab('coupon')} className="flex-1 py-2 rounded-lg text-sm font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">쿠폰 코드</button>
+            <button className="flex-1 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white">리워드 코드</button>
+          </div>
+
+          <div className="flex gap-2 mb-5">
+            <input
+              value={rewardCode}
+              onChange={(e) => setRewardCode(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleRewardLookup() }}
+              placeholder="리워드 코드 입력"
+              className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 focus:border-orange-500 focus:outline-none"
+            />
+            <button
+              onClick={handleRewardLookup}
+              disabled={rewardLoading}
+              className="bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-bold disabled:opacity-40"
+            >
+              조회
+            </button>
+          </div>
+
+          {rewardError && (
+            <div className="bg-red-50 border-2 border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-base font-semibold">
+              {rewardError}
+            </div>
+          )}
+          {rewardSuccess && (
+            <div className="bg-green-50 border-2 border-green-200 text-green-700 rounded-lg px-4 py-3 mb-5 text-base font-semibold">
+              {rewardSuccess}
+            </div>
+          )}
+
+          {rewardData && (
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
+              <div className="grid grid-cols-2 gap-y-3 text-base mb-5">
+                <span className="text-gray-500">리워드명</span>
+                <span className="font-bold text-gray-900 text-right">{rewardData.reward_catalog.name}</span>
+
+                <span className="text-gray-500">사용 포인트</span>
+                <span className="font-bold text-orange-500 text-right">{rewardData.reward_catalog.point_cost}P</span>
+
+                <span className="text-gray-500">발급일시</span>
+                <span className="text-gray-900 text-right">{formatDateTime(rewardData.issued_at)}</span>
+
+                <span className="text-gray-500">현재 상태</span>
+                <span className={`font-bold text-right ${
+                  rewardData.status === 'issued' ? 'text-green-600' :
+                  rewardData.status === 'used' ? 'text-gray-400' : 'text-red-500'
+                }`}>
+                  {rewardData.status === 'issued' ? '사용 가능' :
+                   rewardData.status === 'used' ? '사용 완료' : '만료'}
+                </span>
+              </div>
+
+              {rewardData.status === 'issued' ? (
+                <button
+                  onClick={handleRewardUse}
+                  disabled={rewardLoading}
+                  className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors"
+                >
+                  리워드 사용 처리
+                </button>
+              ) : (
+                <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center text-lg font-bold">
+                  {rewardData.status === 'used' ? '이미 사용된 리워드입니다' : '만료된 리워드입니다'}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
       <div className="max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">쿠폰 검증 (계산대용)</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">계산대 (쿠폰 처리)</h1>
+
+        {/* 탭 전환 */}
+        <div className="flex gap-2 mb-6">
+          <button className="flex-1 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white">쿠폰 코드</button>
+          <button onClick={() => setTab('reward')} className="flex-1 py-2 rounded-lg text-sm font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">리워드 코드</button>
+        </div>
 
         <div className="flex gap-2 mb-5">
           <input
