@@ -52,11 +52,14 @@ function FunnelRow({ step, label, value, sub, badge, highlight }: {
 
 const now = new Date()
 
-export default function ReportClient({ role }: { role: AdminRole }) {
+interface ReportClientProps { role: AdminRole; storeId?: string | null }
+
+export default function ReportClient({ role, storeId }: ReportClientProps) {
   const [stores, setStores] = useState<Store[]>([])
   const [filteredStores, setFilteredStores] = useState<Store[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedStore, setSelectedStore] = useState('')
+  // advertiser: 세션 storeId 자동 선택, 그 외: 빈 상태로 시작
+  const [selectedStore, setSelectedStore] = useState(role === 'advertiser' && storeId ? storeId : '')
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [data, setData] = useState<FunnelData | null>(null)
@@ -67,16 +70,16 @@ export default function ReportClient({ role }: { role: AdminRole }) {
   const canSearchStores = role === 'super_admin' || role === 'agency'
 
   useEffect(() => {
+    if (role === 'advertiser') return // advertiser는 자기 매장 고정
     fetch('/api/admin/stores')
       .then((r) => r.json())
       .then((json) => {
         const list: Store[] = json.stores ?? []
         setStores(list)
         setFilteredStores(list)
-        if (list.length > 0) setSelectedStore(list[0].store_id)
       })
       .catch(() => setError('매장 목록 조회 실패'))
-  }, [])
+  }, [role])
 
   // 검색 필터링 (agency/super_admin만)
   useEffect(() => {

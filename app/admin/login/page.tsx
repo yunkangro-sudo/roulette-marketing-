@@ -1,10 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') ?? ''
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,7 +25,16 @@ export default function AdminLoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? '로그인에 실패했습니다'); return }
-      router.push('/admin/events')
+
+      // role 기반 리다이렉트
+      const role = data.role as string
+      if (redirectTo && redirectTo.startsWith('/')) {
+        router.push(redirectTo)
+      } else if (role === 'staff') {
+        router.push('/staff')
+      } else {
+        router.push('/admin/events')
+      }
       router.refresh()
     } catch {
       setError('네트워크 오류가 발생했습니다')
@@ -87,5 +99,13 @@ export default function AdminLoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <LoginForm />
+    </Suspense>
   )
 }

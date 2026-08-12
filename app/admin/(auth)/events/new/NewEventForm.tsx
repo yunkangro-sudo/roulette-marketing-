@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { AdminRole } from '@/lib/admin/session'
+import StoreSelector from '../../components/StoreSelector'
 
 interface Tier {
   label: string
@@ -50,8 +51,7 @@ export default function NewEventForm({ role, storeId }: Props) {
     } catch { return null }
   })()
 
-  const needsStoreInput = !storeId
-  const [inputStoreId, setInputStoreId] = useState('')
+  const [selectedStoreId, setSelectedStoreId] = useState(storeId ?? '')
 
   const [name, setName] = useState(copyData?.name ?? '')
   const [startDate, setStartDate] = useState('')
@@ -94,8 +94,8 @@ export default function NewEventForm({ role, storeId }: Props) {
     e.preventDefault()
     setError('')
 
-    const finalStoreId = storeId ?? inputStoreId.trim()
-    if (needsStoreInput && !finalStoreId) { setError('매장 ID를 입력해주세요'); return }
+    const finalStoreId = selectedStoreId.trim()
+    if (!finalStoreId) { setError('매장을 먼저 선택해주세요'); return }
     if (!name.trim()) { setError('이벤트명을 입력해주세요'); return }
     if (!startDate || !endDate) { setError('노출 기간을 설정해주세요'); return }
     if (new Date(endDate) < new Date(startDate)) { setError('종료일이 시작일보다 빠릅니다'); return }
@@ -168,25 +168,15 @@ export default function NewEventForm({ role, storeId }: Props) {
           </div>
         )}
 
-        {/* 매장 ID — super_admin / agency만 표시 */}
-        {needsStoreInput && (
-          <div className="bg-white rounded-xl border border-orange-200 p-5">
-            <label className="block text-sm font-bold text-gray-900 mb-1">매장 ID</label>
-            <p className="text-xs text-gray-400 mb-3">
-              이 이벤트가 등록될 매장의 ID를 입력하세요.<br />
-              손님 게임 URL: <span className="font-mono text-orange-500">/play/[매장ID]</span>
-            </p>
-            <input
-              value={inputStoreId}
-              onChange={(e) => setInputStoreId(e.target.value)}
-              placeholder="예: test-store-001"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 font-mono focus:outline-none focus:border-orange-500"
-            />
-          </div>
-        )}
-
-        {/* 매장 ID 고정 표시 (advertiser) */}
-        {!needsStoreInput && (
+        {/* 매장 선택 (advertiser: 자동, super_admin/agency: 드롭다운) */}
+        <StoreSelector
+          role={role}
+          sessionStoreId={storeId}
+          selectedStoreId={selectedStoreId}
+          onSelect={setSelectedStoreId}
+        />
+        {/* advertiser: 선택된 매장 표시 */}
+        {role === 'advertiser' && storeId && (
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 flex items-center gap-3">
             <span className="text-xs text-gray-400">매장 ID</span>
             <span className="text-sm font-mono text-gray-700 font-medium">{storeId}</span>
