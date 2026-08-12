@@ -42,13 +42,18 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
             </div>
           )}
 
-          {/* ── advertiser: 4개 메뉴 ── */}
+          {/* ── advertiser: 6개 메뉴 ── */}
           {isAdvertiser && (
             <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-gray-600">
-              <Link href="/admin/events"         className="hover:text-orange-500 transition-colors">이벤트 관리</Link>
-              <Link href="/admin/report"         className="hover:text-orange-500 transition-colors">성과 리포트</Link>
+              <Link href="/admin/events"            className="hover:text-orange-500 transition-colors">이벤트 관리</Link>
+              <Link href="/admin/report"            className="hover:text-orange-500 transition-colors">성과 리포트</Link>
               <Link href="/admin/loyalty-settings"  className="hover:text-orange-500 transition-colors">포인트 정책</Link>
-              <Link href="/admin/reward-catalog" className="hover:text-orange-500 transition-colors">리워드 관리</Link>
+              <Link href="/admin/reward-catalog"    className="hover:text-orange-500 transition-colors">리워드 관리</Link>
+              <Link href="/admin/coupons/issue"     className="hover:text-orange-500 transition-colors">쿠폰 발급</Link>
+              <Link href="/staff"
+                className="bg-orange-50 text-orange-600 hover:bg-orange-100 px-3 py-1 rounded-lg font-semibold transition-colors">
+                계산대 →
+              </Link>
             </div>
           )}
         </div>
