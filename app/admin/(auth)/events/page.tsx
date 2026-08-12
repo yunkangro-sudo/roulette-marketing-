@@ -64,7 +64,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                     {ev.display_start_date} ~ {ev.display_end_date}
                   </p>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="flex items-center gap-4 shrink-0">
+                  <Link
+                    href={`/admin/events/${ev.id}`}
+                    className="text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    수정 / 상세
+                  </Link>
                   <Link
                     href={`/play/${ev.store_id}`}
                     target="_blank"
