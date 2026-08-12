@@ -1487,33 +1487,58 @@ function CtaBanner() {
 function Footer() {
   return (
     <footer
-      className="py-12 border-t"
+      className="border-t"
       style={{ background: '#14151A', borderColor: 'rgba(255,255,255,0.08)' }}
     >
-      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-2">
+      {/* 사업자 정보 */}
+      <div
+        className="max-w-6xl mx-auto px-6 py-8 border-b"
+        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+      >
+        <div className="flex items-center gap-2 mb-4">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
             style={{ background: 'linear-gradient(135deg, #FEE500, #FF8A3D)' }}
           >
-            🎮
+            🥕
           </div>
           <span className="font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            단골마케팅
+            단골마케팅 · 아크웍스(ARK WORKS)
           </span>
         </div>
+        <div
+          className="text-xs leading-relaxed space-y-1"
+          style={{ color: 'rgba(255,255,255,0.35)' }}
+        >
+          <p>상호명 아크웍스 · 대표 양경직외 1인 · 사업자등록번호 628-33-01601</p>
+          <p>통신판매업신고번호 제 2026-충남천안-1482호</p>
+          <p>주소 천안시 서북구 2공단5로52, 룩소르비즈타워 863호</p>
+          <p>
+            전화{' '}
+            <a href="tel:16883893" className="hover:text-white transition-colors">
+              1688-3893
+            </a>
+            {' · '}
+            이메일{' '}
+            <a href="mailto:cola1won@naver.com" className="hover:text-white transition-colors">
+              cola1won@naver.com
+            </a>
+          </p>
+        </div>
+      </div>
 
+      {/* 링크 + 카피라이트 */}
+      <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div
           className="flex gap-6 text-sm"
           style={{ color: 'rgba(255,255,255,0.4)' }}
         >
-          <a href="#" className="hover:text-white transition-colors">개인정보처리방침</a>
-          <a href="#" className="hover:text-white transition-colors">이용약관</a>
-          <a href="#" className="hover:text-white transition-colors">문의하기</a>
+          <a href="/privacy" className="hover:text-white transition-colors">개인정보처리방침</a>
+          <a href="/terms"   className="hover:text-white transition-colors">이용약관</a>
+          <a href="mailto:cola1won@naver.com" className="hover:text-white transition-colors">문의하기</a>
         </div>
-
         <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          © 2026 단골마케팅. UI/UX 목업.
+          © 2026 아크웍스(ARK WORKS). All rights reserved.
         </p>
       </div>
     </footer>
