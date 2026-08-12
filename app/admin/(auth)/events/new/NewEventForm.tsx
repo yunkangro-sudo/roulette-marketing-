@@ -87,7 +87,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   function updateTier(i: number, field: keyof Tier, value: unknown) {
     setTiers((prev) => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
   }
-  function addTier() { setTiers((prev) => [...prev, { ...DEFAULT_TIER }]) }
+  function addTier() { setTiers((prev) => [...prev, { label: '', amount: '', total_quantity: '', requires_verification: false }]) }
   function removeTier(i: number) { setTiers((prev) => prev.filter((_, idx) => idx !== i)) }
 
   async function handleSubmit(e: React.FormEvent) {
