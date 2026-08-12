@@ -13,6 +13,12 @@ interface Company {
   ad_amount: number
   contractor_name: string
   manager_name: string
+  phone?: string
+  website?: string
+  address?: string
+  remarks?: string
+  /** 서버에서 fetch한 광고주 이메일 (edit 모드 전용, 읽기전용) */
+  advertiserEmail?: string
 }
 
 interface Props {
@@ -22,19 +28,32 @@ interface Props {
 
 export default function CompanyForm({ mode, initial }: Props) {
   const router = useRouter()
+
   const [form, setForm] = useState<Company>({
-    store_id: initial?.store_id ?? '',
-    store_name: initial?.store_name ?? '',
+    store_id:            initial?.store_id            ?? '',
+    store_name:          initial?.store_name          ?? '',
     contract_start_date: initial?.contract_start_date ?? '',
-    contract_end_date: initial?.contract_end_date ?? '',
-    ad_amount: initial?.ad_amount ?? 0,
-    contractor_name: initial?.contractor_name ?? '',
-    manager_name: initial?.manager_name ?? '',
+    contract_end_date:   initial?.contract_end_date   ?? '',
+    ad_amount:           initial?.ad_amount           ?? 0,
+    contractor_name:     initial?.contractor_name     ?? '',
+    manager_name:        initial?.manager_name        ?? '',
+    phone:               initial?.phone               ?? '',
+    website:             initial?.website             ?? '',
+    address:             initial?.address             ?? '',
+    remarks:             initial?.remarks             ?? '',
   })
-  // 생성 모드 전용: 광고주 이메일
-  const [advertiserEmail, setAdvertiserEmail] = useState('')
-  const [tempPassword, setTempPassword] = useState('')   // 1회 표시용
-  const [error, setError] = useState('')
+
+  // 생성 모드 전용: 광고주 이메일 입력
+  const [newAdvertiserEmail, setNewAdvertiserEmail] = useState('')
+  // 1회 표시용 임시 비밀번호 (생성 or 재발급)
+  const [tempPassword, setTempPassword]   = useState('')
+  const [shownEmail, setShownEmail]       = useState('')
+
+  // 비밀번호 재발급 UI 상태
+  const [resetLoading, setResetLoading]   = useState(false)
+  const [resetError, setResetError]       = useState('')
+
+  const [error,   setError]   = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -42,11 +61,33 @@ export default function CompanyForm({ mode, initial }: Props) {
     setForm((p) => ({ ...p, [field]: value }))
   }
 
+  // ── 비밀번호 재발급 ────────────────────────────────────────────
+  async function handleResetPassword() {
+    if (!confirm('새 임시 비밀번호를 발급하시겠습니까?\n기존 비밀번호는 즉시 무효화됩니다.')) return
+    setResetError('')
+    setResetLoading(true)
+    try {
+      const res = await fetch('/api/admin/companies/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_id: form.store_id }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setResetError(data.error ?? '재발급 실패'); return }
+      setTempPassword(data.temp_password)
+      setShownEmail(data.email)
+    } catch {
+      setResetError('네트워크 오류가 발생했습니다')
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
+  // ── 저장 ──────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setSuccess('')
-    setTempPassword('')
 
     if (!form.store_id.trim() || !form.store_name.trim()) {
       setError('매장 ID와 업체명은 필수입니다'); return
@@ -54,28 +95,38 @@ export default function CompanyForm({ mode, initial }: Props) {
     if (!form.contract_start_date || !form.contract_end_date) {
       setError('계약 기간을 입력해주세요'); return
     }
-    if (mode === 'create' && !advertiserEmail.trim()) {
+    if (mode === 'create' && !newAdvertiserEmail.trim()) {
       setError('광고주 로그인 이메일을 입력해주세요'); return
     }
 
     setLoading(true)
     try {
       if (mode === 'create') {
-        // 신규: 업체+계약+계정 일괄 생성
         const res = await fetch('/api/admin/companies/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...form, advertiser_email: advertiserEmail }),
+          body: JSON.stringify({ ...form, advertiser_email: newAdvertiserEmail }),
         })
         const data = await res.json()
         if (!res.ok) { setError(data.error ?? '저장 실패'); return }
+        setShownEmail(newAdvertiserEmail)
         setTempPassword(data.temp_password)
       } else {
-        // 수정: 계약 정보만 변경
         const res = await fetch(`/api/admin/companies/${initial?.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({
+            store_name:          form.store_name,
+            contract_start_date: form.contract_start_date,
+            contract_end_date:   form.contract_end_date,
+            ad_amount:           form.ad_amount,
+            contractor_name:     form.contractor_name,
+            manager_name:        form.manager_name,
+            phone:               form.phone   || null,
+            website:             form.website || null,
+            address:             form.address || null,
+            remarks:             form.remarks || null,
+          }),
         })
         const data = await res.json()
         if (!res.ok) { setError(data.error ?? '저장 실패'); return }
@@ -89,28 +140,32 @@ export default function CompanyForm({ mode, initial }: Props) {
     }
   }
 
-  // 임시 비밀번호 발급 완료 화면
+  // ── 임시 비밀번호 발급 완료 화면 ─────────────────────────────
   if (tempPassword) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-8 text-center">
           <div className="text-5xl mb-4">✅</div>
-          <h2 className="text-xl font-bold text-green-800 mb-2">업체 등록 완료!</h2>
+          <h2 className="text-xl font-bold text-green-800 mb-2">
+            {mode === 'create' ? '업체 등록 완료!' : '비밀번호 재발급 완료!'}
+          </h2>
           <p className="text-green-700 text-sm mb-6">
-            광고주 계정이 생성되었습니다. 아래 임시 비밀번호를 광고주에게 직접 전달하세요.
+            {mode === 'create'
+              ? '광고주 계정이 생성되었습니다. 아래 임시 비밀번호를 광고주에게 직접 전달하세요.'
+              : '새 임시 비밀번호가 발급되었습니다. 광고주에게 직접 전달하세요.'}
           </p>
 
           <div className="bg-white border border-green-200 rounded-xl p-5 mb-6 text-left space-y-2">
             <div className="flex gap-2 text-sm">
-              <span className="text-gray-500 w-24 shrink-0">이메일</span>
-              <span className="font-mono font-bold text-gray-900">{advertiserEmail}</span>
+              <span className="text-gray-500 w-28 shrink-0">이메일</span>
+              <span className="font-mono font-bold text-gray-900">{shownEmail}</span>
             </div>
-            <div className="flex gap-2 text-sm">
-              <span className="text-gray-500 w-24 shrink-0">임시 비밀번호</span>
+            <div className="flex gap-2 text-sm items-center">
+              <span className="text-gray-500 w-28 shrink-0">임시 비밀번호</span>
               <span className="font-mono font-bold text-orange-600 text-lg tracking-widest">{tempPassword}</span>
             </div>
             <div className="flex gap-2 text-sm">
-              <span className="text-gray-500 w-24 shrink-0">로그인 URL</span>
+              <span className="text-gray-500 w-28 shrink-0">로그인 URL</span>
               <span className="font-mono text-blue-600">/admin/login</span>
             </div>
           </div>
@@ -129,6 +184,7 @@ export default function CompanyForm({ mode, initial }: Props) {
     )
   }
 
+  // ── 폼 ───────────────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
@@ -139,11 +195,12 @@ export default function CompanyForm({ mode, initial }: Props) {
         </h1>
       </div>
 
-      {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error   && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
       {success && <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm">{success}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* 기본 정보 */}
+
+        {/* ── 기본 정보 ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <h2 className="text-sm font-bold text-gray-700">기본 정보</h2>
 
@@ -158,7 +215,7 @@ export default function CompanyForm({ mode, initial }: Props) {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">업체명 *</label>
               <input value={form.store_name} onChange={(e) => set('store_name', e.target.value)}
-                placeholder="당골마켓 강남점"
+                placeholder="단골마켓 강남점"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
             </div>
           </div>
@@ -175,9 +232,17 @@ export default function CompanyForm({ mode, initial }: Props) {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
             </div>
           </div>
+
+          {/* 계약자 휴대폰 */}
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">계약자 휴대폰</label>
+            <input value={form.phone ?? ''} onChange={(e) => set('phone', e.target.value)}
+              placeholder="010-1234-5678" type="tel"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+          </div>
         </div>
 
-        {/* 계약 정보 */}
+        {/* ── 계약 정보 ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <h2 className="text-sm font-bold text-gray-700">계약 정보</h2>
 
@@ -202,7 +267,34 @@ export default function CompanyForm({ mode, initial }: Props) {
           </div>
         </div>
 
-        {/* 광고주 계정 (신규 등록 전용) */}
+        {/* ── 매장 추가 정보 ── */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h2 className="text-sm font-bold text-gray-700">매장 추가 정보</h2>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">홈페이지 URL</label>
+            <input value={form.website ?? ''} onChange={(e) => set('website', e.target.value)}
+              placeholder="https://example.com" type="url"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">매장 주소</label>
+            <input value={form.address ?? ''} onChange={(e) => set('address', e.target.value)}
+              placeholder="서울시 강남구 테헤란로 123"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">비고 <span className="text-gray-400 font-normal">(내부 참고용)</span></label>
+            <textarea value={form.remarks ?? ''} onChange={(e) => set('remarks', e.target.value)}
+              placeholder="특이사항, 요청사항 등 자유롭게 기록하세요."
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500 resize-y" />
+          </div>
+        </div>
+
+        {/* ── 광고주 계정 (신규 등록 전용) ── */}
         {mode === 'create' && (
           <div className="bg-orange-50 rounded-xl border border-orange-200 p-5 space-y-3">
             <h2 className="text-sm font-bold text-orange-900">광고주 로그인 계정 생성</h2>
@@ -211,9 +303,43 @@ export default function CompanyForm({ mode, initial }: Props) {
             </p>
             <div>
               <label className="text-xs text-gray-600 mb-1 block">광고주 이메일 *</label>
-              <input type="email" value={advertiserEmail} onChange={(e) => setAdvertiserEmail(e.target.value)}
+              <input type="email" value={newAdvertiserEmail} onChange={(e) => setNewAdvertiserEmail(e.target.value)}
                 placeholder="owner@example.com"
                 className="w-full border border-orange-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500 bg-white" />
+            </div>
+          </div>
+        )}
+
+        {/* ── 광고주 계정 (수정 모드: 이메일 읽기전용 + 비밀번호 재발급) ── */}
+        {mode === 'edit' && (
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 space-y-3">
+            <h2 className="text-sm font-bold text-gray-700">광고주 로그인 계정</h2>
+
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">로그인 이메일 (읽기전용)</label>
+              <div className="flex gap-2 items-center">
+                <input
+                  value={initial?.advertiserEmail ?? '(계정 없음)'}
+                  readOnly
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 bg-gray-100 cursor-not-allowed font-mono"
+                />
+                {initial?.advertiserEmail && (
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={resetLoading}
+                    className="shrink-0 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-40"
+                  >
+                    {resetLoading ? '처리 중...' : '비밀번호 재발급'}
+                  </button>
+                )}
+              </div>
+              {resetError && <p className="text-xs text-red-500 mt-1">{resetError}</p>}
+              {initial?.advertiserEmail && (
+                <p className="text-xs text-gray-400 mt-1">
+                  이메일은 변경할 수 없습니다. 새 비밀번호 발급 후 광고주에게 직접 전달하세요.
+                </p>
+              )}
             </div>
           </div>
         )}

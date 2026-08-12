@@ -30,15 +30,16 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
         <div className="flex items-center gap-5">
           <span className="text-lg font-bold text-gray-900 shrink-0">🥕 단골마케팅</span>
 
-          {/* ── super_admin / agency: 6개 메뉴 ── */}
+          {/* ── super_admin / agency: 7개 메뉴 ── */}
           {isAgencyOrSuper && (
             <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-gray-600">
-              <Link href="/admin/dashboard"      className="hover:text-orange-500 transition-colors">전체 대시보드</Link>
-              <Link href="/admin/companies"      className="hover:text-orange-500 transition-colors">업체 리스트</Link>
-              <Link href="/admin/events"         className="hover:text-orange-500 transition-colors">이벤트 관리</Link>
-              <Link href="/admin/report"         className="hover:text-orange-500 transition-colors">성과 리포트</Link>
+              <Link href="/admin/dashboard"         className="hover:text-orange-500 transition-colors">전체 대시보드</Link>
+              <Link href="/admin/companies"         className="hover:text-orange-500 transition-colors">업체 리스트</Link>
+              <Link href="/admin/events"            className="hover:text-orange-500 transition-colors">이벤트 관리</Link>
+              <Link href="/admin/report"            className="hover:text-orange-500 transition-colors">성과 리포트</Link>
               <Link href="/admin/loyalty-settings"  className="hover:text-orange-500 transition-colors">포인트 정책</Link>
-              <Link href="/admin/reward-catalog" className="hover:text-orange-500 transition-colors">리워드 관리</Link>
+              <Link href="/admin/reward-catalog"    className="hover:text-orange-500 transition-colors">리워드 관리</Link>
+              <Link href="/admin/coupons/issue"     className="hover:text-orange-500 transition-colors">쿠폰 발급</Link>
             </div>
           )}
 
