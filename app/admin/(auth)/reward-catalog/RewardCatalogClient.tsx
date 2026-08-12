@@ -63,7 +63,10 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-900 mb-4">리워드 카탈로그</h1>
+      <h1 className="text-xl font-bold text-gray-900 mb-2">리워드 카탈로그</h1>
+      <p className="text-sm text-gray-500 mb-4">
+        금액 쿠폰뿐 아니라 특정 메뉴·상품도 리워드로 등록할 수 있어요
+      </p>
 
       <div className="mb-5">
         <StoreSelector role={role} sessionStoreId={storeId} selectedStoreId={selectedStore} onSelect={setSelectedStore} />
@@ -83,7 +86,8 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
             <div className="grid grid-cols-3 gap-3 mb-3">
               <div className="col-span-3 sm:col-span-1">
                 <label className="block text-xs text-gray-500 mb-1">리워드 이름</label>
-                <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="예: 아메리카노 1잔"
+                <input value={newName} onChange={(e) => setNewName(e.target.value)}
+                  placeholder="예: 아메리카노 1잔, 마른안주 세트, 5,000원 할인"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>

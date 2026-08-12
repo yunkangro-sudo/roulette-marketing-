@@ -19,8 +19,8 @@ interface Props {
 
 const DEFAULT_TIERS: Tier[] = [
   { label: '꽝', amount: 0, total_quantity: '', requires_verification: false },
-  { label: '1,000원 쿠폰', amount: 1000, total_quantity: '', requires_verification: false },
-  { label: '10,000원 쿠폰', amount: 10000, total_quantity: '', requires_verification: true },
+  { label: '소액권', amount: 2000, total_quantity: '', requires_verification: false },
+  { label: '고액권', amount: 10000, total_quantity: '', requires_verification: true },
 ]
 
 function calcProbabilities(tiers: Tier[], dailyParticipants: number, startDate: string, endDate: string): number[] {
@@ -289,6 +289,9 @@ export default function NewEventForm({ role, storeId }: Props) {
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
                       <span className="text-xs text-gray-400">원</span>
                     </div>
+                    {Number(tier.amount) > 0 && (
+                      <p className="text-xs text-gray-400 mt-0.5">일반적으로 객단가의 5~15% 수준 참고 (자유 설정)</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-end gap-3">

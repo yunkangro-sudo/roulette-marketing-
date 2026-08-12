@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import StoreSelector from '../components/StoreSelector'
 
 interface Props { role: string; storeId: string | null }
 
 export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [selectedStore, setSelectedStore] = useState(storeId ?? '')
-  const [pointPerVisit, setPointPerVisit] = useState(10)
-  const [usageThreshold, setUsageThreshold] = useState(100)
+  const [pointPerVisit, setPointPerVisit] = useState(1000)
+  const [usageThreshold, setUsageThreshold] = useState(5000)
   const [expiryDays, setExpiryDays] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -19,8 +19,8 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
     const res = await fetch(`/api/admin/loyalty-settings?store_id=${encodeURIComponent(sid)}`)
     if (res.ok) {
       const data = await res.json()
-      setPointPerVisit(data.point_per_visit ?? 10)
-      setUsageThreshold(data.usage_threshold ?? 100)
+      setPointPerVisit(data.point_per_visit ?? 1000)
+      setUsageThreshold(data.usage_threshold ?? 5000)
       setExpiryDays(data.point_expiry_days ? String(data.point_expiry_days) : '')
     }
     setLoaded(true)
@@ -30,6 +30,12 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
     if (selectedStore) load(selectedStore)
     else setLoaded(false)
   }, [selectedStore, load])
+
+  // 실시간 계산: 최소 N번 방문해야 사용 가능
+  const visitsNeeded = useMemo(() => {
+    if (!pointPerVisit || pointPerVisit <= 0) return null
+    return Math.ceil(usageThreshold / pointPerVisit)
+  }, [pointPerVisit, usageThreshold])
 
   async function handleSave() {
     if (!selectedStore) { setMessage({ text: '매장을 먼저 선택해주세요', ok: false }); return }
@@ -77,38 +83,66 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       )}
 
       {selectedStore ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-5">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
+
+          {/* 방문 1회당 적립 포인트 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">방문 1회당 적립 포인트</label>
             <div className="flex items-center gap-2">
-              <input type="number" value={pointPerVisit} onChange={(e) => setPointPerVisit(Number(e.target.value))} min={1}
-                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm" />
+              <input
+                type="number"
+                value={pointPerVisit}
+                onChange={(e) => setPointPerVisit(Number(e.target.value))}
+                min={1}
+                className="w-36 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:border-orange-500"
+              />
               <span className="text-sm text-gray-500">P / 회</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">게임 완료 시 꽝 포함 무조건 적립됩니다</p>
           </div>
 
+          {/* 사용 가능 최소 잔액 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">리워드 사용 가능 최소 잔액</label>
             <div className="flex items-center gap-2">
-              <input type="number" value={usageThreshold} onChange={(e) => setUsageThreshold(Number(e.target.value))} min={0}
-                className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm" />
+              <input
+                type="number"
+                value={usageThreshold}
+                onChange={(e) => setUsageThreshold(Number(e.target.value))}
+                min={0}
+                className="w-36 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:border-orange-500"
+              />
               <span className="text-sm text-gray-500">P 이상 보유 시 교환 가능</span>
             </div>
+            {/* 실시간 계산 */}
+            {visitsNeeded !== null && (
+              <p className="text-sm font-semibold text-orange-500 mt-2">
+                현재 설정 기준: {visitsNeeded}번 방문하면 사용 가능해요
+              </p>
+            )}
           </div>
 
+          {/* 포인트 유효기간 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">포인트 유효기간</label>
             <div className="flex items-center gap-2">
-              <input type="number" value={expiryDays} onChange={(e) => setExpiryDays(e.target.value)} min={1}
+              <input
+                type="number"
+                value={expiryDays}
+                onChange={(e) => setExpiryDays(e.target.value)}
+                min={1}
                 placeholder="미입력 시 무제한"
-                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm placeholder:text-gray-300" />
+                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm placeholder:text-gray-300 focus:outline-none focus:border-orange-500"
+              />
               <span className="text-sm text-gray-500">일</span>
             </div>
           </div>
 
-          <button onClick={handleSave} disabled={saving || !loaded}
-            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-50 transition-colors">
+          <button
+            onClick={handleSave}
+            disabled={saving || !loaded}
+            className="w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 rounded-xl text-sm disabled:opacity-50 transition-colors"
+          >
             {saving ? '저장 중...' : '저장'}
           </button>
         </div>
@@ -117,10 +151,6 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
           위에서 매장을 선택하면 정책을 설정할 수 있습니다
         </div>
       )}
-
-      <div className="mt-4 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3 text-xs text-orange-700">
-        <strong>예시:</strong> 적립 10P / 최소 50P → 5번 방문 후부터 교환 가능
-      </div>
     </div>
   )
 }
