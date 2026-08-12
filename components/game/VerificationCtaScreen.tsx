@@ -44,11 +44,13 @@ export default function VerificationCtaScreen({ result, onDone }: Props) {
       </div>
 
       {result.coupon && (
-        <div className="w-full max-w-sm rounded-2xl border border-gray-700 bg-gray-800/60 p-5 text-left">
-          <p className="text-gray-500 text-xs">쿠폰 코드</p>
-          <p className="text-white font-mono text-sm break-all mt-1">{result.coupon.id}</p>
-          <p className="text-gray-500 text-xs mt-3">
-            사용기간: {formatDate(result.coupon.issuedAt)} ~ {formatDate(result.coupon.validUntil)}
+        <div className="w-full max-w-sm rounded-2xl border border-gray-700 bg-gray-800/60 p-5 text-center">
+          <p className="text-gray-400 text-xs mb-1">직원에게 보여주세요</p>
+          <p className="text-white font-mono font-black text-4xl tracking-[0.2em] mb-3">
+            {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+          </p>
+          <p className="text-gray-500 text-xs">
+            사용기한 ~{formatDate(result.coupon.validUntil)}
           </p>
         </div>
       )}
@@ -58,10 +60,6 @@ export default function VerificationCtaScreen({ result, onDone }: Props) {
         className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
       >
         당근에서 단골 추가하기
-      </button>
-
-      <button onClick={onDone} className="text-gray-500 text-xs">
-        나중에 하기
       </button>
     </div>
   )
