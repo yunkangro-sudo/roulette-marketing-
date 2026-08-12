@@ -97,10 +97,25 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `GET /api/admin/dashboard` — 전체 매장 지표 집계 API
 - [x] `/admin/dashboard` 신설 — 에이전시용 다매장 비교 대시보드 (전체 평균 ROI 영업자료용 큰 숫자 표시)
 
+### 2026-08-12 (6단계: 관리자 권한 + 이벤트 등록)
+- [x] `store_accounts` 테이블 신설 (email/password_hash/role/store_id) — `docs/migrations/008_store_accounts.sql`
+- [x] iron-session + bcryptjs 설치 — httpOnly 쿠키 기반 세션
+- [x] `lib/admin/session.ts` — 세션 config, requireAdminAuth(), getAllowedStoreId()
+- [x] `POST /api/admin/auth/login` — 이메일+비밀번호 로그인
+- [x] `POST /api/admin/auth/logout` — 로그아웃
+- [x] `POST /api/admin/auth/setup` — 첫 계정 생성 (계정 없을 때만 동작)
+- [x] `/admin/login` — 관리자 로그인 화면
+- [x] `/admin/(auth)/layout.tsx` — 미로그인 시 /admin/login 리디렉트
+- [x] `/admin/(auth)/events` — 이벤트 목록 (role별 접근 제어)
+- [x] `/admin/(auth)/events/new` — 이벤트 등록 폼 (확률 실시간 자동계산, 합계 100% 보장)
+- [x] `POST /api/admin/events` — 이벤트+경품티어 동시 저장, 중복 active 차단, status 자동 결정
+- [x] `/admin/report`, `/admin/dashboard` → `/admin/(auth)/` 그룹으로 이동 (로그인 없이 접근 차단)
+
 ### 다음 세션 예정
-- [ ] **Supabase SQL 실행 필요**: `docs/migrations/007_payment_logs_and_store_settings.sql` → Supabase 대시보드 SQL Editor에서 실행
-- [ ] 6단계: 관리자 CRUD 화면 (캠페인 등록/수정, 이벤트 기간·예상참여자수 입력 → 확률 자동계산 UI, store_settings 편집)
-- [ ] 만료 배치 (valid_until 지난 쿠폰 status → expired로 실제 갱신하는 크론/스케줄 작업)
+- [ ] **Supabase SQL 실행 필요**: `008_store_accounts.sql` + `007_payment_logs_and_store_settings.sql`
+- [ ] **첫 관리자 계정 생성**: `POST /api/admin/auth/setup` 호출 (Supabase SQL 실행 후)
+- [ ] 8단계: 포인트 시스템 (point_ledger, reward_catalog)
+- [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신)
 - [ ] 7단계: 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
 
 ---
