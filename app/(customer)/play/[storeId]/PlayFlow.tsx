@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { login, logout, type MockUser } from '@/lib/auth/mockLogin'
+import { useState, useCallback, useEffect } from 'react'
+import { login as mockLogin, logout as mockLogout, type MockUser } from '@/lib/auth/mockLogin'
 import { checkAlreadyParticipated, recordParticipation } from '@/lib/game/participation'
-import MockLoginScreen from '@/components/play/MockLoginScreen'
+import LoginScreen from '@/components/play/LoginScreen'
 import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
 import GameContainer from '@/components/game/claw_machine/GameContainer'
 import type { PrizeResult } from '@/components/game/types'
 
-type Step = 'landing' | 'login' | 'checking' | 'already_participated' | 'playing'
+type Step = 'loading' | 'landing' | 'login' | 'checking' | 'already_participated' | 'playing'
 
 interface Event {
   id: string
@@ -21,12 +21,62 @@ interface Props {
   event: Event | null
 }
 
+const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+
 export default function PlayFlow({ storeId, event }: Props) {
-  const [step, setStep] = useState<Step>('landing')
+  const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
 
-  // 이벤트 없음 → 안내 화면 (서버에서 판단되어 내려옴)
+  // ── 마운트 시 기존 세션 확인 ──────────────────────────────────
+  useEffect(() => {
+    if (!event) { setStep('landing'); return }
+
+    async function checkSession() {
+      // 1. 카카오 실제 세션 확인 (서버 쿠키)
+      if (IS_KAKAO) {
+        try {
+          const res = await fetch('/api/auth/me')
+          const data = await res.json()
+          if (data.user && data.user.storeId === storeId) {
+            const sessionUser: MockUser = {
+              kakao_user_id: data.user.kakao_user_id,
+              nickname:      data.user.nickname,
+            }
+            setUser(sessionUser)
+            setStep('checking')
+            const already = await checkAlreadyParticipated(storeId, sessionUser.kakao_user_id)
+            setStep(already ? 'already_participated' : 'playing')
+            return
+          }
+        } catch {
+          // 세션 체크 실패 시 로그인 화면으로
+        }
+        setStep('landing')
+        return
+      }
+
+      // 2. Mock 세션 확인 (localStorage)
+      try {
+        const { getCurrentUser } = await import('@/lib/auth/mockLogin')
+        const stored = getCurrentUser()
+        if (stored) {
+          setUser(stored)
+          setStep('checking')
+          const already = await checkAlreadyParticipated(storeId, stored.kakao_user_id)
+          setStep(already ? 'already_participated' : 'playing')
+          return
+        }
+      } catch {
+        // 무시
+      }
+      setStep('landing')
+    }
+
+    checkSession()
+  }, [storeId, event])
+
+  // ── 이벤트 없음 ───────────────────────────────────────────────
   if (!event) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-6 text-center">
@@ -43,12 +93,13 @@ export default function PlayFlow({ storeId, event }: Props) {
     )
   }
 
-  const handleLogin = useCallback(async (kakaoUserId: string) => {
+  // ── Mock 로그인 핸들러 ────────────────────────────────────────
+  const handleMockLogin = useCallback(async (kakaoUserId: string) => {
     if (!kakaoUserId.trim()) return
     setLoginLoading(true)
 
     try {
-      const loggedInUser = login(kakaoUserId)
+      const loggedInUser = mockLogin(kakaoUserId)
       setUser(loggedInUser)
       setStep('checking')
 
@@ -75,14 +126,30 @@ export default function PlayFlow({ storeId, event }: Props) {
     } catch (err) {
       console.error('참여 기록 저장 오류:', err)
     }
-    // 결과는 GameContainer 내부에서 표시됨
   }, [storeId, user])
 
-  const handleSwitchAccount = useCallback(() => {
-    logout()
+  const handleSwitchAccount = useCallback(async () => {
+    // 카카오 세션 삭제
+    if (IS_KAKAO) {
+      try { await fetch('/api/auth/logout', { method: 'POST' }) } catch {}
+    } else {
+      mockLogout()
+    }
     setUser(null)
     setStep('login')
   }, [])
+
+  // ── 초기 로딩 ────────────────────────────────────────────────
+  if (step === 'loading') {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce">🥕</div>
+          <p className="text-gray-400 text-sm">로딩 중...</p>
+        </div>
+      </div>
+    )
+  }
 
   // ── 랜딩 화면
   if (step === 'landing') {
@@ -120,7 +187,13 @@ export default function PlayFlow({ storeId, event }: Props) {
 
   // ── 로그인 화면
   if (step === 'login') {
-    return <MockLoginScreen onLogin={handleLogin} loading={loginLoading} />
+    return (
+      <LoginScreen
+        storeId={storeId}
+        onMockLogin={handleMockLogin}
+        loading={loginLoading}
+      />
+    )
   }
 
   // ── 이미 참여 화면
@@ -128,7 +201,7 @@ export default function PlayFlow({ storeId, event }: Props) {
     return <AlreadyParticipatedScreen onSwitchAccount={handleSwitchAccount} />
   }
 
-  // ── 게임 플레이 (1단계 컴포넌트 재사용)
+  // ── 게임 플레이
   if (step === 'playing') {
     return (
       <GameContainer
@@ -136,10 +209,7 @@ export default function PlayFlow({ storeId, event }: Props) {
         kakaoUserId={user?.kakao_user_id}
         onGameResult={handleGameResult}
         onReplay={() => {
-          // "처음부터 다시 보기" → 로그인 화면으로 돌아가서 참여 재체크
-          logout()
-          setUser(null)
-          setStep('login')
+          handleSwitchAccount()
         }}
       />
     )

@@ -148,7 +148,10 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 
 임시로 처리하고 넘어간 것 / 미완성 상태로 남아있는 것. 실제 서비스 오픈 전에 아래를 전부 해소해야 한다.
 
-- [ ] **카카오 로그인 미연동** — `lib/auth/mockLogin.ts`로 대체 중 (실제 계정 인증 없음). 교체 방법은 README "카카오 연동 보류" 섹션 참고
+- [ ] **카카오 로그인 미연동** — `NEXT_PUBLIC_KAKAO_JS_KEY` 미설정 시 `lib/auth/mockLogin.ts` Mock 로그인으로 폴백. 키 설정 시 `/api/auth/kakao` → 카카오 OAuth 자동 전환. 교체 방법은 README "카카오 연동 보류" 섹션 참고
+- [ ] **카카오 비즈앱 전환 및 전화번호 동의항목 심사** — 개인사업자/법인 사업자 기준으로 카카오 비즈앱 전환 신청 후, 카카오 개발자 센터에서 "전화번호" 동의항목 심사 신청 필요. 심사 전에는 `phone_number`가 null로 내려와 전화번호 저장이 생략됨 (로그인 자체는 정상 동작)
+- [ ] **알림톡 발송대행사 가입 및 KAKAO_ALIMTALK_SENDER_KEY 실제값 입력** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태. 대행사(비즈뿌리오, 알리고, 솔라피 등) 가입 후 Sender Key 발급 → `.env.local`에 `KAKAO_ALIMTALK_SENDER_KEY` 입력 → `sendAlimtalk()` 내부 주석 해제 후 대행사 API 호출 코드 추가
+- [ ] **개인정보처리방침 업데이트** — "전화번호 수집·이용 목적(카카오 쿠폰 알림 발송)" 항목 추가 필요. 수집 근거, 보유 기간, 제3자 제공 여부(대행사 전달 포함) 명시 필요
 - [ ] **`/staff` 계산대 화면 인증 없음** — 누구나 URL로 접근해서 쿠폰을 사용/확인 처리할 수 있음. 최소 비밀번호 정도는 배포 전 추가 필요
 - [ ] **쿠폰 만료 배치 미구현** — `valid_until`이 지난 쿠폰의 `status`가 실제로 `expired`로 바뀌지 않고, 조회 시점에 `lib/coupons/getEffectiveStatus.ts`가 판정해서 보여줌 (DB에는 계속 `issued`/`pending_verify` 등으로 남음). 규모가 커지면 배치를 추가하되, 그래도 조회 시점 판정 로직은 안전망으로 유지하는 게 안전
 - [ ] **당근 단골 추가 실제 연동 없음** — `VerificationCtaScreen`은 화면과 쿠폰 코드 표시만 하고, 실제 당근 비즈프로필 딥링크 연결과 클릭 로그(`damgeun_click_logs`)는 미구현

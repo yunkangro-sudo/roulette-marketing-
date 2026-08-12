@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { drawPrizeTier, applyStockSafetyNet } from '@/lib/game-engine/prizeDraw'
 import { computeValidUntil, type CouponValidityType } from '@/lib/game-engine/couponValidity'
+import { sendAlimtalk } from '@/lib/alimtalk/send'
 
 /**
  * POST /api/games/play
@@ -174,6 +175,23 @@ export async function POST(request: Request) {
       requiresVerification: finalTier.requires_verification,
     })
   }
+
+  // ── 알림톡 발송 (쿠폰 발급 시점 — stub 버전) ────────────────
+  sendAlimtalk({
+    storeId:     event.store_id,
+    kakaoUserId,
+    messageType: 'coupon_issued',
+    data: {
+      shortCode:  coupon.short_code,
+      amount:     finalTier.amount,
+      label:      finalTier.label,
+      validUntil: coupon.valid_until,
+    },
+  }).catch((err) => {
+    // 알림톡 실패는 게임 결과에 영향 없음
+    console.error('[api/games/play] 알림톡 발송 실패 (무시):', err)
+  })
+  // ─────────────────────────────────────────────────────────────
 
   return NextResponse.json({
     label: finalTier.label,
