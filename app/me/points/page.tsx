@@ -3,11 +3,24 @@
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
+type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
+
+const REWARD_TYPE_ICONS: Record<RewardType, string> = {
+  free_item:      '🎁',
+  discount:       '🏷️',
+  points:         '⭐',
+  experience:     '✨',
+  special_coupon: '🎫',
+  vip_reward:     '👑',
+}
+
 interface Reward {
   id: string
   name: string
   point_cost: number
   stock: number | null
+  reward_type?: RewardType
+  image_url?: string | null
 }
 
 interface LedgerEntry {
@@ -202,11 +215,20 @@ function PointsContent() {
                 const canRedeem = canUsePoints && balance >= reward.point_cost
                 const outOfStock = reward.stock !== null && reward.stock <= 0
                 return (
-                  <div key={reward.id} className={`bg-white rounded-xl border px-5 py-4 flex items-center justify-between ${
+                  <div key={reward.id} className={`bg-white rounded-xl border px-4 py-4 flex items-center gap-4 ${
                     outOfStock ? 'border-gray-100 opacity-50' : 'border-gray-200'
                   }`}>
-                    <div>
-                      <p className="font-semibold text-gray-900">{reward.name}</p>
+                    {/* 이미지 또는 아이콘 */}
+                    {reward.image_url ? (
+                      <img src={reward.image_url} alt={reward.name}
+                        className="w-14 h-14 rounded-xl object-cover shrink-0 bg-gray-100" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-orange-50 flex items-center justify-center text-2xl shrink-0">
+                        {REWARD_TYPE_ICONS[reward.reward_type ?? 'free_item']}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">{reward.name}</p>
                       <p className="text-sm text-orange-500 font-bold mt-0.5">{reward.point_cost.toLocaleString()}P</p>
                       {reward.stock !== null && (
                         <p className="text-xs text-gray-400 mt-0.5">

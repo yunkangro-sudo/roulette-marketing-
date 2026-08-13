@@ -32,9 +32,13 @@ export async function GET(req: Request) {
       .maybeSingle(),
     supabase
       .from('reward_catalog')
-      .select('id, name, point_cost, stock')
+      .select('id, name, point_cost, stock, reward_type, image_url, requires_verification, start_at, end_at')
       .eq('store_id', storeId)
       .eq('active', true)
+      // start_at이 없거나 현재 시각 이전인 것만
+      .or(`start_at.is.null,start_at.lte.${now}`)
+      // end_at이 없거나 현재 시각 이후인 것만
+      .or(`end_at.is.null,end_at.gte.${now}`)
       .order('point_cost', { ascending: true }),
     supabase
       .from('point_ledger')

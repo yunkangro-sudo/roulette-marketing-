@@ -9,7 +9,7 @@ function resolveStoreId(account: { role: string; storeId: string | null }, provi
 
 /**
  * GET  /api/admin/reward-catalog?store_id=xxx
- * POST /api/admin/reward-catalog  — body: { store_id, name, point_cost, stock? }
+ * POST /api/admin/reward-catalog  — body: { store_id, name, point_cost, stock?, reward_type?, start_at?, end_at?, image_url?, requires_verification? }
  */
 export async function GET(req: Request) {
   const account = await requireAdminAuth()
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('reward_catalog')
-    .select('id, name, point_cost, active, stock, requires_verification, created_at')
+    .select('id, name, point_cost, active, stock, requires_verification, reward_type, start_at, end_at, image_url, created_at')
     .eq('store_id', storeId)
     .order('created_at', { ascending: false })
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null)
-  const { store_id, name, point_cost, stock, requires_verification } = body ?? {}
+  const { store_id, name, point_cost, stock, requires_verification, reward_type, start_at, end_at, image_url } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
@@ -53,6 +53,10 @@ export async function POST(req: Request) {
       active: true,
       stock: stock !== undefined && stock !== '' ? Number(stock) : null,
       requires_verification: requires_verification === true,
+      reward_type: reward_type ?? 'free_item',
+      start_at: start_at || null,
+      end_at: end_at || null,
+      image_url: image_url || null,
     })
     .select('id')
     .single()
