@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     // valid_until을 KST 기준 날짜로 비교
     const { data: coupons, error: couponErr } = await supabase
       .from('coupons')
-      .select('id, store_id, kakao_user_id, amount, label, valid_until, short_code')
+      .select('id, store_id, kakao_user_id, amount, valid_until, short_code')
       .in('status', ['issued', 'pending_verify'])
       .gte('valid_until', `${targetDate}T00:00:00+09:00`)
       .lt( 'valid_until', `${targetDate}T23:59:59+09:00`)

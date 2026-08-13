@@ -15,6 +15,10 @@ if (!SUPABASE_URL || !SERVICE_KEY || !BASE_URL || !CRON_SECRET) {
   process.exit(1)
 }
 
+// Vercel 배포 URL이면 CRON_SECRET을 Vercel에도 같은 값으로 설정해야 함
+// 로컬 테스트: BASE_URL=http://localhost:3000 + npm run dev 서버 실행 후 테스트 가능
+console.log(`크론 엔드포인트: ${BASE_URL}/api/cron/expiry-reminder`)
+
 const h = {
   apikey:        SERVICE_KEY,
   Authorization: `Bearer ${SERVICE_KEY}`,
@@ -47,32 +51,35 @@ async function run() {
   console.log(`kakao_user_id: ${kakaoUserId}`)
   console.log(`오늘 (KST): ${kstDay(0)}\n`)
 
+  // ── Step 0. 테스트용 event_id 조회 (쿠폰은 event 참조 필수) ──
+  console.log('── Step 0. 테스트 event_id 조회 ──')
+  const { data: events } = await sb('GET', `/events?store_id=eq.${storeId}&select=id&limit=1`)
+  if (!Array.isArray(events) || events.length === 0) {
+    console.error('  ❌ storeId에 해당하는 이벤트 없음. 먼저 이벤트를 만들어주세요.')
+    process.exit(1)
+  }
+  const eventId = events[0].id
+  console.log(`  event_id: ${eventId}`)
+
   // ── Step 1. 테스트 쿠폰 3개 삽입 ──────────────────────────────
   // D-7: 오늘로부터 정확히 7일 뒤 만료
   // D-3: 3일 뒤
   // D-999: 999일 뒤 (배치 대상 아님)
-  console.log('── Step 1. 테스트 쿠폰 삽입 ──')
-  const couponsToInsert = [
-    { store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 2000,  label: '[D-7 테스트]', valid_until: `${kstDay(7)}T23:59:59+09:00`, requires_verification: false, source_type: 'game' },
-    { store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 3000,  label: '[D-3 테스트]', valid_until: `${kstDay(3)}T23:59:59+09:00`, requires_verification: false, source_type: 'game' },
-    { store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 10000, label: '[D-999 테스트 — 배치 대상 아님]', valid_until: `${kstDay(999)}T23:59:59+09:00`, requires_verification: false, source_type: 'game' },
+  console.log('\n── Step 1. 테스트 쿠폰 삽입 ──')
+  const insertBody = [
+    { event_id: eventId, store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 2000,  valid_until: `${kstDay(7)}T23:59:59+09:00`, source_type: 'game_win' },
+    { event_id: eventId, store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 3000,  valid_until: `${kstDay(3)}T23:59:59+09:00`, source_type: 'game_win' },
+    { event_id: eventId, store_id: storeId, kakao_user_id: kakaoUserId, status: 'issued', amount: 10000, valid_until: `${kstDay(999)}T23:59:59+09:00`, source_type: 'game_win' },
   ]
 
-  // requires_verification 컬럼이 없으면 제거
-  const insertBody = couponsToInsert.map(({ requires_verification, ...rest }) => rest)
-
   const { status: ins, data: inserted } = await sb('POST', '/coupons', insertBody)
-  if (ins !== 201) {
-    // requires_verification 없이 재시도
-    console.log('  requires_verification 제거 후 재시도...')
-  }
   console.log(`  삽입 status: ${ins}`)
   if (!Array.isArray(inserted) || inserted.length === 0) {
     console.error('  ❌ 쿠폰 삽입 실패:', JSON.stringify(inserted, null, 2))
     process.exit(1)
   }
   const couponIds = inserted.map(c => c.id)
-  inserted.forEach(c => console.log(`  - ${c.id} | ${c.label} | 만료: ${c.valid_until}`))
+  inserted.forEach(c => console.log(`  - ${c.id} | amount=${c.amount} | 만료: ${c.valid_until}`))
 
   // ── Step 2. message_consent 설정 (발송 동의) ──────────────
   console.log('\n── Step 2. message_consent 동의 설정 (consented=true) ──')
@@ -96,9 +103,20 @@ async function run() {
 
   // ── Step 4. message_log 확인 ──────────────────────────────
   console.log('\n── Step 4. message_log 실제 기록 확인 ──')
-  const { data: logs1 } = await sb('GET',
+  // Migration 026 실행됐으면 coupon_id, days_remaining 포함; 아니면 기본 컬럼만
+  let logs1 = null
+  const { data: logsExt, status: logStatus } = await sb('GET',
     `/message_log?kakao_user_id=eq.${kakaoUserId}&message_type=eq.expiry_reminder&select=id,message_type,days_remaining,coupon_id,sent_at&order=sent_at.desc`)
-  console.log('message_log 기록:')
+  if (logStatus === 200) {
+    logs1 = logsExt
+    console.log('message_log 기록 (Migration 026 포함):')
+  } else {
+    // Migration 026 미실행 → 기본 컬럼으로 재시도
+    const { data: logsBasic } = await sb('GET',
+      `/message_log?kakao_user_id=eq.${kakaoUserId}&message_type=eq.expiry_reminder&select=id,message_type,sent_at&order=sent_at.desc`)
+    logs1 = logsBasic
+    console.log('⚠️  message_log 기록 (Migration 026 미실행 — coupon_id/days_remaining 없음):')
+  }
   console.log(JSON.stringify(logs1, null, 2))
 
   // ── Step 5. 크론 엔드포인트 2차 호출 (중복 방지 확인) ──────
