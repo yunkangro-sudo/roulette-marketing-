@@ -52,16 +52,17 @@ export async function GET(req: NextRequest) {
   }[] = []
 
   for (const days of DAYS_STAGES) {
-    const targetDate = kstDatePlusDays(days)  // 예: "2026-08-20" (D-7 대상)
+    const targetDate  = kstDatePlusDays(days)       // 예: "2026-08-20" (D-7 대상)
+    const nextDate    = kstDatePlusDays(days + 1)   // 다음날 → 상한 기준
 
     // ── 1. 만료일이 정확히 N일 후인 유효한 쿠폰 조회 ─────
-    // valid_until을 KST 기준 날짜로 비교
+    // KST 기준 targetDate 당일(00:00 ~ 익일 00:00) 범위로 비교
     const { data: coupons, error: couponErr } = await supabase
       .from('coupons')
       .select('id, store_id, kakao_user_id, amount, valid_until, short_code')
       .in('status', ['issued', 'pending_verify'])
       .gte('valid_until', `${targetDate}T00:00:00+09:00`)
-      .lt( 'valid_until', `${targetDate}T23:59:59+09:00`)
+      .lt( 'valid_until', `${nextDate}T00:00:00+09:00`)
 
     if (couponErr) {
       console.error(`[expiry-reminder] D-${days} 쿠폰 조회 오류:`, couponErr.message)
