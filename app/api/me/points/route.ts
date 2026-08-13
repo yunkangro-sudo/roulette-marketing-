@@ -32,7 +32,8 @@ export async function GET(req: Request) {
       .maybeSingle(),
     supabase
       .from('reward_catalog')
-      .select('id, name, point_cost, stock, reward_type, image_url, requires_verification, start_at, end_at')
+      // requires_verification은 Migration 023 실행 후 추가 예정
+      .select('id, name, point_cost, stock, reward_type, image_url, start_at, end_at')
       .eq('store_id', storeId)
       .eq('active', true)
       // start_at이 없거나 현재 시각 이전인 것만
