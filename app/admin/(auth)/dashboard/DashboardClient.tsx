@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+interface SegmentCounts {
+  NEW: number; ACTIVE: number; AT_RISK: number; DORMANT: number; RETURNED: number;
+}
+
 interface StoreRow {
   storeId: string
   storeName: string
@@ -28,6 +32,7 @@ export default function DashboardClient() {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [data, setData] = useState<DashboardData | null>(null)
+  const [segments, setSegments] = useState<{ counts: SegmentCounts; total: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -35,10 +40,18 @@ export default function DashboardClient() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/admin/dashboard?year=${year}&month=${month}`)
-      const json = await res.json()
-      if (!res.ok) { setError(json.error ?? '조회 실패'); return }
+      const [dashRes, segRes] = await Promise.all([
+        fetch(`/api/admin/dashboard?year=${year}&month=${month}`),
+        fetch('/api/admin/segments'),
+      ])
+      const json = await dashRes.json()
+      if (!dashRes.ok) { setError(json.error ?? '조회 실패'); return }
       setData(json)
+
+      if (segRes.ok) {
+        const segJson = await segRes.json()
+        setSegments(segJson)
+      }
     } catch {
       setError('네트워크 오류')
     } finally {
@@ -87,6 +100,40 @@ export default function DashboardClient() {
                 {data.year}년 {data.month}월 · {data.stores.length}개 매장 기준
               </p>
             </div>
+
+            {/* 세그먼트 분포 카드 */}
+            {segments && segments.total > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200 px-6 py-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-gray-900">고객 세그먼트 분포</h2>
+                  <span className="text-xs text-gray-400">전체 {segments.total.toLocaleString()}명</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {(
+                    [
+                      { key: 'NEW',      label: '신규',      color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                      { key: 'ACTIVE',   label: '활성',      color: 'bg-green-50 text-green-700 border-green-200' },
+                      { key: 'AT_RISK',  label: '이탈 위험', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+                      { key: 'DORMANT',  label: '휴면',      color: 'bg-gray-50 text-gray-500 border-gray-200' },
+                      { key: 'RETURNED', label: '복귀',      color: 'bg-purple-50 text-purple-700 border-purple-200' },
+                    ] as const
+                  ).map(({ key, label, color }) => {
+                    const count = segments.counts[key] ?? 0
+                    const pct = segments.total > 0 ? Math.round((count / segments.total) * 100) : 0
+                    return (
+                      <div key={key} className={`rounded-xl border px-3 py-3 text-center ${color}`}>
+                        <p className="text-xs font-semibold mb-1">{label}</p>
+                        <p className="text-xl font-black leading-none">{count.toLocaleString()}</p>
+                        <p className="text-xs mt-1 opacity-70">{pct}%</p>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-gray-400 mt-3">
+                  * 세그먼트는 게임 플레이 시점에 갱신됩니다. 장기 미방문 고객은 추후 배치 스케줄러 연동 시 자동 갱신 예정.
+                </p>
+              </div>
+            )}
 
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null)
-  const { store_id, point_per_visit, usage_threshold, point_expiry_days } = body ?? {}
+  const { store_id, point_per_visit, usage_threshold, point_expiry_days, default_revisit_interval_days } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) {
@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     point_per_visit: Number(point_per_visit) || 10,
     usage_threshold: Number(usage_threshold) || 100,
     point_expiry_days: point_expiry_days ? Number(point_expiry_days) : null,
+    default_revisit_interval_days: default_revisit_interval_days ? Number(default_revisit_interval_days) : 7,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'store_id' })
 

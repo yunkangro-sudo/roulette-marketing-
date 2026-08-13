@@ -10,6 +10,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [pointPerVisit, setPointPerVisit] = useState(1000)
   const [usageThreshold, setUsageThreshold] = useState(5000)
   const [expiryDays, setExpiryDays] = useState('')
+  const [revisitInterval, setRevisitInterval] = useState('7')
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -22,6 +23,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       setPointPerVisit(data.point_per_visit ?? 1000)
       setUsageThreshold(data.usage_threshold ?? 5000)
       setExpiryDays(data.point_expiry_days ? String(data.point_expiry_days) : '')
+      setRevisitInterval(data.default_revisit_interval_days ? String(data.default_revisit_interval_days) : '7')
     }
     setLoaded(true)
   }, [])
@@ -50,6 +52,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
           point_per_visit: pointPerVisit,
           usage_threshold: usageThreshold,
           point_expiry_days: expiryDays ? Number(expiryDays) : null,
+          default_revisit_interval_days: revisitInterval ? Number(revisitInterval) : 7,
         }),
       })
       const data = await res.json()
@@ -136,6 +139,27 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
               />
               <span className="text-sm text-gray-500">일</span>
             </div>
+          </div>
+
+          {/* 평균 재방문 주기 */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              평균 재방문 주기 <span className="font-normal text-gray-400">(세그먼트 분류 기준)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={revisitInterval}
+                onChange={(e) => setRevisitInterval(e.target.value)}
+                min={1}
+                className="w-36 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:border-orange-500"
+              />
+              <span className="text-sm text-gray-500">일</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              손님별 방문 이력이 3회 미만일 때 세그먼트(이탈 위험·휴면) 판정에 사용하는 기준값이에요.
+              업종 특성에 맞게 조정하세요 (기본값 7일).
+            </p>
           </div>
 
           <button
