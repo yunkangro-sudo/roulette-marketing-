@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getEffectiveStatus } from '@/lib/coupons/getEffectiveStatus'
+import { logActivity } from '@/lib/activity/log'
 
 /**
  * POST /api/coupons/use — 인증 불필요(requires_verification=false) 쿠폰 즉시 사용 처리.
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   const supabase = createServerClient()
   const { data: coupon, error: fetchError } = await supabase
     .from('coupons')
-    .select('id, status, requires_verification, valid_until')
+    .select('id, store_id, kakao_user_id, status, requires_verification, valid_until')
     .eq('id', couponId)
     .maybeSingle()
 
@@ -61,6 +62,16 @@ export async function POST(request: Request) {
     console.error('[api/coupons/use] 상태 변경 실패:', updateError)
     return NextResponse.json({ error: '쿠폰 상태 변경 중 오류가 발생했습니다' }, { status: 500 })
   }
+
+  // ── coupon_used 기록 (silent fail) ───────────────────────────
+  logActivity({
+    storeId:     coupon.store_id,
+    kakaoUserId: coupon.kakao_user_id,
+    eventType:   'coupon_used',
+    refId:       couponId,
+    refType:     'coupon',
+  }).catch(() => {})
+  // ─────────────────────────────────────────────────────────────
 
   return NextResponse.json({ coupon: updated })
 }

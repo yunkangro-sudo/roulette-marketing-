@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/activity/log'
 
 /**
  * POST /api/rewards/use
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
   // 현재 상태 확인
   const { data: reward } = await supabase
     .from('rewards_issued')
-    .select('id, status')
+    .select('id, store_id, kakao_user_id, status')
     .eq('id', reward_issued_id)
     .single()
 
@@ -43,6 +44,16 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // ── reward_redeemed 기록 (silent fail) ───────────────────────
+  logActivity({
+    storeId:     reward.store_id,
+    kakaoUserId: reward.kakao_user_id,
+    eventType:   'reward_redeemed',
+    refId:       reward_issued_id,
+    refType:     'reward',
+  }).catch(() => {})
+  // ─────────────────────────────────────────────────────────────
 
   return NextResponse.json({ ok: true })
 }

@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { drawPrizeTier, applyStockSafetyNet } from '@/lib/game-engine/prizeDraw'
 import { computeValidUntil, type CouponValidityType } from '@/lib/game-engine/couponValidity'
 import { sendAlimtalk } from '@/lib/alimtalk/send'
+import { logActivity } from '@/lib/activity/log'
 
 /**
  * POST /api/games/play
@@ -60,6 +61,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '이벤트 정보를 불러오지 못했습니다' }, { status: 500 })
   }
 
+  // ── game_start 기록 (event 조회 성공 후 → store_id 확정) ─────
+  logActivity({
+    storeId:     event.store_id,
+    kakaoUserId,
+    eventType:   'game_start',
+    refId:       eventId,
+    refType:     'game',
+  }).catch(() => {})
+  // ─────────────────────────────────────────────────────────────
+
   let finalTier
   try {
     const picked = drawPrizeTier(tiers)
@@ -101,12 +112,21 @@ export async function POST(request: Request) {
       })
 
       // point_ledger earn 기록
-      await supabase.from('point_ledger').insert({
+      const { data: ledgerRow } = await supabase.from('point_ledger').insert({
         store_id: event.store_id,
         kakao_user_id: kakaoUserId,
         type: 'earn',
         amount: pointsToAdd,
-      })
+      }).select('id').single()
+
+      // ── point_earned 기록 (silent fail) ────────────────────
+      logActivity({
+        storeId:     event.store_id,
+        kakaoUserId,
+        eventType:   'point_earned',
+        refId:       ledgerRow?.id,
+        refType:     'point_ledger',
+      }).catch(() => {})
     }
   } catch (err) {
     // 포인트 적립 실패는 게임 결과에 영향 없음 (로그만)
@@ -116,6 +136,15 @@ export async function POST(request: Request) {
 
   // 꽝이면 쿠폰을 발급하지 않는다
   if (finalTier.amount <= 0) {
+    // ── game_complete (꽝) 기록 (silent fail) ──────────────
+    logActivity({
+      storeId:     event.store_id,
+      kakaoUserId,
+      eventType:   'game_complete',
+      refId:       eventId,
+      refType:     'game',
+    }).catch(() => {})
+
     return NextResponse.json({
       label: finalTier.label,
       amount: finalTier.amount,
@@ -175,6 +204,16 @@ export async function POST(request: Request) {
       requiresVerification: finalTier.requires_verification,
     })
   }
+
+  // ── game_complete (당첨) 기록 (silent fail) ────────────────
+  logActivity({
+    storeId:     event.store_id,
+    kakaoUserId,
+    eventType:   'game_complete',
+    refId:       coupon.id,
+    refType:     'coupon',
+  }).catch(() => {})
+  // ─────────────────────────────────────────────────────────────
 
   // ── 알림톡 발송 (쿠폰 발급 시점 — stub 버전) ────────────────
   sendAlimtalk({
