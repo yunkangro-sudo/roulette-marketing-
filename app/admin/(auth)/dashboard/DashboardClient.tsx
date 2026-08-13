@@ -148,46 +148,46 @@ export default function DashboardClient() {
               </div>
             )}
 
-            {/* 이탈 위험 관리 */}
+            {/* 이탈 위험 복귀율 */}
             {churnRisk && churnRisk.total > 0 && (
               <div className="bg-white rounded-2xl border border-gray-200 px-6 py-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-bold text-gray-900">⚠️ 이탈 위험 관리</h2>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400">총 {churnRisk.total}건</span>
-                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${
-                      churnRisk.recoveryRate >= 70
-                        ? 'bg-green-100 text-green-700'
-                        : churnRisk.recoveryRate >= 40
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-600'
-                    }`}>
-                      복귀율 {churnRisk.recoveryRate}%
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="text-base font-bold text-gray-900">📊 이탈 후 복귀율</h2>
+                  <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                    churnRisk.recoveryRate >= 70
+                      ? 'bg-green-100 text-green-700'
+                      : churnRisk.recoveryRate >= 40
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-red-100 text-red-600'
+                  }`}>
+                    전체 복귀율 {churnRisk.recoveryRate}%
+                  </span>
                 </div>
+                <p className="text-xs text-gray-400 mb-4">
+                  이탈 위험 수준별로 방문이 끊겼다가 다시 돌아온 손님 비율입니다 (총 {churnRisk.total}건 이력)
+                </p>
                 <div className="grid grid-cols-3 gap-3">
                   {(
                     [
-                      { key: 'interested' as const, label: '관심 이탈',  desc: '1.0~1.5배',  color: 'bg-blue-50 border-blue-200 text-blue-700' },
-                      { key: 'at_risk'    as const, label: '이탈 위험',  desc: '1.5~2.5배',  color: 'bg-orange-50 border-orange-200 text-orange-700' },
-                      { key: 'dormant'    as const, label: '완전 이탈',  desc: '2.5배 초과', color: 'bg-red-50 border-red-200 text-red-700' },
+                      { key: 'interested' as const, label: '초기 이탈',    desc: '기준의 1.0~1.5배 공백 후 복귀',  color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                      { key: 'at_risk'    as const, label: '위험 이탈',    desc: '기준의 1.5~2.5배 공백 후 복귀',  color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                      { key: 'dormant'    as const, label: '장기 이탈',    desc: '기준의 2.5배 초과 공백 후 복귀', color: 'bg-red-50 border-red-200 text-red-700' },
                     ]
                   ).map(({ key, label, desc, color }) => {
                     const stat = churnRisk.counts[key]
                     const rate = stat.total > 0 ? Math.round((stat.recovered / stat.total) * 100) : 0
                     return (
                       <div key={key} className={`rounded-xl border px-4 py-3 ${color}`}>
-                        <p className="text-xs font-semibold">{label}</p>
-                        <p className="text-xs opacity-60 mb-2">{desc}</p>
-                        <p className="text-2xl font-black leading-none">{stat.total}</p>
+                        <p className="text-xs font-semibold mb-0.5">{label}</p>
+                        <p className="text-xs opacity-60 mb-2 leading-tight">{desc}</p>
+                        <p className="text-2xl font-black leading-none">{stat.total}<span className="text-xs font-normal opacity-70 ml-1">건</span></p>
                         <p className="text-xs mt-1 opacity-70">복귀 {rate}%</p>
                       </div>
                     )
                   })}
                 </div>
                 <p className="text-xs text-gray-400 mt-3">
-                  * 복귀 이력 기반 집계입니다. 미방문 중인 고객 실시간 탐지는 Phase 2 배치 연동 후 활성화됩니다.
+                  * 게임 플레이 시점 복귀 이력 기반. 미방문 중 실시간 탐지 및 Win-back 발송은 Phase 2 배치 연동 후 활성화.
                 </p>
               </div>
             )}
