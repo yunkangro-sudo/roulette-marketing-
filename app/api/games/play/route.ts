@@ -6,6 +6,7 @@ import { sendAlimtalk } from '@/lib/alimtalk/send'
 import { logActivity } from '@/lib/activity/log'
 import { processMissionProgress } from '@/lib/missions/processProgress'
 import { recalculateCustomerSegment } from '@/lib/segments/recalculate'
+import { processChurnRisk } from '@/lib/churnRisk/processChurnRisk'
 
 /**
  * POST /api/games/play
@@ -149,6 +150,7 @@ export async function POST(request: Request) {
 
     processMissionProgress(event.store_id, kakaoUserId).catch(() => {})
     recalculateCustomerSegment(event.store_id, kakaoUserId).catch(() => {})
+    processChurnRisk(event.store_id, kakaoUserId).catch(() => {})
 
     return NextResponse.json({
       label: finalTier.label,
@@ -221,6 +223,7 @@ export async function POST(request: Request) {
 
   processMissionProgress(event.store_id, kakaoUserId).catch(() => {})
   recalculateCustomerSegment(event.store_id, kakaoUserId).catch(() => {})
+  processChurnRisk(event.store_id, kakaoUserId).catch(() => {})
   // ─────────────────────────────────────────────────────────────
 
   // ── 알림톡 발송 (쿠폰 발급 시점 — stub 버전) ────────────────

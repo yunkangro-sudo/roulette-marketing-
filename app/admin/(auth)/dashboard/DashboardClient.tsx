@@ -6,6 +6,13 @@ interface SegmentCounts {
   NEW: number; ACTIVE: number; AT_RISK: number; DORMANT: number; RETURNED: number;
 }
 
+interface ChurnLevelStat { total: number; recovered: number }
+interface ChurnRiskData {
+  counts: { interested: ChurnLevelStat; at_risk: ChurnLevelStat; dormant: ChurnLevelStat }
+  total: number
+  recoveryRate: number
+}
+
 interface StoreRow {
   storeId: string
   storeName: string
@@ -33,6 +40,7 @@ export default function DashboardClient() {
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [data, setData] = useState<DashboardData | null>(null)
   const [segments, setSegments] = useState<{ counts: SegmentCounts; total: number } | null>(null)
+  const [churnRisk, setChurnRisk] = useState<ChurnRiskData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -40,9 +48,10 @@ export default function DashboardClient() {
     setLoading(true)
     setError('')
     try {
-      const [dashRes, segRes] = await Promise.all([
+      const [dashRes, segRes, churnRes] = await Promise.all([
         fetch(`/api/admin/dashboard?year=${year}&month=${month}`),
         fetch('/api/admin/segments'),
+        fetch('/api/admin/churn-risk'),
       ])
       const json = await dashRes.json()
       if (!dashRes.ok) { setError(json.error ?? '조회 실패'); return }
@@ -51,6 +60,10 @@ export default function DashboardClient() {
       if (segRes.ok) {
         const segJson = await segRes.json()
         setSegments(segJson)
+      }
+      if (churnRes.ok) {
+        const churnJson = await churnRes.json()
+        setChurnRisk(churnJson)
       }
     } catch {
       setError('네트워크 오류')
@@ -131,6 +144,50 @@ export default function DashboardClient() {
                 </div>
                 <p className="text-xs text-gray-400 mt-3">
                   * 세그먼트는 게임 플레이 시점에 갱신됩니다. 장기 미방문 고객은 추후 배치 스케줄러 연동 시 자동 갱신 예정.
+                </p>
+              </div>
+            )}
+
+            {/* 이탈 위험 관리 */}
+            {churnRisk && churnRisk.total > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200 px-6 py-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-bold text-gray-900">⚠️ 이탈 위험 관리</h2>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">총 {churnRisk.total}건</span>
+                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                      churnRisk.recoveryRate >= 70
+                        ? 'bg-green-100 text-green-700'
+                        : churnRisk.recoveryRate >= 40
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-600'
+                    }`}>
+                      복귀율 {churnRisk.recoveryRate}%
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {(
+                    [
+                      { key: 'interested' as const, label: '관심 이탈',  desc: '1.0~1.5배',  color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                      { key: 'at_risk'    as const, label: '이탈 위험',  desc: '1.5~2.5배',  color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                      { key: 'dormant'    as const, label: '완전 이탈',  desc: '2.5배 초과', color: 'bg-red-50 border-red-200 text-red-700' },
+                    ]
+                  ).map(({ key, label, desc, color }) => {
+                    const stat = churnRisk.counts[key]
+                    const rate = stat.total > 0 ? Math.round((stat.recovered / stat.total) * 100) : 0
+                    return (
+                      <div key={key} className={`rounded-xl border px-4 py-3 ${color}`}>
+                        <p className="text-xs font-semibold">{label}</p>
+                        <p className="text-xs opacity-60 mb-2">{desc}</p>
+                        <p className="text-2xl font-black leading-none">{stat.total}</p>
+                        <p className="text-xs mt-1 opacity-70">복귀 {rate}%</p>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-gray-400 mt-3">
+                  * 복귀 이력 기반 집계입니다. 미방문 중인 고객 실시간 탐지는 Phase 2 배치 연동 후 활성화됩니다.
                 </p>
               </div>
             )}
