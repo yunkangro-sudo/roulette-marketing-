@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import StoreSelector from '../components/StoreSelector'
 
-interface Reward { id: string; name: string; point_cost: number; active: boolean; stock: number | null }
+interface Reward { id: string; name: string; point_cost: number; active: boolean; stock: number | null; requires_verification: boolean }
 interface Props { role: string; storeId: string | null }
 
 export default function RewardCatalogClient({ role, storeId }: Props) {
@@ -14,6 +14,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
   const [newName, setNewName] = useState('')
   const [newCost, setNewCost] = useState('')
   const [newStock, setNewStock] = useState('')
+  const [newVerify, setNewVerify] = useState(false)
   const [adding, setAdding] = useState(false)
 
   const load = useCallback(async (sid: string) => {
@@ -37,11 +38,11 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
     const res = await fetch('/api/admin/reward-catalog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ store_id: selectedStore, name: newName, point_cost: newCost, stock: newStock || null }),
+      body: JSON.stringify({ store_id: selectedStore, name: newName, point_cost: newCost, stock: newStock || null, requires_verification: newVerify }),
     })
     const data = await res.json()
     if (!res.ok) { setMessage({ text: data.error ?? '등록 실패', ok: false }) }
-    else { setNewName(''); setNewCost(''); setNewStock(''); setMessage({ text: '✅ 리워드가 등록되었습니다', ok: true }); await load(selectedStore) }
+    else { setNewName(''); setNewCost(''); setNewStock(''); setNewVerify(false); setMessage({ text: '✅ 리워드가 등록되었습니다', ok: true }); await load(selectedStore) }
     setAdding(false)
   }
 
@@ -92,7 +93,13 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">필요 포인트</label>
-                <input type="number" value={newCost} onChange={(e) => setNewCost(e.target.value)} placeholder="50" min={1}
+                <input type="number" value={newCost}
+                  onChange={(e) => {
+                    setNewCost(e.target.value)
+                    // 10,000P 이상이면 본인확인 자동 체크 권장
+                    if (Number(e.target.value) >= 10000) setNewVerify(true)
+                  }}
+                  placeholder="50" min={1}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
@@ -101,6 +108,19 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
+
+            {/* 본인확인 옵션 */}
+            <label className="flex items-start gap-2.5 cursor-pointer mb-3 group">
+              <input type="checkbox" checked={newVerify} onChange={(e) => setNewVerify(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-orange-500 cursor-pointer" />
+              <span className="text-sm text-gray-700 leading-snug">
+                <span className="font-medium">계산대 본인 확인 필요</span>
+                <span className="text-gray-400 text-xs block mt-0.5">
+                  체크하면 직원이 손님 신분 확인 후 처리 — 10,000P 이상 고가 리워드에 권장
+                </span>
+              </span>
+            </label>
+
             <button onClick={handleAdd} disabled={adding || !newName || !newCost}
               className="bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold px-5 py-2 rounded-lg disabled:opacity-50 transition-colors">
               {adding ? '등록 중...' : '+ 등록'}
@@ -121,7 +141,12 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{r.name}</p>
-                      <p className="text-sm text-orange-500 font-bold">{r.point_cost.toLocaleString()}P</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-sm text-orange-500 font-bold">{r.point_cost.toLocaleString()}P</p>
+                        {r.requires_verification && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">본인확인</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="flex items-center gap-1 text-xs text-gray-500">

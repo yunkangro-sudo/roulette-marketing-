@@ -24,7 +24,7 @@ interface RewardIssuedData {
   status: 'issued' | 'used' | 'expired'
   issued_at: string
   used_at: string | null
-  reward_catalog: { name: string; point_cost: number }
+  reward_catalog: { name: string; point_cost: number; requires_verification: boolean }
 }
 
 const STATUS_LABEL: Record<CouponData['status'], string> = {
@@ -74,6 +74,10 @@ export default function StaffClient({ storeId, role }: Props) {
   const [rewardError, setRewardError] = useState('')
   const [rewardLoading, setRewardLoading] = useState(false)
   const [rewardSuccess, setRewardSuccess] = useState('')
+  // requires_verification=true인 리워드: 검증 확인 단계
+  const [rewardVerifyStep, setRewardVerifyStep] = useState(false)
+  const [rewardVerifyReasonPicker, setRewardVerifyReasonPicker] = useState(false)
+  const [rewardVerifyReason, setRewardVerifyReason] = useState('')
 
   async function handleLogout() {
     await fetch('/api/admin/auth/logout', { method: 'POST' })
@@ -176,6 +180,9 @@ export default function StaffClient({ storeId, role }: Props) {
     setRewardError('')
     setRewardSuccess('')
     setRewardData(null)
+    setRewardVerifyStep(false)
+    setRewardVerifyReasonPicker(false)
+    setRewardVerifyReason('')
     try {
       const res = await fetch(`/api/rewards/lookup?code=${encodeURIComponent(target)}&store_id=${encodeURIComponent(storeId)}`)
       const data = await res.json()
@@ -281,9 +288,14 @@ export default function StaffClient({ storeId, role }: Props) {
             <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
               <div className="grid grid-cols-2 gap-y-3 text-base mb-5">
                 <span className="text-gray-500">리워드명</span>
-                <span className="font-bold text-gray-900 text-right">{rewardData.reward_catalog.name}</span>
+                <div className="text-right">
+                  <span className="font-bold text-gray-900">{rewardData.reward_catalog.name}</span>
+                  {rewardData.reward_catalog.requires_verification && (
+                    <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium align-middle">본인확인</span>
+                  )}
+                </div>
                 <span className="text-gray-500">사용 포인트</span>
-                <span className="font-bold text-orange-500 text-right">{rewardData.reward_catalog.point_cost}P</span>
+                <span className="font-bold text-orange-500 text-right">{rewardData.reward_catalog.point_cost.toLocaleString()}P</span>
                 <span className="text-gray-500">발급일시</span>
                 <span className="text-gray-900 text-right">{formatDateTime(rewardData.issued_at)}</span>
                 <span className="text-gray-500">현재 상태</span>
@@ -292,15 +304,67 @@ export default function StaffClient({ storeId, role }: Props) {
                 </span>
               </div>
 
-              {rewardData.status === 'issued' ? (
+              {rewardData.status !== 'issued' ? (
+                <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center text-lg font-bold">
+                  {rewardData.status === 'used' ? '이미 사용된 리워드입니다' : '만료된 리워드입니다'}
+                </div>
+              ) : rewardData.reward_catalog.requires_verification && !rewardVerifyStep ? (
+                /* ── 본인확인 필요 — 확인 전 안내 ─────────────── */
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-lg px-4 py-4 text-center">
+                  <p className="text-amber-800 font-bold text-base mb-1">손님 본인 확인이 필요한 리워드입니다</p>
+                  <p className="text-amber-700 text-sm mb-4">손님의 카카오 프로필을 직접 확인한 후 아래 버튼을 눌러주세요</p>
+                  <button onClick={() => setRewardVerifyStep(true)} disabled={rewardLoading}
+                    className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-lg text-base font-bold disabled:opacity-40 transition-colors">
+                    본인 확인 진행하기
+                  </button>
+                </div>
+              ) : rewardData.reward_catalog.requires_verification && rewardVerifyStep && !rewardVerifyReasonPicker ? (
+                /* ── 본인확인 완료 여부 선택 ─────────────────── */
+                <div>
+                  <p className="text-gray-700 font-bold text-center mb-3 text-base">손님 신분을 확인하셨나요?</p>
+                  <div className="flex gap-3">
+                    <button onClick={handleRewardUse} disabled={rewardLoading}
+                      className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
+                      확인함
+                    </button>
+                    <button onClick={() => setRewardVerifyReasonPicker(true)} disabled={rewardLoading}
+                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
+                      미확인 처리
+                    </button>
+                  </div>
+                </div>
+              ) : rewardVerifyReasonPicker ? (
+                /* ── 미확인 사유 선택 ──────────────────────────── */
+                <div className="border-2 border-gray-200 rounded-lg p-4">
+                  <p className="text-gray-700 font-bold mb-3">미확인 사유 선택</p>
+                  <div className="flex gap-2 mb-4">
+                    {REASONS.map((r) => (
+                      <button key={r} onClick={() => setRewardVerifyReason(r)}
+                        className={`flex-1 py-3 rounded-lg text-base font-bold border-2 ${
+                          rewardVerifyReason === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300'
+                        }`}>{r}</button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { setRewardVerifyReasonPicker(false); setRewardVerifyReason('') }}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-bold">취소</button>
+                    <button onClick={() => {
+                      if (!rewardVerifyReason) return
+                      setRewardVerifyReasonPicker(false)
+                      setRewardVerifyStep(false)
+                      setRewardVerifyReason('')
+                      setRewardError('본인 미확인으로 처리하지 않았습니다. 손님 재방문 시 다시 시도해주세요.')
+                    }}
+                      disabled={!rewardVerifyReason || rewardLoading}
+                      className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-40">미확인 확정</button>
+                  </div>
+                </div>
+              ) : (
+                /* ── 본인확인 불필요 — 바로 사용 처리 ─────────── */
                 <button onClick={handleRewardUse} disabled={rewardLoading}
                   className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
                   리워드 사용 처리
                 </button>
-              ) : (
-                <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center text-lg font-bold">
-                  {rewardData.status === 'used' ? '이미 사용된 리워드입니다' : '만료된 리워드입니다'}
-                </div>
               )}
             </div>
           )}

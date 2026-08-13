@@ -26,7 +26,7 @@ export async function GET(req: Request) {
       status,
       issued_at,
       used_at,
-      reward_catalog (name, point_cost)
+      reward_catalog (name, point_cost, requires_verification)
     `)
 
          // short_code(6자리) 또는 id(UUID) 모두 허용 (하위 호환)

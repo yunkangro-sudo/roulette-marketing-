@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('reward_catalog')
-    .select('id, name, point_cost, active, stock, created_at')
+    .select('id, name, point_cost, active, stock, requires_verification, created_at')
     .eq('store_id', storeId)
     .order('created_at', { ascending: false })
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null)
-  const { store_id, name, point_cost, stock } = body ?? {}
+  const { store_id, name, point_cost, stock, requires_verification } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
       point_cost: Number(point_cost),
       active: true,
       stock: stock !== undefined && stock !== '' ? Number(stock) : null,
+      requires_verification: requires_verification === true,
     })
     .select('id')
     .single()
