@@ -32,18 +32,18 @@ function Navbar() {
           <a href="#faq" className="hover:text-[#14151A] transition-colors">FAQ</a>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            className="hidden md:block text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          <a href="/admin/login"
+            className="hidden md:block text-sm font-medium px-4 py-2 rounded-lg transition-colors hover:bg-gray-100"
             style={{ color: '#14151A' }}
           >
             로그인
-          </button>
-          <button
+          </a>
+          <a href="/signup"
             className="text-sm font-semibold px-5 py-2 rounded-lg text-white transition-all hover:opacity-90"
             style={{ background: '#3D5AFE' }}
           >
             무료 시작
-          </button>
+          </a>
         </div>
       </div>
     </nav>
@@ -294,18 +294,18 @@ function HeroSection() {
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-3 mb-10">
-            <button
-              className="px-7 py-3.5 rounded-xl text-white font-semibold text-base transition-all hover:opacity-88 hover:-translate-y-0.5 active:translate-y-0"
+            <a href="/signup"
+              className="px-7 py-3.5 rounded-xl text-white font-semibold text-base transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
               style={{ background: '#3D5AFE', boxShadow: '0 4px 20px rgba(61,90,254,0.35)' }}
             >
               무료 데모 체험하기
-            </button>
-            <button
+            </a>
+            <a href="/admin/login"
               className="px-7 py-3.5 rounded-xl font-semibold text-base transition-all border hover:bg-white"
               style={{ color: '#14151A', borderColor: '#E4E8ED' }}
             >
               샘플 대시보드 보기 →
-            </button>
+            </a>
           </div>
 
           {/* Social proof */}
