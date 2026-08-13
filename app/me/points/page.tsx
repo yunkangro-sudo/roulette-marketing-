@@ -16,6 +16,18 @@ interface LedgerEntry {
   created_at: string
 }
 
+interface Mission {
+  id: string
+  name: string
+  missionType: string
+  targetValue: number
+  rewardType: 'point' | 'coupon'
+  rewardValue: number
+  endAt: string | null
+  currentValue: number
+  completedAt: string | null
+}
+
 function PointsContent() {
   const searchParams = useSearchParams()
   const kakaoUserId = searchParams.get('uid') ?? ''
@@ -27,6 +39,7 @@ function PointsContent() {
   const [pointPerVisit, setPointPerVisit] = useState(10)
   const [catalog, setCatalog] = useState<Reward[]>([])
   const [history, setHistory] = useState<LedgerEntry[]>([])
+  const [missions, setMissions] = useState<Mission[]>([])
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -43,6 +56,7 @@ function PointsContent() {
       setPointPerVisit(data.settings?.point_per_visit ?? 10)
       setCatalog(data.catalog ?? [])
       setHistory(data.history ?? [])
+      setMissions(data.missions ?? [])
     } finally {
       setLoading(false)
     }
@@ -123,6 +137,55 @@ function PointsContent() {
               : 'bg-red-50 border border-red-200 text-red-700'
           }`}>
             {message.text}
+          </div>
+        )}
+
+        {/* 진행 중 미션 — v3.1 Next Visit Loop */}
+        {missions.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold text-gray-700 mb-3">🎯 진행 중인 미션</h2>
+            <div className="space-y-3">
+              {missions.map((mission) => {
+                const pct = Math.min(100, Math.round((mission.currentValue / mission.targetValue) * 100))
+                const remaining = mission.targetValue - mission.currentValue
+                return (
+                  <div key={mission.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{mission.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          달성 시 {mission.rewardType === 'point'
+                            ? `${mission.rewardValue.toLocaleString()}P 적립`
+                            : `${mission.rewardValue.toLocaleString()}원 쿠폰 지급`}
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-orange-500 whitespace-nowrap ml-2">
+                        {mission.currentValue}/{mission.targetValue}회
+                      </span>
+                    </div>
+
+                    {/* 진행률 바 */}
+                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-orange-400 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {remaining > 0
+                        ? `앞으로 ${remaining}회 더 방문하면 달성!`
+                        : '달성 완료 처리 중...'}
+                      {mission.endAt && (
+                        <span className="ml-1">
+                          · 마감 {new Date(mission.endAt).toLocaleDateString('ko-KR')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { drawPrizeTier, applyStockSafetyNet } from '@/lib/game-engine/prizeDraw'
 import { computeValidUntil, type CouponValidityType } from '@/lib/game-engine/couponValidity'
 import { sendAlimtalk } from '@/lib/alimtalk/send'
 import { logActivity } from '@/lib/activity/log'
+import { processMissionProgress } from '@/lib/missions/processProgress'
 
 /**
  * POST /api/games/play
@@ -136,7 +137,7 @@ export async function POST(request: Request) {
 
   // 꽝이면 쿠폰을 발급하지 않는다
   if (finalTier.amount <= 0) {
-    // ── game_complete (꽝) 기록 (silent fail) ──────────────
+    // ── game_complete (꽝) 기록 + 미션 처리 (silent fail) ──
     logActivity({
       storeId:     event.store_id,
       kakaoUserId,
@@ -144,6 +145,8 @@ export async function POST(request: Request) {
       refId:       eventId,
       refType:     'game',
     }).catch(() => {})
+
+    processMissionProgress(event.store_id, kakaoUserId).catch(() => {})
 
     return NextResponse.json({
       label: finalTier.label,
@@ -205,7 +208,7 @@ export async function POST(request: Request) {
     })
   }
 
-  // ── game_complete (당첨) 기록 (silent fail) ────────────────
+  // ── game_complete (당첨) 기록 + 미션 처리 (silent fail) ────
   logActivity({
     storeId:     event.store_id,
     kakaoUserId,
@@ -213,6 +216,8 @@ export async function POST(request: Request) {
     refId:       coupon.id,
     refType:     'coupon',
   }).catch(() => {})
+
+  processMissionProgress(event.store_id, kakaoUserId).catch(() => {})
   // ─────────────────────────────────────────────────────────────
 
   // ── 알림톡 발송 (쿠폰 발급 시점 — stub 버전) ────────────────
