@@ -9,8 +9,11 @@ import { cookies } from 'next/headers'
 export interface CustomerSessionData {
   user?: {
     kakao_user_id: string
-    nickname: string
-    storeId: string   // 어느 매장 QR로 접근했는지 (게임 컨텍스트)
+    nickname:      string
+    storeId:       string    // 어느 매장 QR로 접근했는지 (게임 컨텍스트)
+    accessToken?:  string    // Kakao 나에게 보내기 등 API 호출용 (단기 보관)
+    hasTalkMsg?:   boolean   // talk_message 동의 여부
+    hasFriends?:   boolean   // friends 동의 여부
   }
 }
 

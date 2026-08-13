@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
     const authUrl = getKakaoAuthUrl({
       redirectUri,
       state,
-      requestPhone: true,  // 비즈앱 심사 전에는 phone_number가 null로 내려옴 (무시 처리됨)
+      requestPhone:   true,  // 비즈앱 심사 전에는 null (무시 처리)
+      requestTalkMsg: true,  // MESSAGE API 심사용 — 미승인 시 동의항목 누락으로 내려옴
+      requestFriends: true,  // FRIEND API 심사용 — 미승인 시 동의항목 누락으로 내려옴
     })
     return NextResponse.redirect(authUrl)
   } catch (err) {

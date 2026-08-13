@@ -34,13 +34,17 @@ export async function GET(req: NextRequest) {
 
   try {
     // ── 1. 토큰 교환 ──────────────────────────────────────────
-    const accessToken = await exchangeCodeForToken(code, redirectUri)
+    const { access_token: accessToken, scope } = await exchangeCodeForToken(code, redirectUri)
+
+    // 동의된 scope 파싱 (예: "profile_nickname talk_message friends phone_number")
+    const grantedScopes = scope?.split(' ') ?? []
+    const hasTalkMsg = grantedScopes.includes('talk_message')
+    const hasFriends = grantedScopes.includes('friends')
 
     // ── 2. 사용자 프로필 조회 ──────────────────────────────────
     const profile = await getKakaoUserProfile(accessToken)
 
     // ── 3. 전화번호 저장 (암호화) ─────────────────────────────
-    // 비즈앱 심사 전 phone_number는 null → 저장 스킵 (로그인은 정상 진행)
     if (profile.phone_number) {
       await savePhoneNumber(profile.id, storeId, profile.phone_number)
     }
@@ -51,6 +55,9 @@ export async function GET(req: NextRequest) {
       kakao_user_id: profile.id,
       nickname:      profile.nickname,
       storeId,
+      accessToken,         // 나에게 보내기/friends API용 (단기 보관)
+      hasTalkMsg,
+      hasFriends,
     }
     await session.save()
 

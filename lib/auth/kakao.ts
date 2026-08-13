@@ -14,9 +14,20 @@ const KAKAO_AUTH_BASE = 'https://kauth.kakao.com'
 const KAKAO_API_BASE  = 'https://kapi.kakao.com'
 
 export interface KakaoUserProfile {
-  id: string                // 카카오 사용자 ID
-  nickname: string          // 닉네임
-  phone_number: string | null  // 전화번호 (비즈앱 심사 후 수집 가능, 그 전엔 null)
+  id:           string
+  nickname:     string
+  phone_number: string | null
+  has_talk_msg: boolean   // talk_message 동의 여부
+  has_friends:  boolean   // friends 동의 여부
+}
+
+export interface KakaoFriend {
+  id:        number
+  uuid:      string
+  profile_nickname: string
+  profile_thumbnail_image?: string
+  favorite:  boolean
+  app_friend: boolean
 }
 
 /** 카카오 로그인 인증 URL 생성 */
@@ -24,15 +35,16 @@ export function getKakaoAuthUrl(params: {
   redirectUri: string
   state: string
   requestPhone?: boolean
+  requestTalkMsg?: boolean
+  requestFriends?: boolean
 }): string {
   const clientId = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
   if (!clientId) throw new Error('NEXT_PUBLIC_KAKAO_JS_KEY가 설정되지 않았습니다')
 
   const scopes = ['profile_nickname']
-  if (params.requestPhone) {
-    // 비즈앱 심사 통과 후에만 실제로 수집됨
-    scopes.push('phone_number')
-  }
+  if (params.requestPhone)   scopes.push('phone_number')
+  if (params.requestTalkMsg) scopes.push('talk_message')
+  if (params.requestFriends) scopes.push('friends')
 
   const query = new URLSearchParams({
     client_id:     clientId,
@@ -46,7 +58,7 @@ export function getKakaoAuthUrl(params: {
 }
 
 /** Authorization Code → Access Token 교환 */
-export async function exchangeCodeForToken(code: string, redirectUri: string): Promise<string> {
+export async function exchangeCodeForToken(code: string, redirectUri: string): Promise<{ access_token: string; scope?: string }> {
   const clientId     = process.env.NEXT_PUBLIC_KAKAO_JS_KEY!
   const clientSecret = process.env.KAKAO_CLIENT_SECRET ?? ''
 
@@ -70,7 +82,7 @@ export async function exchangeCodeForToken(code: string, redirectUri: string): P
   }
 
   const data = await res.json()
-  return data.access_token as string
+  return { access_token: data.access_token as string, scope: data.scope as string | undefined }
 }
 
 /** 액세스 토큰으로 사용자 프로필 조회 */
@@ -96,5 +108,22 @@ export async function getKakaoUserProfile(accessToken: string): Promise<KakaoUse
     id:           String(data.id),
     nickname:     data.properties?.nickname ?? data.kakao_account?.profile?.nickname ?? '손님',
     phone_number: rawPhone ?? null,
+    has_talk_msg: false,  // scope 확인은 exchangeCodeForToken 결과로 판단
+    has_friends:  false,
   }
+}
+
+/** 카카오 친구 목록 조회 (friends scope 필요) */
+export async function getKakaoFriends(accessToken: string): Promise<KakaoFriend[]> {
+  const res = await fetch(`${KAKAO_API_BASE}/v1/api/talk/friends?limit=100`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(`친구 목록 조회 실패: ${JSON.stringify(err)}`)
+  }
+
+  const data = await res.json()
+  return (data.elements ?? []) as KakaoFriend[]
 }

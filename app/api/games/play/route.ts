@@ -7,6 +7,8 @@ import { logActivity } from '@/lib/activity/log'
 import { processMissionProgress } from '@/lib/missions/processProgress'
 import { recalculateCustomerSegment } from '@/lib/segments/recalculate'
 import { processChurnRisk } from '@/lib/churnRisk/processChurnRisk'
+import { sendMeMessage } from '@/lib/kakao/meMessage'
+import { getCustomerSession } from '@/lib/auth/session'
 
 /**
  * POST /api/games/play
@@ -226,7 +228,7 @@ export async function POST(request: Request) {
   processChurnRisk(event.store_id, kakaoUserId).catch(() => {})
   // ─────────────────────────────────────────────────────────────
 
-  // ── 알림톡 발송 (쿠폰 발급 시점 — stub 버전) ────────────────
+  // ── 알림톡 발송 (message_consent/빈도 규칙 통과 시) ─────────
   sendAlimtalk({
     storeId:     event.store_id,
     kakaoUserId,
@@ -237,10 +239,35 @@ export async function POST(request: Request) {
       label:      finalTier.label,
       validUntil: coupon.valid_until,
     },
-  }).catch((err) => {
-    // 알림톡 실패는 게임 결과에 영향 없음
-    console.error('[api/games/play] 알림톡 발송 실패 (무시):', err)
-  })
+  }).catch(() => {})
+
+  // ── 카카오 "나에게 보내기" (talk_message scope 동의 시) ─────
+  // 세션에서 access_token 조회 → silent fail
+  ;(async () => {
+    try {
+      const session = await getCustomerSession()
+      const accessToken = session.user?.accessToken
+      if (!accessToken || !session.user?.hasTalkMsg) return
+
+      // 매장명 조회 (없으면 fallback)
+      const { data: store } = await createServerClient()
+        .from('stores')
+        .select('name')
+        .eq('id', event.store_id)
+        .maybeSingle()
+
+      await sendMeMessage(accessToken, {
+        storeName:  store?.name ?? '매장',
+        shortCode:  coupon.short_code ?? coupon.id.slice(0, 8).toUpperCase(),
+        amount:     finalTier.amount,
+        label:      finalTier.label,
+        validUntil: coupon.valid_until,
+        storeId:    event.store_id,
+      })
+    } catch {
+      // 나에게 보내기 실패는 쿠폰 발급에 영향 없음 (silent fail)
+    }
+  })()
   // ─────────────────────────────────────────────────────────────
 
   return NextResponse.json({
