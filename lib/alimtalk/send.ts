@@ -56,8 +56,9 @@ interface CheckResult {
 /**
  * 발송 가능 여부 5단계 체크
  * KST(UTC+9) 기준으로 "오늘" 판단
+ * — sendAlimtalk 내부 및 크론 등 외부에서도 재사용 가능
  */
-async function checkSendPermission(payload: AlimtalkPayload): Promise<CheckResult> {
+export async function checkSendPermission(payload: AlimtalkPayload): Promise<CheckResult> {
   const supabase = createServerClient()
 
   // ── 1·2단계: 동의 여부 ────────────────────────────────────
