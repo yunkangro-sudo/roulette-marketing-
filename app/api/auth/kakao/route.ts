@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
       redirectUri,
       state,
       requestPhone:   true,  // 비즈앱 심사 전에는 null (무시 처리)
-      requestTalkMsg: true,  // MESSAGE API 심사용 — 미승인 시 동의항목 누락으로 내려옴
-      requestFriends: true,  // FRIEND API 심사용 — 미승인 시 동의항목 누락으로 내려옴
+      requestTalkMsg: true,  // 나에게 보내기 — 별도 심사 불필요
+      requestFriends: false, // FRIEND API 심사 반려. 미승인 scope 요청 시 KOE205 위험
     })
     return NextResponse.redirect(authUrl)
   } catch (err) {

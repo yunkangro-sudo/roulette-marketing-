@@ -36,11 +36,11 @@ export default function ReviewGuidePage() {
           <div className="space-y-3">
             {[
               { step: '1', title: '매장 QR 스캔 / 링크 접속', desc: '손님이 매장 QR코드를 스캔하거나 카카오 채널 링크로 접속' },
-              { step: '2', title: '카카오 로그인', desc: '카카오 계정으로 로그인 — 닉네임, 전화번호, 나에게 보내기, 친구 목록 동의 요청' },
+              { step: '2', title: '카카오 로그인', desc: '카카오 계정으로 로그인 — 닉네임, 전화번호, 나에게 보내기 동의 요청' },
               { step: '3', title: '인형뽑기 게임', desc: '화면에서 손가락으로 크레인을 조작해 당근 인형 뽑기 시도' },
               { step: '4', title: '쿠폰 발급 + 카카오톡 발송', desc: '당첨 시 쿠폰 코드 발급 → 카카오톡 나에게 보내기로 쿠폰 정보 즉시 발송' },
               { step: '5', title: '매장 계산대 처리', desc: '직원이 6자리 코드 확인 후 쿠폰/포인트 리워드 처리' },
-              { step: '6', title: '포인트 적립 + 친구 초대', desc: '매 방문마다 포인트 적립 → /me/invite에서 친구 목록 확인 및 서비스 소개' },
+              { step: '6', title: '포인트 적립', desc: '매 방문마다 포인트 적립. 친구 초대(/me/invite)는 심사 반려로 당분간 준비중' },
             ].map(({ step, title, desc }) => (
               <div key={step} className="flex gap-3">
                 <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
@@ -120,9 +120,9 @@ export default function ReviewGuidePage() {
               <div className="flex items-start gap-3">
                 <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-lg shrink-0">STEP 4</span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-800 mb-1">FRIEND API — 친구 목록 화면</p>
+                  <p className="text-sm font-semibold text-gray-800 mb-1">FRIEND API — 친구 초대 (보류)</p>
                   <p className="text-xs text-gray-500 mb-2">
-                    로그인 완료 후 아래 링크에서 카카오 친구 목록 조회 확인
+                    FRIEND API 심사 반려로 당분간 비활성화. 화면은 준비중만 표시합니다. 로그인 scope에서 friends를 요청하지 않습니다.
                   </p>
                   <a href={`${BASE}/me/invite?store_id=${STORE_ID}`} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 bg-gray-900 hover:bg-gray-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">
@@ -142,11 +142,11 @@ export default function ReviewGuidePage() {
                     카카오 로그인이 이 서비스의 회원가입에 해당합니다.<br />
                     STEP 1 링크에서 로그인 전 동의항목 화면을 확인하실 수 있습니다.<br />
                     <span className="text-orange-600 font-medium">
-                      수집 항목: 카카오계정(닉네임, 전화번호) / 나에게 보내기 / 친구목록
+                      수집 항목: 카카오계정(닉네임, 전화번호) / 나에게 보내기
                     </span>
                   </p>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
-                    수집 목적: 게임 참여 식별, 쿠폰 발급 알림(나에게 보내기), 친구초대 기능<br />
+                    수집 목적: 게임 참여 식별, 쿠폰 발급 알림(나에게 보내기)<br />
                     보유 기간: 서비스 이용 종료 시까지 (동의 철회 시 즉시 삭제)
                   </div>
                 </div>
@@ -173,7 +173,6 @@ export default function ReviewGuidePage() {
                   { item: '닉네임', purpose: '게임 화면 표시', period: '서비스 탈퇴 시' },
                   { item: '전화번호 (암호화 저장)', purpose: '쿠폰 발급 알림 발송', period: '서비스 탈퇴 시' },
                   { item: '나에게 보내기 권한', purpose: '쿠폰코드 카카오톡 발송', period: '동의 철회 시' },
-                  { item: '친구 목록 조회 권한', purpose: '친구초대 기능 (준비 중)', period: '동의 철회 시' },
                 ].map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                     <td className="border border-gray-200 px-3 py-2 font-medium">{row.item}</td>

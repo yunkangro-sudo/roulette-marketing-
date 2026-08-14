@@ -10,7 +10,17 @@ import { NextResponse } from 'next/server'
 import { getCustomerSession } from '@/lib/auth/session'
 import { getKakaoFriends } from '@/lib/auth/kakao'
 
+/** FRIEND API 심사 반려 — 재개 시 true로 되돌린다. getKakaoFriends는 유지. */
+const FRIENDS_API_ENABLED = false
+
 export async function GET() {
+  if (!FRIENDS_API_ENABLED) {
+    return NextResponse.json(
+      { error: '준비 중이에요', disabled: true },
+      { status: 503 },
+    )
+  }
+
   const session = await getCustomerSession()
 
   if (!session.user) {

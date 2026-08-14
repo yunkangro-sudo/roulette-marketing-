@@ -11,6 +11,9 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
+/** FRIEND API 심사 반려 — 재개 시 true. InviteContent / getKakaoFriends는 유지. */
+const INVITE_ENABLED = false
+
 interface Friend {
   id: number
   uuid: string
@@ -168,7 +171,27 @@ function InviteContent() {
   )
 }
 
+function InviteComingSoon() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-sm border border-gray-200">
+        <div className="text-4xl mb-4">🚧</div>
+        <h1 className="text-lg font-bold text-gray-900 mb-2">준비중</h1>
+        <p className="text-sm text-gray-500 leading-relaxed">
+          친구 초대 기능은 잠시 쉬고 있어요.
+          <br />
+          쿠폰 확인과 게임은 그대로 이용할 수 있어요.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function InvitePage() {
+  if (!INVITE_ENABLED) {
+    return <InviteComingSoon />
+  }
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
