@@ -1,15 +1,29 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getAdminSession } from '@/lib/admin/session'
 
 /**
  * GET /api/admin/report?store_id=xxx&year=2026&month=8
  *
  * 월별 성과 퍼널 데이터 반환:
  *   광고비 → 참여자수 → 쿠폰발급 → 쿠폰사용 → 재방문 → 추가매출(실측/추정) → ROI
+ * 로그인 필수. 광고주는 자기 매장만 (쿼리 store_id를 바꿔도 무시).
  */
 export async function GET(request: Request) {
+  const session = await getAdminSession()
+  if (!session.account) {
+    return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+  if (!['advertiser', 'super_admin', 'agency'].includes(session.account.role)) {
+    return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 })
+  }
+
   const { searchParams } = new URL(request.url)
-  const storeId = searchParams.get('store_id')
+  const requestedStoreId = searchParams.get('store_id')
+  const storeId =
+    session.account.role === 'advertiser'
+      ? session.account.storeId
+      : requestedStoreId
   const year = parseInt(searchParams.get('year') ?? '')
   const month = parseInt(searchParams.get('month') ?? '')
 

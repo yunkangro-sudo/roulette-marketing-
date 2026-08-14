@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getAdminSession } from '@/lib/admin/session'
 
 /**
  * GET /api/admin/dashboard?year=2026&month=8
  * 모든 매장의 월별 핵심 지표(참여자수, 재방문수, ROI)를 한 번에 반환.
+ * super_admin / agency 전용. 광고주·비로그인은 막는다.
  */
 export async function GET(request: Request) {
+  const session = await getAdminSession()
+  if (!session.account) {
+    return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+  if (!['super_admin', 'agency'].includes(session.account.role)) {
+    return NextResponse.json({ error: '접근 권한이 없습니다' }, { status: 403 })
+  }
+
   const { searchParams } = new URL(request.url)
   const year = parseInt(searchParams.get('year') ?? '')
   const month = parseInt(searchParams.get('month') ?? '')
