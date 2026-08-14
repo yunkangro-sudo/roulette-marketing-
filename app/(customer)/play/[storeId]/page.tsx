@@ -4,6 +4,7 @@ import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 interface Props {
   params: Promise<{ storeId: string }>
+  searchParams: Promise<{ claim?: string }>
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -11,8 +12,9 @@ export async function generateMetadata({ params }: Props) {
   return { title: `당근 인형뽑기 — ${storeId}` }
 }
 
-export default async function PlayPage({ params }: Props) {
+export default async function PlayPage({ params, searchParams }: Props) {
   const { storeId } = await params
+  const { claim } = await searchParams
   const supabase = createServerClient()
 
   const { data: event, error } = await supabase
@@ -38,6 +40,7 @@ export default async function PlayPage({ params }: Props) {
       event={event}
       daangnUrl={safeHttpUrl(contract?.daangn_url)}
       kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
+      resumeClaim={claim === '1'}
     />
   )
 }

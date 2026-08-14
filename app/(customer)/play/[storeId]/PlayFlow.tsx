@@ -33,6 +33,8 @@ interface Props {
   event: Event | null
   daangnUrl?: string | null
   kakaoChannelUrl?: string | null
+  /** 카카오 로그인 직후(?claim=1)에만 잠금 결과/claim을 이어간다 */
+  resumeClaim?: boolean
 }
 
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
@@ -61,7 +63,7 @@ function toPrizeResult(revealed: {
   }
 }
 
-export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl }: Props) {
+export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, resumeClaim = false }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
@@ -109,21 +111,31 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl }:
     }
 
     async function boot() {
+      let loggedInUser: MockUser | null = null
       try {
-        const [pending, me] = await Promise.all([
-          fetch('/api/games/pending').then((r) => r.json()),
-          fetch('/api/auth/me').then((r) => r.json()),
-        ])
+        const me = await fetch('/api/auth/me').then((r) => r.json())
         if (me.user) {
-          setUser({ kakao_user_id: me.user.kakao_user_id, nickname: me.user.nickname })
+          loggedInUser = { kakao_user_id: me.user.kakao_user_id, nickname: me.user.nickname }
+          setUser(loggedInUser)
         }
+      } catch {
+        // 게스트로 진행
+      }
+
+      if (!resumeClaim) {
+        setStep('landing')
+        return
+      }
+
+      try {
+        const pending = await fetch('/api/games/pending').then((r) => r.json())
         if (pending.hasRevealed && pending.revealed) {
           setResult(toPrizeResult(pending.revealed))
           setStep('result')
           return
         }
         if (pending.hasPending) {
-          if (me.user) {
+          if (loggedInUser) {
             await claimResult()
             return
           }
@@ -137,7 +149,7 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl }:
     }
 
     boot()
-  }, [storeId, event, claimResult])
+  }, [storeId, event, claimResult, resumeClaim])
 
   useEffect(() => {
     if (step !== 'result_locked' || !user) return
