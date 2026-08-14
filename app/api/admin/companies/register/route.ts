@@ -25,6 +25,8 @@ export async function POST(req: Request) {
     contract_start_date, contract_end_date,
     ad_amount, contractor_name, manager_name,
     advertiser_email,
+    phone, website, address, remarks,
+    daangn_url, kakao_channel_url,
   } = body ?? {}
 
   if (!store_id || !store_name || !advertiser_email) {
@@ -80,6 +82,12 @@ export async function POST(req: Request) {
     ad_amount: Number(ad_amount) || 0,
     contractor_name: contractor_name || '',
     manager_name: manager_name || '',
+    phone: phone || null,
+    website: website || null,
+    address: address || null,
+    remarks: remarks || null,
+    daangn_url: daangn_url || null,
+    kakao_channel_url: kakao_channel_url || null,
   })
   if (contractError) {
     return NextResponse.json({ error: '업체 등록 실패: ' + contractError.message }, { status: 500 })

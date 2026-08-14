@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getCustomerSession } from '@/lib/auth/session'
 
 /**
- * GET /api/me/points?kakao_user_id=xxx&store_id=xxx
- * 손님 포인트 잔액 + 리워드 카탈로그
+ * GET /api/me/points?store_id=xxx
+ * 세션의 kakao_user_id만 사용한다. URL uid는 무시한다.
  */
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const kakaoUserId = searchParams.get('kakao_user_id')
-  const storeId = searchParams.get('store_id')
+  const session = await getCustomerSession()
+  const kakaoUserId = session.user?.kakao_user_id
+  if (!kakaoUserId) {
+    return NextResponse.json({ error: '로그인이 필요합니다', needLogin: true }, { status: 401 })
+  }
 
-  if (!kakaoUserId || !storeId) {
-    return NextResponse.json({ error: 'kakao_user_id와 store_id가 필요합니다' }, { status: 400 })
+  const { searchParams } = new URL(req.url)
+  const storeId = searchParams.get('store_id') || session.user?.storeId || ''
+
+  if (!storeId) {
+    return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
   }
 
   const supabase = createServerClient()

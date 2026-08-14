@@ -23,3 +23,4 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 | 006 | [`006_add_coupons.sql`](./006_add_coupons.sql) | `coupons` 테이블 추가 (게임 당첨 쿠폰 발급), `events.coupon_validity_type`/`coupon_validity_value` 추가 |
 | 028 | [`028_universal_danggeun_verify.sql`](./028_universal_danggeun_verify.sql) | 전 경품 당근 확인 + 계산대 대기열 |
 | 029 | [`029_points_enabled.sql`](./029_points_enabled.sql) | `store_settings.points_enabled` — 매장별 포인트 적립 온/오프 |
+| 030 | [`030_store_profile_urls.sql`](./030_store_profile_urls.sql) | `store_contracts.daangn_url`, `kakao_channel_url` |

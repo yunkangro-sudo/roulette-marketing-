@@ -31,6 +31,8 @@ interface Event {
 interface Props {
   storeId: string
   event: Event | null
+  daangnUrl?: string | null
+  kakaoChannelUrl?: string | null
 }
 
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
@@ -59,7 +61,7 @@ function toPrizeResult(revealed: {
   }
 }
 
-export default function PlayFlow({ storeId, event }: Props) {
+export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
@@ -266,7 +268,8 @@ export default function PlayFlow({ storeId, event }: Props) {
   if (step === 'channel_cta') {
     return (
       <ChannelCtaScreen
-        onSkip={() => {
+        kakaoChannelUrl={kakaoChannelUrl}
+        onContinue={() => {
           if (result && result.amount > 0) setStep('verification_cta')
           else setStep('landing')
         }}
@@ -277,7 +280,7 @@ export default function PlayFlow({ storeId, event }: Props) {
   if (step === 'verification_cta' && result) {
     return (
       <div className="relative w-full h-screen overflow-hidden bg-gray-900">
-        <VerificationCtaScreen result={result} onDone={handleSwitchAccount} />
+        <VerificationCtaScreen result={result} onDone={handleSwitchAccount} daangnUrl={daangnUrl} />
       </div>
     )
   }

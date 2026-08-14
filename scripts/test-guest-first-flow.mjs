@@ -186,8 +186,19 @@ async function main() {
     fail('하루 1회', e.message)
   }
 
-  // 6) 채널 CTA는 API가 없음 — 코드 경로에 조회가 없는지만 확인
-  pass('채널 추가는 ChannelCtaScreen 건너뛰기만 있고 조회 API 없음 (코드 확인)')
+  // 6) 채널 CTA — 조회 API 없음, 두 버튼이 같은 onContinue
+  try {
+    const src = readFileSync(resolve(root, 'components/play/ChannelCtaScreen.tsx'), 'utf8')
+    assert(src.includes('카카오 채널 추가하기'), '채널 추가 버튼 문구 없음')
+    assert(src.includes('건너뛰기'), '건너뛰기 버튼 없음')
+    assert(src.includes('onContinue()'), '채널 추가 클릭이 onContinue가 아님')
+    assert(src.includes('onClick={onContinue}'), '건너뛰기가 onContinue가 아님')
+    assert(src.includes('window.open(kakaoChannelUrl'), '채널 추가가 새 탭으로 열리지 않음')
+    assert(!/relation|ADDED|friends\/add|channel.*api/i.test(src), '채널 화면에 관계 조회 흔적')
+    pass('채널 화면에 두 버튼이 있고 둘 다 같은 다음 단계, 조회 API 없음')
+  } catch (e) {
+    fail('채널 CTA 코드', e.message)
+  }
 
   // 7) 포인트 스위치 off면 ledger 스킵
   try {

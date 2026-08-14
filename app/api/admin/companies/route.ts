@@ -42,6 +42,8 @@ export async function POST(req: Request) {
     ad_amount: Number(body.ad_amount) || 0,
     contractor_name: body.contractor_name ?? '',
     manager_name: body.manager_name ?? '',
+    daangn_url: body.daangn_url || null,
+    kakao_channel_url: body.kakao_channel_url || null,
   }).select().single()
 
   if (error) return NextResponse.json({ error: '등록 실패: ' + error.message }, { status: 500 })

@@ -7,6 +7,7 @@ import type { PrizeResult } from './types'
 interface Props {
   result: PrizeResult
   onDone: () => void
+  daangnUrl?: string | null
 }
 
 function formatDate(iso: string) {
@@ -14,11 +15,7 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-/**
- * 고액(인증 필요) 당첨 후 노출되는 안내 화면.
- * 당근 실제 연동은 다음 단계 — 지금은 화면과 쿠폰 코드 표시만 한다.
- */
-export default function VerificationCtaScreen({ result, onDone }: Props) {
+export default function VerificationCtaScreen({ result, onDone, daangnUrl }: Props) {
   return (
     <div className="flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-6 text-center">
       <motion.div
@@ -55,13 +52,24 @@ export default function VerificationCtaScreen({ result, onDone }: Props) {
         </div>
       )}
 
-      <a
-        href="#"
-        onClick={(e) => { e.preventDefault(); onDone() }}
-        className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors text-center"
+      {daangnUrl ? (
+        <a
+          href={daangnUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors text-center"
+        >
+          당근에서 단골 추가하기
+        </a>
+      ) : (
+        <p className="text-gray-500 text-sm">당근 단골 링크 준비중</p>
+      )}
+      <button
+        onClick={onDone}
+        className="text-gray-500 text-xs"
       >
-        당근에서 단골 추가하기
-      </a>
+        확인했어요
+      </button>
     </div>
   )
 }

@@ -43,9 +43,9 @@ interface Mission {
 
 function PointsContent() {
   const searchParams = useSearchParams()
-  const kakaoUserId = searchParams.get('uid') ?? ''
   const storeId = searchParams.get('store_id') ?? ''
 
+  const [needLogin, setNeedLogin] = useState(false)
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
   const [threshold, setThreshold] = useState(100)
@@ -58,10 +58,21 @@ function PointsContent() {
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   const load = useCallback(async () => {
-    if (!kakaoUserId || !storeId) return
+    if (!storeId) return
     setLoading(true)
+    setNeedLogin(false)
     try {
-      const res = await fetch(`/api/me/points?kakao_user_id=${encodeURIComponent(kakaoUserId)}&store_id=${encodeURIComponent(storeId)}`)
+      const me = await fetch('/api/auth/me').then((r) => r.json())
+      if (!me.user?.kakao_user_id) {
+        setNeedLogin(true)
+        return
+      }
+
+      const res = await fetch(`/api/me/points?store_id=${encodeURIComponent(storeId)}`)
+      if (res.status === 401) {
+        setNeedLogin(true)
+        return
+      }
       const data = await res.json()
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
@@ -73,7 +84,7 @@ function PointsContent() {
     } finally {
       setLoading(false)
     }
-  }, [kakaoUserId, storeId])
+  }, [storeId])
 
   useEffect(() => { load() }, [load])
 
@@ -84,7 +95,7 @@ function PointsContent() {
       const res = await fetch('/api/me/points/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kakao_user_id: kakaoUserId, store_id: storeId, reward_catalog_id: reward.id }),
+        body: JSON.stringify({ store_id: storeId, reward_catalog_id: reward.id }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -100,10 +111,24 @@ function PointsContent() {
     }
   }
 
-  if (!kakaoUserId || !storeId) {
+  if (!storeId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-gray-400">잘못된 접근입니다. 카카오 채널 링크를 통해 접근해주세요.</p>
+      </div>
+    )
+  }
+
+  if (needLogin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-8 gap-6 text-center">
+        <p className="text-gray-900 text-xl font-bold">포인트를 보려면 로그인이 필요해요</p>
+        <a
+          href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=points`}
+          className="w-full max-w-sm bg-yellow-400 text-gray-900 font-bold py-4 rounded-2xl"
+        >
+          카카오로 시작하기
+        </a>
       </div>
     )
   }

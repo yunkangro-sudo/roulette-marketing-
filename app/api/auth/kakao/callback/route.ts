@@ -74,7 +74,11 @@ export async function GET(req: NextRequest) {
 
     // ── 5. 게임 페이지로 리다이렉트 ───────────────────────────
     const dest = storeId
-      ? (nextPage === 'checkout' ? `${appUrl}/checkout/${storeId}` : `${appUrl}/play/${storeId}`)
+      ? (nextPage === 'checkout'
+        ? `${appUrl}/checkout/${storeId}`
+        : nextPage === 'points'
+          ? `${appUrl}/me/points?store_id=${encodeURIComponent(storeId)}`
+          : `${appUrl}/play/${storeId}`)
       : `${appUrl}/`
     return NextResponse.redirect(dest)
 

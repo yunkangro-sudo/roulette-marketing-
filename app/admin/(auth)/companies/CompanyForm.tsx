@@ -17,6 +17,8 @@ interface Company {
   website?: string
   address?: string
   remarks?: string
+  daangn_url?: string
+  kakao_channel_url?: string
   /** 서버에서 fetch한 광고주 이메일 (edit 모드 전용, 읽기전용) */
   advertiserEmail?: string
 }
@@ -41,6 +43,8 @@ export default function CompanyForm({ mode, initial }: Props) {
     website:             initial?.website             ?? '',
     address:             initial?.address             ?? '',
     remarks:             initial?.remarks             ?? '',
+    daangn_url:          initial?.daangn_url          ?? '',
+    kakao_channel_url:   initial?.kakao_channel_url   ?? '',
   })
 
   // 생성 모드 전용: 광고주 이메일 입력
@@ -126,6 +130,8 @@ export default function CompanyForm({ mode, initial }: Props) {
             website:             form.website || null,
             address:             form.address || null,
             remarks:             form.remarks || null,
+            daangn_url:          form.daangn_url || null,
+            kakao_channel_url:   form.kakao_channel_url || null,
           }),
         })
         const data = await res.json()
@@ -270,6 +276,22 @@ export default function CompanyForm({ mode, initial }: Props) {
         {/* ── 매장 추가 정보 ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <h2 className="text-sm font-bold text-gray-700">매장 추가 정보</h2>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">당근마켓 단골 URL</label>
+            <input value={form.daangn_url ?? ''} onChange={(e) => set('daangn_url', e.target.value)}
+              placeholder="https://www.daangn.com/..." type="url"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            <p className="text-xs text-gray-400 mt-1">손님 [당근에서 단골 추가하기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다.</p>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">카카오 채널 URL</label>
+            <input value={form.kakao_channel_url ?? ''} onChange={(e) => set('kakao_channel_url', e.target.value)}
+              placeholder="https://pf.kakao.com/..." type="url"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            <p className="text-xs text-gray-400 mt-1">손님 [카카오 채널 추가하기] 버튼에 연결됩니다. 비우면 건너뛰기만 보입니다.</p>
+          </div>
 
           <div>
             <label className="text-xs text-gray-500 mb-1 block">홈페이지 URL</label>

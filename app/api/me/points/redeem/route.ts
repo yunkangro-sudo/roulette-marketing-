@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getCustomerSession } from '@/lib/auth/session'
 
 /**
  * POST /api/me/points/redeem
- * body: { kakao_user_id, store_id, reward_catalog_id }
- * PostgreSQL RPC로 원자적 처리 (이중 차감 방지)
+ * body: { store_id, reward_catalog_id }
+ * kakao_user_id는 세션에서만 읽는다.
  */
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null)
-  const { kakao_user_id, store_id, reward_catalog_id } = body ?? {}
+  const session = await getCustomerSession()
+  const kakao_user_id = session.user?.kakao_user_id
+  if (!kakao_user_id) {
+    return NextResponse.json({ error: '로그인이 필요합니다', needLogin: true }, { status: 401 })
+  }
 
-  if (!kakao_user_id || !store_id || !reward_catalog_id) {
+  const body = await req.json().catch(() => null)
+  const { store_id, reward_catalog_id } = body ?? {}
+
+  if (!store_id || !reward_catalog_id) {
     return NextResponse.json({ error: '필수 파라미터 누락' }, { status: 400 })
   }
 

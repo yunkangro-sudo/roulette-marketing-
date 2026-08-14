@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
 import PlayFlow from './PlayFlow'
+import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 interface Props {
   params: Promise<{ storeId: string }>
@@ -14,7 +15,6 @@ export default async function PlayPage({ params }: Props) {
   const { storeId } = await params
   const supabase = createServerClient()
 
-  // 해당 매장의 active 이벤트 조회
   const { data: event, error } = await supabase
     .from('events')
     .select('id, name, status')
@@ -22,10 +22,22 @@ export default async function PlayPage({ params }: Props) {
     .eq('status', 'active')
     .maybeSingle()
 
-  // 디버그 로그 (터미널에서 확인)
+  const { data: contract } = await supabase
+    .from('store_contracts')
+    .select('daangn_url, kakao_channel_url')
+    .eq('store_id', storeId)
+    .maybeSingle()
+
   console.log('[play] storeId:', storeId)
   console.log('[play] event:', event)
   console.log('[play] error:', error)
 
-  return <PlayFlow storeId={storeId} event={event} />
+  return (
+    <PlayFlow
+      storeId={storeId}
+      event={event}
+      daangnUrl={safeHttpUrl(contract?.daangn_url)}
+      kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
+    />
+  )
 }
