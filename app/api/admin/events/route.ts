@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     total_quantity: t.total_quantity,
     remaining_quantity: t.total_quantity,
     computed_probability: probabilities[i],
-    requires_verification: t.requires_verification ?? false,
+    requires_verification: true,
   }))
 
   const { error: tierError } = await supabase.from('prize_tiers').insert(tierRows)

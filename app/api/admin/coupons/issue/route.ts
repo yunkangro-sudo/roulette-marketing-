@@ -54,8 +54,8 @@ export async function POST(req: Request) {
       store_id,
       amount: Number(amount),
       source_type: 'manual',
-      status: 'issued',
-      requires_verification: false,
+      status: 'pending_verify',
+      requires_verification: true,
       issued_at: new Date().toISOString(),
       valid_until: validUntilDate.toISOString(),
     })

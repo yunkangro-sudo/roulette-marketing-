@@ -8,12 +8,14 @@ const TOMORROW = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 test('valid_until이 지나지 않았으면 DB status를 그대로 반환한다', () => {
   assert.equal(getEffectiveStatus({ status: 'issued', valid_until: TOMORROW }), 'issued')
   assert.equal(getEffectiveStatus({ status: 'pending_verify', valid_until: TOMORROW }), 'pending_verify')
+  assert.equal(getEffectiveStatus({ status: 'pending_apply', valid_until: TOMORROW }), 'pending_apply')
   assert.equal(getEffectiveStatus({ status: 'unverified', valid_until: TOMORROW }), 'unverified')
 })
 
 test('valid_until이 지났으면 issued/pending_verify/unverified는 expired로 취급한다', () => {
   assert.equal(getEffectiveStatus({ status: 'issued', valid_until: YESTERDAY }), 'expired')
   assert.equal(getEffectiveStatus({ status: 'pending_verify', valid_until: YESTERDAY }), 'expired')
+  assert.equal(getEffectiveStatus({ status: 'pending_apply', valid_until: YESTERDAY }), 'expired')
   assert.equal(getEffectiveStatus({ status: 'unverified', valid_until: YESTERDAY }), 'expired')
 })
 

@@ -10,6 +10,7 @@ import { getKakaoAuthUrl } from '@/lib/auth/kakao'
 
 export async function GET(req: NextRequest) {
   const storeId = req.nextUrl.searchParams.get('storeId') ?? ''
+  const next    = req.nextUrl.searchParams.get('next') ?? ''
 
   // 카카오 키 미설정 시 → 개발 환경 폴백 안내
   if (!process.env.NEXT_PUBLIC_KAKAO_JS_KEY) {
@@ -23,8 +24,8 @@ export async function GET(req: NextRequest) {
   const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
 
-  // state: "storeId:[매장ID]" — 콜백에서 파싱
-  const state = `storeId:${storeId}`
+  // state: "storeId:[매장ID]" 또는 "storeId:[매장ID]|next:checkout"
+  const state = next ? `storeId:${storeId}|next:${next}` : `storeId:${storeId}`
 
   try {
     const authUrl = getKakaoAuthUrl({

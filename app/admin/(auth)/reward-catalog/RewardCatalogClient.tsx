@@ -58,7 +58,6 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
   const [newName, setNewName] = useState('')
   const [newCost, setNewCost] = useState('')
   const [newStock, setNewStock] = useState('')
-  const [newVerify, setNewVerify] = useState(false)
   const [newRewardType, setNewRewardType] = useState<RewardType>('free_item')
   const [newTimeLimited, setNewTimeLimited] = useState(false)
   const [newStartAt, setNewStartAt] = useState('')
@@ -92,7 +91,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
         name: newName,
         point_cost: newCost,
         stock: newStock || null,
-        requires_verification: newVerify,
+        requires_verification: true,
         reward_type: newRewardType,
         start_at: newTimeLimited && newStartAt ? `${newStartAt}T00:00:00+09:00` : null,
         end_at: newTimeLimited && newEndAt ? toISODateEnd(newEndAt) : null,
@@ -103,7 +102,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
     if (!res.ok) {
       setMessage({ text: data.error ?? '등록 실패', ok: false })
     } else {
-      setNewName(''); setNewCost(''); setNewStock(''); setNewVerify(false)
+      setNewName(''); setNewCost(''); setNewStock('')
       setNewRewardType('free_item'); setNewTimeLimited(false)
       setNewStartAt(''); setNewEndAt(''); setNewImageUrl('')
       setMessage({ text: '✅ 리워드가 등록되었습니다', ok: true })
@@ -173,10 +172,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">필요 포인트</label>
                 <input type="number" value={newCost}
-                  onChange={(e) => {
-                    setNewCost(e.target.value)
-                    if (Number(e.target.value) >= 10000) setNewVerify(true)
-                  }}
+                  onChange={(e) => setNewCost(e.target.value)}
                   placeholder="50" min={1}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
@@ -217,17 +213,9 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
               </div>
             )}
 
-            {/* 본인확인 */}
-            <label className="flex items-start gap-2.5 cursor-pointer mb-4 group">
-              <input type="checkbox" checked={newVerify} onChange={(e) => setNewVerify(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-orange-500 cursor-pointer" />
-              <span className="text-sm text-gray-700 leading-snug">
-                <span className="font-medium">계산대 본인 확인 필요</span>
-                <span className="text-gray-400 text-xs block mt-0.5">
-                  체크하면 직원이 손님 신분 확인 후 처리 — 10,000P 이상 고가 리워드에 권장
-                </span>
-              </span>
-            </label>
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-4">
+              모든 리워드는 계산대에서 당근 단골 확인 후 지급됩니다. 확인 방법은 매장 재량입니다.
+            </p>
 
             <button onClick={handleAdd} disabled={adding || !newName || !newCost}
               className="bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold px-5 py-2 rounded-lg disabled:opacity-50 transition-colors">

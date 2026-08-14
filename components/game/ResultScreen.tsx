@@ -8,6 +8,9 @@ interface Props {
   onReplay: () => void
   /** 고액(인증 필요) 당첨일 때만 전달됨. 있으면 "처음부터 다시 보기" 대신 이 버튼을 우선 노출 */
   onVerificationCta?: () => void
+  /** 결과 다음 화면(채널 CTA 등)으로 진행 */
+  onContinue?: () => void
+  continueLabel?: string
 }
 
 function formatDate(iso: string) {
@@ -15,7 +18,7 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-export default function ResultScreen({ result, onReplay, onVerificationCta }: Props) {
+export default function ResultScreen({ result, onReplay, onVerificationCta, onContinue, continueLabel }: Props) {
   const isBig = result.tier === 'big'
   const isSmall = result.tier === 'small'
   const isMiss = result.tier === 'miss'
@@ -62,6 +65,12 @@ export default function ResultScreen({ result, onReplay, onVerificationCta }: Pr
           <p className="text-gray-500 text-sm mt-3">다음엔 꼭 당첨되실 거예요!</p>
         )}
 
+        {(result.pointsAwarded ?? 0) > 0 && (
+          <p className={`text-sm font-semibold mt-3 ${isMiss ? 'text-orange-300' : 'text-white/90'}`}>
+            +{result.pointsAwarded!.toLocaleString()}P 적립
+          </p>
+        )}
+
         {result.coupon && (
           <div className="mt-4 bg-black/20 rounded-xl p-4 text-center">
             {/* 6자리 인증 코드 — 직원에게 보여줄 코드 */}
@@ -72,32 +81,32 @@ export default function ResultScreen({ result, onReplay, onVerificationCta }: Pr
             <p className="text-white/50 text-xs">
               사용기간 ~{formatDate(result.coupon.validUntil)}
             </p>
-            {isBig && (
+            {result.coupon && (
               <p className="text-white/90 text-sm font-semibold mt-2 pt-2 border-t border-white/10">
-                당근마켓 단골 추가 인증 후 사용 가능
+                당근마켓 단골 확인 후 매장에서 사용 가능
               </p>
             )}
           </div>
         )}
 
-        {isSmall && (
+        {result.coupon && (
           <p className="text-white/80 text-sm mt-3">
             매장에서 직원에게 화면을 보여주세요
           </p>
         )}
       </motion.div>
 
-      {/* 고액(인증 필요) 당첨: 단골추가 CTA 우선 노출, 다시 하기는 보조 링크로 */}
-      {isBig && onVerificationCta ? (
+      {/* 다음 화면(채널 CTA) 또는 단골 유도 */}
+      {onContinue || onVerificationCta ? (
         <>
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            onClick={onVerificationCta}
+            onClick={onContinue ?? onVerificationCta}
             className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
           >
-            당근 단골 추가하러 가기
+            {continueLabel ?? (onContinue ? '다음' : '당근 단골 추가하러 가기')}
           </motion.button>
           <button onClick={onReplay} className="text-gray-500 text-xs">
             처음부터 다시 보기

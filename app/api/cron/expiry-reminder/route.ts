@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
     const { data: coupons, error: couponErr } = await supabase
       .from('coupons')
       .select('id, store_id, kakao_user_id, amount, valid_until, short_code')
-      .in('status', ['issued', 'pending_verify'])
+        .in('status', ['issued', 'pending_verify', 'pending_apply'])
       .gte('valid_until', `${targetDate}T00:00:00+09:00`)
       .lt( 'valid_until', `${nextDate}T00:00:00+09:00`)
 

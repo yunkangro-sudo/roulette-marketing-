@@ -23,15 +23,24 @@ export async function GET(req: Request) {
   }
 
   const supabase = createServerClient()
-  const { data, error } = await supabase
-    .from('loyalty_settings')
-    .select('*')
-    .eq('store_id', storeId)
-    .maybeSingle()
+  const [loyaltyRes, settingsRes] = await Promise.all([
+    supabase.from('loyalty_settings').select('*').eq('store_id', storeId).maybeSingle(),
+    supabase.from('store_settings').select('points_enabled').eq('store_id', storeId).maybeSingle(),
+  ])
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (loyaltyRes.error) return NextResponse.json({ error: loyaltyRes.error.message }, { status: 500 })
 
-  return NextResponse.json(data ?? { store_id: storeId, point_per_visit: 10, usage_threshold: 100, point_expiry_days: null })
+  const loyalty = loyaltyRes.data ?? {
+    store_id: storeId,
+    point_per_visit: 10,
+    usage_threshold: 100,
+    point_expiry_days: null,
+  }
+
+  return NextResponse.json({
+    ...loyalty,
+    points_enabled: settingsRes.data?.points_enabled !== false,
+  })
 }
 
 export async function POST(req: Request) {
@@ -41,7 +50,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null)
-  const { store_id, point_per_visit, usage_threshold, point_expiry_days, default_revisit_interval_days } = body ?? {}
+  const { store_id, point_per_visit, usage_threshold, point_expiry_days, default_revisit_interval_days, points_enabled } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) {
@@ -59,6 +68,31 @@ export async function POST(req: Request) {
   }, { onConflict: 'store_id' })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (typeof points_enabled === 'boolean') {
+    const { data: existing } = await supabase
+      .from('store_settings')
+      .select('store_id')
+      .eq('store_id', storeId)
+      .maybeSingle()
+
+    const settingsError = existing
+      ? (await supabase.from('store_settings').update({
+          points_enabled,
+          updated_at: new Date().toISOString(),
+        }).eq('store_id', storeId)).error
+      : (await supabase.from('store_settings').insert({
+          store_id: storeId,
+          points_enabled,
+        })).error
+
+    if (settingsError) {
+      console.error('[loyalty-settings] points_enabled 저장 실패:', settingsError)
+      return NextResponse.json({
+        error: '포인트 스위치 저장에 실패했습니다. Migration 029를 실행했는지 확인해주세요.',
+      }, { status: 500 })
+    }
+  }
 
   return NextResponse.json({ ok: true })
 }

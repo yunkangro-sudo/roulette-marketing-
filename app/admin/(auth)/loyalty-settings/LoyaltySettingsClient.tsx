@@ -14,6 +14,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const [pointsEnabled, setPointsEnabled] = useState(true)
 
   const load = useCallback(async (sid: string) => {
     if (!sid) return
@@ -24,6 +25,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       setUsageThreshold(data.usage_threshold ?? 5000)
       setExpiryDays(data.point_expiry_days ? String(data.point_expiry_days) : '')
       setRevisitInterval(data.default_revisit_interval_days ? String(data.default_revisit_interval_days) : '7')
+      setPointsEnabled(data.points_enabled !== false)
     }
     setLoaded(true)
   }, [])
@@ -53,6 +55,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
           usage_threshold: usageThreshold,
           point_expiry_days: expiryDays ? Number(expiryDays) : null,
           default_revisit_interval_days: revisitInterval ? Number(revisitInterval) : 7,
+          points_enabled: pointsEnabled,
         }),
       })
       const data = await res.json()
@@ -88,8 +91,32 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       {selectedStore ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6">
 
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-100">
+            <div>
+              <p className="text-sm font-semibold text-gray-700">포인트 적립 사용</p>
+              <p className="text-xs text-gray-400 mt-1">
+                끄면 게임 완료 시 포인트 적립을 하지 않습니다. 쿠폰 발급은 그대로입니다.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={pointsEnabled}
+              onClick={() => setPointsEnabled((v) => !v)}
+              className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${
+                pointsEnabled ? 'bg-orange-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 rounded-full bg-white shadow mt-0.5 transition-transform ${
+                  pointsEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
           {/* 방문 1회당 적립 포인트 */}
-          <div>
+          <div className={pointsEnabled ? '' : 'opacity-40 pointer-events-none'}>
             <label className="block text-sm font-semibold text-gray-700 mb-1">방문 1회당 적립 포인트</label>
             <div className="flex items-center gap-2">
               <input

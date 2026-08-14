@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { GamePhase, PrizeResult } from '../types'
 import StartScreen from './StartScreen'
 import OnboardingOverlay from './OnboardingOverlay'
@@ -15,15 +15,23 @@ interface Props {
   onGameResult?: (result: PrizeResult) => void
   /** "처음부터 다시 보기" 클릭 시 외부 핸들러. 있으면 내부 리셋 대신 외부로 위임. */
   onReplay?: () => void
-  /** 있으면 서버(/api/games/play)에서 확률 계산, 없으면(데모 모드) 클라이언트 로컬 추첨 */
   eventId?: string
-  kakaoUserId?: string
+  /** true면 결과를 컨테이너에서 보여주지 않고 onLocked로 넘긴다 */
+  deferReveal?: boolean
+  onLocked?: () => void
+  /** PlayFlow 랜딩에서 이미 시작한 경우 start 화면을 건너뛴다 */
+  initialPhase?: GamePhase
 }
 
-export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUserId }: Props = {}) {
-  const [phase, setPhase] = useState<GamePhase>('start')
+export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase }: Props = {}) {
+  const [phase, setPhase] = useState<GamePhase>(initialPhase ?? 'start')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
+
+  useEffect(() => {
+    if ((initialPhase ?? 'start') !== 'play') return
+    if (!sessionStorage.getItem(ONBOARDING_KEY)) setShowOnboarding(true)
+  }, [initialPhase])
 
   const handleStart = () => {
     const seen = sessionStorage.getItem(ONBOARDING_KEY)
@@ -40,6 +48,10 @@ export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUs
     setResult(r)
     setPhase('result')
     onGameResult?.(r)
+  }
+
+  const handleLocked = () => {
+    onLocked?.()
   }
 
   const handleReplay = () => {
@@ -59,7 +71,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUs
 
       {phase === 'play' && (
         <div className="relative w-full h-full">
-          <PlayScreen onResult={handleResult} eventId={eventId} kakaoUserId={kakaoUserId} />
+          <PlayScreen onResult={handleResult} onLocked={deferReveal ? handleLocked : undefined} eventId={eventId} />
           {showOnboarding && (
             <OnboardingOverlay onSkip={handleSkipOnboarding} />
           )}
@@ -71,7 +83,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, kakaoUs
           result={result}
           onReplay={handleReplay}
           onVerificationCta={
-            result.requiresVerification ? () => setPhase('verification_cta') : undefined
+            result.amount > 0 ? () => setPhase('verification_cta') : undefined
           }
         />
       )}

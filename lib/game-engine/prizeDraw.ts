@@ -13,7 +13,7 @@ export interface PrizeTierRow {
   amount: number
   computed_probability: number
   remaining_quantity: number
-  requires_verification: boolean
+  requires_verification?: boolean
 }
 
 /** computed_probability 가중치 기준으로 하나를 뽑는다 */

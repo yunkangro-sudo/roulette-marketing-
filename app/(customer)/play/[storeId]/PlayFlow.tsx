@@ -1,14 +1,26 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { login as mockLogin, logout as mockLogout, type MockUser } from '@/lib/auth/mockLogin'
-import { checkAlreadyParticipated, recordParticipation } from '@/lib/game/participation'
-import LoginScreen from '@/components/play/LoginScreen'
-import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
 import GameContainer from '@/components/game/claw_machine/GameContainer'
+import ResultScreen from '@/components/game/ResultScreen'
+import VerificationCtaScreen from '@/components/game/VerificationCtaScreen'
+import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
+import ResultLockedScreen from '@/components/play/ResultLockedScreen'
+import ChannelCtaScreen from '@/components/play/ChannelCtaScreen'
 import type { PrizeResult } from '@/components/game/types'
+import { resolveTier } from '@/components/game/claw_machine/gameUtils'
 
-type Step = 'loading' | 'landing' | 'login' | 'checking' | 'already_participated' | 'playing'
+type Step =
+  | 'loading'
+  | 'landing'
+  | 'playing'
+  | 'result_locked'
+  | 'claiming'
+  | 'already_participated'
+  | 'result'
+  | 'channel_cta'
+  | 'verification_cta'
 
 interface Event {
   id: string
@@ -23,60 +35,144 @@ interface Props {
 
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
 
+function toPrizeResult(revealed: {
+  label: string
+  amount: number
+  pointsAwarded?: number
+  coupon?: { id: string; shortCode?: string; status: string; issuedAt: string; validUntil: string }
+}): PrizeResult {
+  return {
+    tier: resolveTier(revealed.amount, true),
+    label: revealed.label,
+    amount: revealed.amount,
+    pointsAwarded: revealed.pointsAwarded ?? 0,
+    requiresVerification: true,
+    coupon: revealed.coupon
+      ? {
+          id: revealed.coupon.id,
+          shortCode: revealed.coupon.shortCode,
+          status: revealed.coupon.status as 'issued' | 'pending_verify',
+          issuedAt: revealed.coupon.issuedAt,
+          validUntil: revealed.coupon.validUntil,
+        }
+      : undefined,
+  }
+}
+
 export default function PlayFlow({ storeId, event }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
+  const [result, setResult] = useState<PrizeResult | null>(null)
+  const claimingRef = useRef(false)
 
-  // ── 마운트 시 기존 세션 확인 ──────────────────────────────────
-  useEffect(() => {
-    if (!event) { setStep('landing'); return }
-
-    async function checkSession() {
-      // 1. 카카오 실제 세션 확인 (서버 쿠키)
-      if (IS_KAKAO) {
-        try {
-          const res = await fetch('/api/auth/me')
-          const data = await res.json()
-          if (data.user && data.user.storeId === storeId) {
-            const sessionUser: MockUser = {
-              kakao_user_id: data.user.kakao_user_id,
-              nickname:      data.user.nickname,
-            }
-            setUser(sessionUser)
-            setStep('checking')
-            const already = await checkAlreadyParticipated(storeId, sessionUser.kakao_user_id)
-            setStep(already ? 'already_participated' : 'playing')
-            return
-          }
-        } catch {
-          // 세션 체크 실패 시 로그인 화면으로
-        }
+  const claimResult = useCallback(async () => {
+    if (claimingRef.current) return
+    claimingRef.current = true
+    setStep('claiming')
+    try {
+      const res = await fetch('/api/games/claim', { method: 'POST' })
+      const data = await res.json()
+      if (data.alreadyParticipated) {
+        setResult(null)
+        setStep('already_participated')
+        return
+      }
+      if (data.needLogin || res.status === 401) {
+        setUser(null)
+        setStep('result_locked')
+        return
+      }
+      if (!res.ok) {
         setStep('landing')
         return
       }
+      if (data.result) {
+        setResult(toPrizeResult(data.result))
+        setStep('result')
+      } else {
+        setStep('landing')
+      }
+    } catch {
+      setStep('landing')
+    } finally {
+      claimingRef.current = false
+    }
+  }, [])
 
-      // 2. Mock 세션 확인 (localStorage)
+  useEffect(() => {
+    if (!event) {
+      setStep('landing')
+      return
+    }
+
+    async function boot() {
       try {
-        const { getCurrentUser } = await import('@/lib/auth/mockLogin')
-        const stored = getCurrentUser()
-        if (stored) {
-          setUser(stored)
-          setStep('checking')
-          const already = await checkAlreadyParticipated(storeId, stored.kakao_user_id)
-          setStep(already ? 'already_participated' : 'playing')
+        const [pending, me] = await Promise.all([
+          fetch('/api/games/pending').then((r) => r.json()),
+          fetch('/api/auth/me').then((r) => r.json()),
+        ])
+        if (me.user) {
+          setUser({ kakao_user_id: me.user.kakao_user_id, nickname: me.user.nickname })
+        }
+        if (pending.hasRevealed && pending.revealed) {
+          setResult(toPrizeResult(pending.revealed))
+          setStep('result')
+          return
+        }
+        if (pending.hasPending) {
+          if (me.user) {
+            await claimResult()
+            return
+          }
+          setStep('result_locked')
           return
         }
       } catch {
-        // 무시
+        // 게스트로 진행
       }
       setStep('landing')
     }
 
-    checkSession()
-  }, [storeId, event])
+    boot()
+  }, [storeId, event, claimResult])
 
-  // ── 이벤트 없음 ───────────────────────────────────────────────
+  useEffect(() => {
+    if (step !== 'result_locked' || !user) return
+    claimResult()
+  }, [step, user, claimResult])
+
+  const handleMockClaim = useCallback(async (kakaoUserId: string) => {
+    if (!kakaoUserId.trim()) return
+    setLoginLoading(true)
+    try {
+      mockLogin(kakaoUserId)
+      const res = await fetch('/api/dev/mock-customer-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kakao_user_id: kakaoUserId, storeId }),
+      })
+      if (res.ok) {
+        setUser({ kakao_user_id: kakaoUserId, nickname: kakaoUserId })
+        return
+      }
+      await claimResult()
+    } finally {
+      setLoginLoading(false)
+    }
+  }, [storeId, claimResult])
+
+  const handleSwitchAccount = useCallback(async () => {
+    if (IS_KAKAO) {
+      try { await fetch('/api/auth/logout', { method: 'POST' }) } catch {}
+    } else {
+      mockLogout()
+    }
+    setUser(null)
+    setResult(null)
+    setStep('landing')
+  }, [])
+
   if (!event) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-6 text-center">
@@ -93,65 +189,17 @@ export default function PlayFlow({ storeId, event }: Props) {
     )
   }
 
-  // ── Mock 로그인 핸들러 ────────────────────────────────────────
-  const handleMockLogin = useCallback(async (kakaoUserId: string) => {
-    if (!kakaoUserId.trim()) return
-    setLoginLoading(true)
-
-    try {
-      const loggedInUser = mockLogin(kakaoUserId)
-      setUser(loggedInUser)
-      setStep('checking')
-
-      const alreadyParticipated = await checkAlreadyParticipated(storeId, loggedInUser.kakao_user_id)
-
-      if (alreadyParticipated) {
-        setStep('already_participated')
-      } else {
-        setStep('playing')
-      }
-    } catch (err) {
-      console.error('로그인/참여 확인 오류:', err)
-      alert('오류가 발생했습니다. 다시 시도해주세요.')
-      setStep('login')
-    } finally {
-      setLoginLoading(false)
-    }
-  }, [storeId])
-
-  const handleGameResult = useCallback(async (result: PrizeResult) => {
-    if (!user) return
-    try {
-      await recordParticipation(storeId, user.kakao_user_id)
-    } catch (err) {
-      console.error('참여 기록 저장 오류:', err)
-    }
-  }, [storeId, user])
-
-  const handleSwitchAccount = useCallback(async () => {
-    // 카카오 세션 삭제
-    if (IS_KAKAO) {
-      try { await fetch('/api/auth/logout', { method: 'POST' }) } catch {}
-    } else {
-      mockLogout()
-    }
-    setUser(null)
-    setStep('login')
-  }, [])
-
-  // ── 초기 로딩 ────────────────────────────────────────────────
-  if (step === 'loading') {
+  if (step === 'loading' || step === 'claiming') {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-900">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-bounce">🥕</div>
-          <p className="text-gray-400 text-sm">로딩 중...</p>
+          <p className="text-gray-400 text-sm">{step === 'claiming' ? '결과를 확인하고 있어요...' : '로딩 중...'}</p>
         </div>
       </div>
     )
   }
 
-  // ── 랜딩 화면
   if (step === 'landing') {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-8">
@@ -161,10 +209,10 @@ export default function PlayFlow({ storeId, event }: Props) {
         </div>
         <div className="text-center">
           <h1 className="text-white text-2xl font-bold">{event.name}</h1>
-          <p className="text-gray-400 text-sm mt-2">지금 도전하고 쿠폰 받아가세요!</p>
+          <p className="text-gray-400 text-sm mt-2">로그인 없이 바로 도전해 보세요!</p>
         </div>
         <button
-          onClick={() => setStep('login')}
+          onClick={() => setStep('playing')}
           className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-lg font-bold transition-colors"
         >
           시작하기
@@ -173,45 +221,64 @@ export default function PlayFlow({ storeId, event }: Props) {
     )
   }
 
-  // ── 로딩 (참여 확인 중)
-  if (step === 'checking') {
+  if (step === 'playing') {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-bounce">🥕</div>
-          <p className="text-gray-400 text-sm">참여 정보 확인 중...</p>
-        </div>
-      </div>
+      <GameContainer
+        eventId={event.id}
+        deferReveal
+        initialPhase="play"
+        onLocked={() => {
+          if (user) claimResult()
+          else setStep('result_locked')
+        }}
+        onReplay={handleSwitchAccount}
+      />
     )
   }
 
-  // ── 로그인 화면
-  if (step === 'login') {
+  if (step === 'result_locked') {
     return (
-      <LoginScreen
+      <ResultLockedScreen
         storeId={storeId}
-        onMockLogin={handleMockLogin}
+        onMockLogin={handleMockClaim}
         loading={loginLoading}
       />
     )
   }
 
-  // ── 이미 참여 화면
   if (step === 'already_participated') {
     return <AlreadyParticipatedScreen onSwitchAccount={handleSwitchAccount} />
   }
 
-  // ── 게임 플레이
-  if (step === 'playing') {
+  if (step === 'result' && result) {
     return (
-      <GameContainer
-        eventId={event.id}
-        kakaoUserId={user?.kakao_user_id}
-        onGameResult={handleGameResult}
-        onReplay={() => {
-          handleSwitchAccount()
+      <div className="relative w-full h-screen overflow-hidden bg-gray-900">
+        <ResultScreen
+          result={result}
+          onReplay={handleSwitchAccount}
+          onContinue={() => setStep('channel_cta')}
+          continueLabel="다음"
+        />
+      </div>
+    )
+  }
+
+  if (step === 'channel_cta') {
+    return (
+      <ChannelCtaScreen
+        onSkip={() => {
+          if (result && result.amount > 0) setStep('verification_cta')
+          else setStep('landing')
         }}
       />
+    )
+  }
+
+  if (step === 'verification_cta' && result) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-gray-900">
+        <VerificationCtaScreen result={result} onDone={handleSwitchAccount} />
+      </div>
     )
   }
 

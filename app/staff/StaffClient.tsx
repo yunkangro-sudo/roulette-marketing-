@@ -1,83 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface CouponData {
+type ItemType = 'coupon' | 'reward'
+type ItemStatus = 'issued' | 'pending_verify' | 'pending_apply' | 'used' | 'expired' | 'unverified'
+
+interface QueueItem {
   id: string
-  short_code: string
-  store_id: string
-  kakao_user_id: string
+  display_code: string
+  seq: number
+  kakao_user_id: string | null
+  item_type: ItemType
+  item_id: string
+  label: string | null
   amount: number
-  status: 'issued' | 'pending_verify' | 'used' | 'expired' | 'unverified'
-  requires_verification: boolean
-  issued_at: string
-  valid_until: string
-  unverified_reason: string | null
+  status: 'waiting' | 'confirmed' | 'applied' | 'cancelled'
 }
 
-interface RewardIssuedData {
-  id: string
-  short_code: string
-  store_id: string
-  kakao_user_id: string
-  status: 'issued' | 'used' | 'expired'
-  issued_at: string
-  used_at: string | null
-  reward_catalog: { name: string; point_cost: number; requires_verification: boolean }
-}
-
-const STATUS_LABEL: Record<CouponData['status'], string> = {
-  issued: '발급됨 (사용 가능)',
-  pending_verify: '인증 대기중',
-  used: '사용 완료',
-  expired: '기간 만료',
-  unverified: '미확인 처리됨 (재시도 가능)',
+interface WorkingItem {
+  item_type: ItemType
+  item_id: string
+  display_code: string
+  label: string
+  amount: number
+  status: ItemStatus
+  short_code?: string
 }
 
 const REASONS = ['앱없음', '거부', '기타'] as const
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`
-}
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${formatDate(iso)} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-type PendingAction = 'use' | 'verify-confirm'
-type StaffTab = 'coupon' | 'reward'
 
 interface Props { storeId: string; role: string }
 
 export default function StaffClient({ storeId, role }: Props) {
   const router = useRouter()
-  const [tab, setTab] = useState<StaffTab>('coupon')
-
-  // 쿠폰 탭
+  const [tab, setTab] = useState<'queue' | 'code'>('queue')
+  const [qrEnabled, setQrEnabled] = useState(true)
+  const [queue, setQueue] = useState<QueueItem[]>([])
   const [code, setCode] = useState('')
-  const [coupon, setCoupon] = useState<CouponData | null>(null)
+  const [codeKind, setCodeKind] = useState<ItemType>('coupon')
+  const [working, setWorking] = useState<WorkingItem | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [showReasonPicker, setShowReasonPicker] = useState(false)
-  const [selectedReason, setSelectedReason] = useState<string>('')
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
-  const [paymentAmountInput, setPaymentAmountInput] = useState('')
+  const [showReason, setShowReason] = useState(false)
+  const [reason, setReason] = useState('')
+  const [banner, setBanner] = useState<WorkingItem | null>(null)
 
-  // 리워드 탭
-  const [rewardCode, setRewardCode] = useState('')
-  const [rewardData, setRewardData] = useState<RewardIssuedData | null>(null)
-  const [rewardError, setRewardError] = useState('')
-  const [rewardLoading, setRewardLoading] = useState(false)
-  const [rewardSuccess, setRewardSuccess] = useState('')
-  // requires_verification=true인 리워드: 검증 확인 단계
-  const [rewardVerifyStep, setRewardVerifyStep] = useState(false)
-  const [rewardVerifyReasonPicker, setRewardVerifyReasonPicker] = useState(false)
-  const [rewardVerifyReason, setRewardVerifyReason] = useState('')
+  const locked = !!banner
+
+  const loadQueue = useCallback(async () => {
+    if (locked) return
+    try {
+      const res = await fetch(`/api/checkout/${encodeURIComponent(storeId)}/queue`)
+      if (!res.ok) return
+      const data = await res.json()
+      setQrEnabled(data.qrEnabled !== false)
+      setQueue(data.items ?? [])
+    } catch { /* ignore */ }
+  }, [storeId, locked])
+
+  useEffect(() => {
+    loadQueue()
+    const t = setInterval(loadQueue, 3000)
+    return () => clearInterval(t)
+  }, [loadQueue])
 
   async function handleLogout() {
     await fetch('/api/admin/auth/logout', { method: 'POST' })
@@ -85,377 +71,292 @@ export default function StaffClient({ storeId, role }: Props) {
     router.refresh()
   }
 
-  // ── 쿠폰 조회 (short_code 기반) ───────────────────────────
-  async function lookupCoupon(target: string) {
-    const res = await fetch(`/api/coupons/lookup?code=${encodeURIComponent(target)}&store_id=${encodeURIComponent(storeId)}`)
-    const data = await res.json()
-    if (!res.ok) {
-      setError(data.error ?? '조회에 실패했습니다')
-      setCoupon(null)
-      return
-    }
+  async function approve(action: 'confirm' | 'apply' | 'reject', item: WorkingItem, rejectReason?: string) {
+    setLoading(true)
     setError('')
-    setCoupon(data.coupon)
-  }
-
-  async function handleLookup() {
-    const target = code.trim()
-    if (!target) return
-    setLoading(true)
-    setShowReasonPicker(false)
-    setSelectedReason('')
-    setPendingAction(null)
-    setPaymentAmountInput('')
-    try { await lookupCoupon(target) }
-    catch { setError('네트워크 오류가 발생했습니다') }
-    finally { setLoading(false) }
-  }
-
-  function requestPaymentInput(action: PendingAction) {
-    setPaymentAmountInput('')
-    setPendingAction(action)
-  }
-
-  async function confirmAction(skipPayment = false) {
-    if (!coupon || !pendingAction) return
-    setLoading(true)
     try {
-      const amountNum = parseInt(paymentAmountInput.replace(/,/g, ''), 10)
-      if (!skipPayment && !isNaN(amountNum) && amountNum > 0) {
-        await fetch('/api/payments/record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coupon_id: coupon.id, store_id: coupon.store_id, kakao_user_id: coupon.kakao_user_id, amount: amountNum }),
-        })
-      }
-
-      if (pendingAction === 'use') {
-        const res = await fetch('/api/coupons/use', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coupon_id: coupon.id }),
-        })
-        const data = await res.json()
-        if (!res.ok) { setError(data.error ?? '처리에 실패했습니다'); return }
-      } else if (pendingAction === 'verify-confirm') {
-        const res = await fetch('/api/coupons/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coupon_id: coupon.id, action: 'confirm' }),
-        })
-        const data = await res.json()
-        if (!res.ok) { setError(data.error ?? '처리에 실패했습니다'); return }
-      }
-
-      setPendingAction(null)
-      setPaymentAmountInput('')
-      await lookupCoupon(coupon.id)
-    } catch { setError('네트워크 오류가 발생했습니다') }
-    finally { setLoading(false) }
-  }
-
-  async function handleVerifyUnverified(reason: string) {
-    if (!coupon) return
-    setLoading(true)
-    try {
-      const res = await fetch('/api/coupons/verify', {
+      const res = await fetch(`/api/checkout/${encodeURIComponent(storeId)}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupon_id: coupon.id, action: 'unverified', reason }),
+        body: JSON.stringify({
+          action,
+          item_type: item.item_type,
+          item_id: item.item_id,
+          reason: rejectReason,
+        }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? '처리에 실패했습니다'); return }
-      setShowReasonPicker(false)
-      setSelectedReason('')
-      await lookupCoupon(coupon.id)
-    } catch { setError('네트워크 오류가 발생했습니다') }
-    finally { setLoading(false) }
+      if (!res.ok) {
+        setError(data.error ?? '처리에 실패했습니다')
+        return false
+      }
+      return true
+    } catch {
+      setError('네트워크 오류가 발생했습니다')
+      return false
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // ── 리워드 조회 (short_code 기반) ─────────────────────────
-  async function handleRewardLookup() {
-    const target = rewardCode.trim()
+  async function handleConfirm() {
+    if (!working) return
+    const ok = await approve('confirm', working)
+    if (!ok) return
+    setBanner({ ...working, status: 'pending_apply' })
+    setWorking(null)
+    setShowReason(false)
+  }
+
+  async function handleApply() {
+    if (!banner) return
+    const ok = await approve('apply', banner)
+    if (!ok) return
+    setBanner(null)
+    setWorking(null)
+    loadQueue()
+  }
+
+  async function handleReject() {
+    if (!working || !reason) return
+    const ok = await approve('reject', working, reason)
+    if (!ok) return
+    setWorking(null)
+    setShowReason(false)
+    setReason('')
+    loadQueue()
+  }
+
+  function selectQueue(q: QueueItem) {
+    if (locked) return
+    setError('')
+    setShowReason(false)
+    setWorking({
+      item_type: q.item_type,
+      item_id: q.item_id,
+      display_code: q.display_code,
+      label: q.label ?? (q.item_type === 'coupon' ? `${q.amount.toLocaleString()}원` : '리워드'),
+      amount: q.amount,
+      status: q.status === 'confirmed' ? 'pending_apply' : 'pending_verify',
+    })
+    if (q.status === 'confirmed') {
+      setBanner({
+        item_type: q.item_type,
+        item_id: q.item_id,
+        display_code: q.display_code,
+        label: q.label ?? '',
+        amount: q.amount,
+        status: 'pending_apply',
+      })
+      setWorking(null)
+    }
+  }
+
+  async function handleCodeLookup() {
+    const target = code.trim().toUpperCase()
     if (!target) return
-    setRewardLoading(true)
-    setRewardError('')
-    setRewardSuccess('')
-    setRewardData(null)
-    setRewardVerifyStep(false)
-    setRewardVerifyReasonPicker(false)
-    setRewardVerifyReason('')
+    setLoading(true)
+    setError('')
+    setShowReason(false)
     try {
-      const res = await fetch(`/api/rewards/lookup?code=${encodeURIComponent(target)}&store_id=${encodeURIComponent(storeId)}`)
+      const url = codeKind === 'coupon'
+        ? `/api/coupons/lookup?code=${encodeURIComponent(target)}&store_id=${encodeURIComponent(storeId)}`
+        : `/api/rewards/lookup?code=${encodeURIComponent(target)}&store_id=${encodeURIComponent(storeId)}`
+      const res = await fetch(url)
       const data = await res.json()
-      if (!res.ok) setRewardError(data.error ?? '조회에 실패했습니다')
-      else setRewardData(data.reward)
-    } catch { setRewardError('네트워크 오류가 발생했습니다') }
-    finally { setRewardLoading(false) }
+      if (!res.ok) {
+        setError(data.error ?? '조회에 실패했습니다')
+        setWorking(null)
+        return
+      }
+      if (codeKind === 'coupon') {
+        const c = data.coupon
+        setWorking({
+          item_type: 'coupon',
+          item_id: c.id,
+          display_code: c.short_code ?? '',
+          label: `${Number(c.amount).toLocaleString()}원 쿠폰`,
+          amount: c.amount,
+          status: c.status,
+          short_code: c.short_code,
+        })
+        if (c.status === 'pending_apply') {
+          setBanner({
+            item_type: 'coupon',
+            item_id: c.id,
+            display_code: c.short_code ?? '—',
+            label: `${Number(c.amount).toLocaleString()}원 쿠폰`,
+            amount: c.amount,
+            status: 'pending_apply',
+          })
+          setWorking(null)
+        }
+      } else {
+        const r = data.reward
+        const amount = r.reward_catalog?.point_cost ?? 0
+        setWorking({
+          item_type: 'reward',
+          item_id: r.id,
+          display_code: r.short_code ?? '',
+          label: r.reward_catalog?.name ?? '리워드',
+          amount,
+          status: r.status,
+          short_code: r.short_code,
+        })
+        if (r.status === 'pending_apply') {
+          setBanner({
+            item_type: 'reward',
+            item_id: r.id,
+            display_code: r.short_code ?? '—',
+            label: r.reward_catalog?.name ?? '리워드',
+            amount,
+            status: 'pending_apply',
+          })
+          setWorking(null)
+        }
+      }
+    } catch {
+      setError('네트워크 오류가 발생했습니다')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  async function handleRewardUse() {
-    if (!rewardData) return
-    setRewardLoading(true)
-    setRewardError('')
-    try {
-      const res = await fetch('/api/rewards/use', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reward_issued_id: rewardData.id }),
-      })
-      const data = await res.json()
-      if (!res.ok) setRewardError(data.error ?? '처리 실패')
-      else { setRewardSuccess('✅ 리워드 사용 처리 완료!'); setRewardData({ ...rewardData, status: 'used' }) }
-    } catch { setRewardError('네트워크 오류가 발생했습니다') }
-    finally { setRewardLoading(false) }
-  }
-
-  // ── 결제금액 입력 단계 ─────────────────────────────────────
-  if (pendingAction) {
-    return (
-      <div className="min-h-screen bg-gray-100 px-4 py-10">
-        <div className="max-w-lg mx-auto">
-          <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">이번 방문 결제금액</h2>
-            <p className="text-sm text-gray-500 mb-6">선택 입력 — 미입력 시 쿠폰 처리만 진행합니다</p>
-            <div className="flex gap-2 mb-2">
-              <input type="number" inputMode="numeric" value={paymentAmountInput}
-                onChange={(e) => setPaymentAmountInput(e.target.value)} placeholder="예) 25000"
-                className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-xl font-bold text-gray-900 focus:border-orange-500 focus:outline-none" />
-              <span className="flex items-center text-xl text-gray-500 font-bold">원</span>
-            </div>
-            <p className="text-xs text-gray-400 mb-6">실측치로 기록되어 성과 리포트에 반영됩니다</p>
-            <div className="flex flex-col gap-3">
-              <button onClick={() => confirmAction(false)} disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
-                {paymentAmountInput ? `${parseInt(paymentAmountInput || '0').toLocaleString()}원 기록 후 쿠폰 처리` : '금액 없이 쿠폰 처리'}
-              </button>
-              <button onClick={() => confirmAction(true)} disabled={loading}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg text-base font-bold disabled:opacity-40 transition-colors">
-                건너뛰기 (기록 안 함)
-              </button>
-              <button onClick={() => setPendingAction(null)} disabled={loading}
-                className="text-center text-sm text-gray-400 hover:text-gray-600 py-2">
-                취소
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const Header = () => (
-    <div className="flex items-center justify-between mb-2">
-      <h1 className="text-2xl font-bold text-gray-900">계산대</h1>
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-400 font-mono bg-gray-100 px-2 py-1 rounded">{storeId}</span>
-        <button onClick={handleLogout}
-          className="text-xs text-gray-500 hover:text-red-600 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors">
-          로그아웃
-        </button>
-      </div>
-    </div>
-  )
-
-  // ── 리워드 탭 ─────────────────────────────────────────────
-  if (tab === 'reward') {
-    return (
-      <div className="min-h-screen bg-gray-100 px-4 py-10">
-        <div className="max-w-lg mx-auto">
-          <Header />
-          <div className="flex gap-2 mb-6">
-            <button onClick={() => setTab('coupon')} className="flex-1 py-2 rounded-lg text-sm font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">쿠폰 코드</button>
-            <button className="flex-1 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white">리워드 코드</button>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4 text-xs text-blue-700">
-            손님 화면에 표시된 <strong>6자리 코드</strong>를 입력하세요 (예: AB3K7P)
-          </div>
-
-          <div className="flex gap-2 mb-5">
-            <input value={rewardCode} onChange={(e) => setRewardCode(e.target.value.toUpperCase())}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleRewardLookup() }}
-            placeholder="6자리 리워드 코드" maxLength={6}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 font-mono tracking-widest focus:border-orange-500 focus:outline-none" />
-            <button onClick={handleRewardLookup} disabled={rewardLoading}
-              className="bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-bold disabled:opacity-40">조회</button>
-          </div>
-
-          {rewardError && <div className="bg-red-50 border-2 border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-base font-semibold">{rewardError}</div>}
-          {rewardSuccess && <div className="bg-green-50 border-2 border-green-200 text-green-700 rounded-lg px-4 py-3 mb-5 text-base font-semibold">{rewardSuccess}</div>}
-
-          {rewardData && (
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
-              <div className="grid grid-cols-2 gap-y-3 text-base mb-5">
-                <span className="text-gray-500">리워드명</span>
-                <div className="text-right">
-                  <span className="font-bold text-gray-900">{rewardData.reward_catalog.name}</span>
-                  {rewardData.reward_catalog.requires_verification && (
-                    <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium align-middle">본인확인</span>
-                  )}
-                </div>
-                <span className="text-gray-500">사용 포인트</span>
-                <span className="font-bold text-orange-500 text-right">{rewardData.reward_catalog.point_cost.toLocaleString()}P</span>
-                <span className="text-gray-500">발급일시</span>
-                <span className="text-gray-900 text-right">{formatDateTime(rewardData.issued_at)}</span>
-                <span className="text-gray-500">현재 상태</span>
-                <span className={`font-bold text-right ${rewardData.status === 'issued' ? 'text-green-600' : rewardData.status === 'used' ? 'text-gray-400' : 'text-red-500'}`}>
-                  {rewardData.status === 'issued' ? '사용 가능' : rewardData.status === 'used' ? '사용 완료' : '만료'}
-                </span>
-              </div>
-
-              {rewardData.status !== 'issued' ? (
-                <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center text-lg font-bold">
-                  {rewardData.status === 'used' ? '이미 사용된 리워드입니다' : '만료된 리워드입니다'}
-                </div>
-              ) : rewardData.reward_catalog.requires_verification && !rewardVerifyStep ? (
-                /* ── 본인확인 필요 — 확인 전 안내 ─────────────── */
-                <div className="bg-amber-50 border-2 border-amber-300 rounded-lg px-4 py-4 text-center">
-                  <p className="text-amber-800 font-bold text-base mb-1">손님 본인 확인이 필요한 리워드입니다</p>
-                  <p className="text-amber-700 text-sm mb-4">손님의 카카오 프로필을 직접 확인한 후 아래 버튼을 눌러주세요</p>
-                  <button onClick={() => setRewardVerifyStep(true)} disabled={rewardLoading}
-                    className="w-full bg-amber-500 hover:bg-amber-400 text-white py-3 rounded-lg text-base font-bold disabled:opacity-40 transition-colors">
-                    본인 확인 진행하기
-                  </button>
-                </div>
-              ) : rewardData.reward_catalog.requires_verification && rewardVerifyStep && !rewardVerifyReasonPicker ? (
-                /* ── 본인확인 완료 여부 선택 ─────────────────── */
-                <div>
-                  <p className="text-gray-700 font-bold text-center mb-3 text-base">손님 신분을 확인하셨나요?</p>
-                  <div className="flex gap-3">
-                    <button onClick={handleRewardUse} disabled={rewardLoading}
-                      className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
-                      확인함
-                    </button>
-                    <button onClick={() => setRewardVerifyReasonPicker(true)} disabled={rewardLoading}
-                      className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
-                      미확인 처리
-                    </button>
-                  </div>
-                </div>
-              ) : rewardVerifyReasonPicker ? (
-                /* ── 미확인 사유 선택 ──────────────────────────── */
-                <div className="border-2 border-gray-200 rounded-lg p-4">
-                  <p className="text-gray-700 font-bold mb-3">미확인 사유 선택</p>
-                  <div className="flex gap-2 mb-4">
-                    {REASONS.map((r) => (
-                      <button key={r} onClick={() => setRewardVerifyReason(r)}
-                        className={`flex-1 py-3 rounded-lg text-base font-bold border-2 ${
-                          rewardVerifyReason === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300'
-                        }`}>{r}</button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setRewardVerifyReasonPicker(false); setRewardVerifyReason('') }}
-                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-bold">취소</button>
-                    <button onClick={() => {
-                      if (!rewardVerifyReason) return
-                      setRewardVerifyReasonPicker(false)
-                      setRewardVerifyStep(false)
-                      setRewardVerifyReason('')
-                      setRewardError('본인 미확인으로 처리하지 않았습니다. 손님 재방문 시 다시 시도해주세요.')
-                    }}
-                      disabled={!rewardVerifyReason || rewardLoading}
-                      className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-40">미확인 확정</button>
-                  </div>
-                </div>
-              ) : (
-                /* ── 본인확인 불필요 — 바로 사용 처리 ─────────── */
-                <button onClick={handleRewardUse} disabled={rewardLoading}
-                  className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40 transition-colors">
-                  리워드 사용 처리
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // ── 쿠폰 탭 ──────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10">
+    <div className="min-h-screen bg-gray-100 px-4 py-8">
       <div className="max-w-lg mx-auto">
-        <Header />
-        <div className="flex gap-2 mb-6">
-          <button className="flex-1 py-2 rounded-lg text-sm font-bold bg-gray-900 text-white">쿠폰 코드</button>
-          <button onClick={() => setTab('reward')} className="flex-1 py-2 rounded-lg text-sm font-bold bg-white border border-gray-300 text-gray-600 hover:bg-gray-50">리워드 코드</button>
-        </div>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-4 text-xs text-blue-700">
-            손님 화면에 표시된 <strong>6자리 코드</strong>를 입력하세요 (예: AB3K7P)
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-black text-gray-900">계산대</h1>
+            <p className="text-xs text-gray-500 mt-0.5">{storeId} · {role}</p>
+          </div>
+          <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-800">로그아웃</button>
         </div>
 
         <div className="flex gap-2 mb-5">
-          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleLookup() }}
-            placeholder="6자리 쿠폰 코드" maxLength={6}
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg text-gray-900 font-mono tracking-widest focus:border-orange-500 focus:outline-none" />
-          <button onClick={handleLookup} disabled={loading}
-            className="bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-bold disabled:opacity-40">조회</button>
+          <button onClick={() => !locked && setTab('queue')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold ${tab === 'queue' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-600'}`}>
+            QR 대기 {queue.length > 0 ? `(${queue.length})` : ''}
+          </button>
+          <button onClick={() => !locked && setTab('code')}
+            className={`flex-1 py-2 rounded-lg text-sm font-bold ${tab === 'code' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-600'}`}>
+            코드 입력
+          </button>
         </div>
 
-        {error && <div className="bg-red-50 border-2 border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-base font-semibold">{error}</div>}
-
-        {coupon && (
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
-            <div className="grid grid-cols-2 gap-y-3 text-base mb-5">
-              <span className="text-gray-500">당첨 금액</span>
-              <span className="font-bold text-gray-900 text-right">{coupon.amount.toLocaleString()}원</span>
-              <span className="text-gray-500">발급일시</span>
-              <span className="text-gray-900 text-right">{formatDateTime(coupon.issued_at)}</span>
-              <span className="text-gray-500">사용가능기간</span>
-              <span className="text-gray-900 text-right">{formatDate(coupon.issued_at)} ~ {formatDate(coupon.valid_until)}</span>
-              <span className="text-gray-500">현재 상태</span>
-              <span className="font-bold text-gray-900 text-right">{STATUS_LABEL[coupon.status]}</span>
+        {tab === 'queue' && (
+          <div className="mb-5">
+            {!qrEnabled && (
+              <p className="text-sm text-gray-500 bg-white border border-gray-200 rounded-lg px-4 py-3">
+                QR 자동조회가 꺼져 있습니다. 코드 입력 탭을 사용하세요.
+              </p>
+            )}
+            {qrEnabled && queue.length === 0 && (
+              <p className="text-sm text-gray-400 text-center py-8">대기 중인 손님이 없습니다</p>
+            )}
+            <div className="space-y-2">
+              {queue.map((q) => (
+                <button key={q.id} onClick={() => selectQueue(q)} disabled={locked}
+                  className="w-full text-left bg-white border-2 border-gray-200 hover:border-orange-400 rounded-xl px-4 py-3 disabled:opacity-40">
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-2xl text-orange-500 tracking-wide">{q.display_code}</span>
+                    <span className="text-sm font-bold text-gray-900">{q.label ?? `${q.amount.toLocaleString()}원`}</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {q.item_type === 'coupon' ? '쿠폰' : '리워드'} · {q.status === 'confirmed' ? '할인 적용 대기' : '단골 확인 대기'}
+                  </p>
+                </button>
+              ))}
             </div>
+          </div>
+        )}
 
-            {coupon.status === 'expired' ? (
-              <div className="bg-gray-100 text-gray-700 rounded-lg px-4 py-4 text-center text-lg font-bold">사용기간이 지난 쿠폰입니다</div>
-            ) : coupon.status === 'used' ? (
-              <div className="bg-gray-100 text-gray-700 rounded-lg px-4 py-4 text-center text-lg font-bold">이미 사용된 쿠폰입니다</div>
-            ) : coupon.status === 'issued' ? (
-              <button onClick={() => requestPaymentInput('use')} disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-400 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40">
-                사용 처리
-              </button>
-            ) : (coupon.status === 'pending_verify' || coupon.status === 'unverified') ? (
-              !showReasonPicker ? (
+        {tab === 'code' && (
+          <div className="mb-5">
+            <div className="flex gap-2 mb-3">
+              <button onClick={() => setCodeKind('coupon')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold ${codeKind === 'coupon' ? 'bg-gray-900 text-white' : 'bg-white border text-gray-600'}`}>쿠폰</button>
+              <button onClick={() => setCodeKind('reward')}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold ${codeKind === 'reward' ? 'bg-gray-900 text-white' : 'bg-white border text-gray-600'}`}>리워드</button>
+            </div>
+            <div className="flex gap-2">
+              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCodeLookup() }}
+                placeholder="6자리 코드" maxLength={8} disabled={locked}
+                className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-lg font-mono tracking-widest" />
+              <button onClick={handleCodeLookup} disabled={loading || locked}
+                className="bg-gray-900 text-white px-6 py-3 rounded-lg font-bold disabled:opacity-40">조회</button>
+            </div>
+          </div>
+        )}
+
+        {error && <div className="bg-red-50 border-2 border-red-200 text-red-700 rounded-lg px-4 py-3 mb-5 text-sm font-semibold">{error}</div>}
+
+        {working && (
+          <div className="bg-white border-2 border-gray-200 rounded-xl p-5">
+            {working.display_code && (
+              <p className="text-center font-black text-4xl text-orange-500 mb-3">{working.display_code}</p>
+            )}
+            <p className="text-center font-bold text-xl text-gray-900 mb-1">{working.label}</p>
+            <p className="text-center text-sm text-gray-500 mb-5">
+              {working.item_type === 'coupon' ? `${working.amount.toLocaleString()}원` : `${working.amount.toLocaleString()}P`}
+              {working.short_code ? ` · ${working.short_code}` : ''}
+            </p>
+
+            {working.status === 'used' ? (
+              <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center font-bold">이미 사용된 경품입니다</div>
+            ) : working.status === 'expired' ? (
+              <div className="bg-gray-100 text-gray-600 rounded-lg px-4 py-4 text-center font-bold">사용기간이 지난 경품입니다</div>
+            ) : working.status === 'pending_apply' ? (
+              <p className="text-center text-sm text-gray-500">할인 적용 안내가 열려 있습니다</p>
+            ) : !showReason ? (
+              <div>
+                <p className="text-center text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                  손님 폰의 당근 단골 화면을 확인한 뒤 아래를 눌러주세요. 확인 방법은 매장 재량입니다.
+                </p>
                 <div className="flex gap-3">
-                  <button onClick={() => requestPaymentInput('verify-confirm')} disabled={loading}
-                    className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40">
-                    확인함
-                  </button>
-                  <button onClick={() => setShowReasonPicker(true)} disabled={loading}
-                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-4 rounded-lg text-lg font-bold disabled:opacity-40">
-                    미확인 처리
-                  </button>
+                  <button onClick={handleConfirm} disabled={loading}
+                    className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-lg text-lg font-bold disabled:opacity-40">확인함</button>
+                  <button onClick={() => setShowReason(true)} disabled={loading}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-4 rounded-lg text-lg font-bold">미확인 처리</button>
                 </div>
-              ) : (
-                <div className="border-2 border-gray-200 rounded-lg p-4">
-                  <p className="text-gray-700 font-bold mb-3">미확인 사유 선택</p>
-                  <div className="flex gap-2 mb-4">
-                    {REASONS.map((r) => (
-                      <button key={r} onClick={() => setSelectedReason(r)}
-                        className={`flex-1 py-3 rounded-lg text-base font-bold border-2 ${
-                          selectedReason === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-300'
-                        }`}>{r}</button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setShowReasonPicker(false); setSelectedReason('') }}
-                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-lg font-bold">취소</button>
-                    <button onClick={() => selectedReason && handleVerifyUnverified(selectedReason)}
-                      disabled={!selectedReason || loading}
-                      className="flex-1 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold disabled:opacity-40">미확인 확정</button>
-                  </div>
+              </div>
+            ) : (
+              <div>
+                <p className="font-bold text-gray-700 mb-3">미확인 사유</p>
+                <div className="flex gap-2 mb-4">
+                  {REASONS.map((r) => (
+                    <button key={r} onClick={() => setReason(r)}
+                      className={`flex-1 py-3 rounded-lg text-sm font-bold border-2 ${reason === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-300'}`}>{r}</button>
+                  ))}
                 </div>
-              )
-            ) : null}
+                <div className="flex gap-2">
+                  <button onClick={() => { setShowReason(false); setReason('') }} className="flex-1 bg-gray-200 py-3 rounded-lg font-bold">취소</button>
+                  <button onClick={handleReject} disabled={!reason || loading} className="flex-1 bg-red-600 text-white py-3 rounded-lg font-bold disabled:opacity-40">미확인 확정</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {banner && (
+        <div className="fixed inset-0 z-50 bg-gray-950 flex flex-col items-center justify-center px-6"
+          onClick={(e) => e.stopPropagation()}>
+          <p className="text-orange-400 font-black text-7xl tracking-wide mb-6">{banner.display_code}</p>
+          <p className="text-white font-black text-6xl sm:text-7xl mb-4 tabular-nums">
+            {banner.item_type === 'coupon'
+              ? `${banner.amount.toLocaleString()}원`
+              : banner.label}
+          </p>
+          <p className="text-white/80 text-xl font-bold text-center mb-10">계산대에서 이 금액을 적용해주세요</p>
+          <button onClick={handleApply} disabled={loading}
+            className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white py-5 rounded-2xl text-xl font-black disabled:opacity-40">
+            {loading ? '처리 중...' : '할인 적용 완료'}
+          </button>
+          {error && <p className="text-red-400 text-sm mt-4 font-semibold">{error}</p>}
+        </div>
+      )}
     </div>
   )
 }

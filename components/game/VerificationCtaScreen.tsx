@@ -37,7 +37,7 @@ export default function VerificationCtaScreen({ result, onDone }: Props) {
           쿠폰 사용하세요
         </h2>
         <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-          고액 경품은 당근 단골 추가 인증 후에
+          모든 경품은 당근 단골 확인 후에
           <br />
           매장에서 사용하실 수 있어요
         </p>
@@ -55,12 +55,13 @@ export default function VerificationCtaScreen({ result, onDone }: Props) {
         </div>
       )}
 
-      <button
-        onClick={onDone}
-        className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
+      <a
+        href="#"
+        onClick={(e) => { e.preventDefault(); onDone() }}
+        className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors text-center"
       >
         당근에서 단골 추가하기
-      </button>
+      </a>
     </div>
   )
 }

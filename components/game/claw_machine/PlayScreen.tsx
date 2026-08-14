@@ -11,21 +11,21 @@ const CLAW_DROP_PX = 170 // 크레인 하강 거리(px)
 
 interface Props {
   onResult: (result: PrizeResult) => void
+  onLocked?: () => void
   /** 있으면 /api/games/play로 서버 추첨, 없으면(데모 모드) 클라이언트 로컬 추첨 */
   eventId?: string
-  kakaoUserId?: string
 }
 
-/** 서버에서 결과를 받아온다 (실서비스). eventId가 없으면 데모용 로컬 추첨으로 폴백한다. */
-async function drawResult(eventId?: string, kakaoUserId?: string): Promise<PrizeResult> {
-  if (!eventId || !kakaoUserId) {
+/** 서버에서 결과를 받아온다. 실서비스는 locked만 반환하고 당첨액은 세션에만 둔다. */
+async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
+  if (!eventId) {
     return rollPrize()
   }
 
   const res = await fetch('/api/games/play', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event_id: eventId, kakao_user_id: kakaoUserId }),
+    body: JSON.stringify({ event_id: eventId }),
   })
 
   if (!res.ok) {
@@ -34,6 +34,8 @@ async function drawResult(eventId?: string, kakaoUserId?: string): Promise<Prize
   }
 
   const data = await res.json()
+  if (data.locked) return 'locked'
+
   return {
     tier: resolveTier(data.amount, data.requiresVerification),
     label: data.label,
@@ -43,7 +45,7 @@ async function drawResult(eventId?: string, kakaoUserId?: string): Promise<Prize
   }
 }
 
-export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
+export default function PlayScreen({ onResult, onLocked, eventId }: Props) {
   const railContainerRef = useRef<HTMLDivElement>(null)
   const [constraints, setConstraints] = useState({ left: -140, right: 140 })
   const [isAnimating, setIsAnimating] = useState(false)
@@ -88,15 +90,18 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
     setIsAnimating(true)
     setShowFallback(false)
 
-    let result: PrizeResult
+    let result: PrizeResult | 'locked'
     try {
-      result = await drawResult(eventId, kakaoUserId)
+      result = await drawResult(eventId)
     } catch (err) {
       console.error('게임 결과 요청 오류:', err)
       alert('오류가 발생했습니다. 다시 시도해주세요.')
       setIsAnimating(false)
       return
     }
+
+    const locked = result === 'locked'
+    const isWin = result !== 'locked' && result.tier !== 'miss'
 
     // 집을 캐릭터 선택 (visible 중 랜덤)
     const available = Array.from({ length: TOTAL_CHARACTERS }, (_, i) => i).filter(
@@ -113,28 +118,27 @@ export default function PlayScreen({ onResult, eventId, kakaoUserId }: Props) {
       transition: { duration: 0.55, ease: 'easeIn' },
     })
 
-    // 2. 집기 — 당첨이면 캐릭터 표시
-    if (result.tier !== 'miss' && pickedIdx !== null) {
+    // 잠금 모드에서는 당첨/꽝을 연출로 누설하지 않음 — 항상 집기
+    if ((locked || isWin) && pickedIdx !== null) {
       setCharacterGrabbed(true)
     }
     await new Promise((r) => setTimeout(r, 280))
 
-    // 3. 상승
     await clawControls.start({
       y: 0,
       transition: { duration: 0.65, ease: 'easeOut' },
     })
     await new Promise((r) => setTimeout(r, 120))
 
-    // 4. 배출 — 캐릭터 제거
-    if (result.tier !== 'miss' && pickedIdx !== null) {
+    if ((locked || isWin) && pickedIdx !== null) {
       setRemovedCharacters((prev) => new Set([...prev, pickedIdx]))
     }
     setCharacterGrabbed(false)
 
     setIsAnimating(false)
-    onResult(result)
-  }, [isAnimating, clawControls, removedCharacters, onResult, eventId, kakaoUserId])
+    if (result === 'locked') onLocked?.()
+    else onResult(result)
+  }, [isAnimating, clawControls, removedCharacters, onResult, onLocked, eventId])
 
   const handleDragEnd = useCallback(() => {
     triggerDrop()

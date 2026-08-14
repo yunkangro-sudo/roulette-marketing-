@@ -9,7 +9,6 @@ interface Tier {
   label: string
   amount: number | ''
   total_quantity: number | ''
-  requires_verification: boolean
 }
 
 interface Props {
@@ -18,9 +17,9 @@ interface Props {
 }
 
 const DEFAULT_TIERS: Tier[] = [
-  { label: '꽝', amount: 0, total_quantity: '', requires_verification: false },
-  { label: '소액권', amount: 2000, total_quantity: '', requires_verification: false },
-  { label: '고액권', amount: 10000, total_quantity: '', requires_verification: true },
+  { label: '꽝', amount: 0, total_quantity: '' },
+  { label: '소액권', amount: 2000, total_quantity: '' },
+  { label: '고액권', amount: 10000, total_quantity: '' },
 ]
 
 function calcProbabilities(tiers: Tier[], dailyParticipants: number, startDate: string, endDate: string): number[] {
@@ -67,7 +66,6 @@ export default function NewEventForm({ role, storeId }: Props) {
           label: t.label,
           amount: t.amount,
           total_quantity: t.total_quantity,
-          requires_verification: t.requires_verification,
         }))
       : DEFAULT_TIERS
   )
@@ -87,7 +85,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   function updateTier(i: number, field: keyof Tier, value: unknown) {
     setTiers((prev) => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
   }
-  function addTier() { setTiers((prev) => [...prev, { label: '', amount: '', total_quantity: '', requires_verification: false }]) }
+  function addTier() { setTiers((prev) => [...prev, { label: '', amount: '', total_quantity: '' }]) }
   function removeTier(i: number) { setTiers((prev) => prev.filter((_, idx) => idx !== i)) }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -133,7 +131,6 @@ export default function NewEventForm({ role, storeId }: Props) {
             label: t.label,
             amount: Number(t.amount),
             total_quantity: Number(t.total_quantity),
-            requires_verification: t.requires_verification,
           })),
         }),
       })
@@ -310,15 +307,6 @@ export default function NewEventForm({ role, storeId }: Props) {
                     <p className={`text-lg font-black ${probabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
                       {probabilities[i].toFixed(1)}%
                     </p>
-                  </div>
-                  <div className="shrink-0">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input type="checkbox" checked={tier.requires_verification}
-                        onChange={(e) => updateTier(i, 'requires_verification', e.target.checked)}
-                        className="accent-orange-500 w-4 h-4" />
-                      <span className="text-xs text-gray-600">직원 확인 필요</span>
-                    </label>
-                    <p className="text-xs text-gray-400 mt-0.5">(1만원 이상 권장)</p>
                   </div>
                 </div>
                 {tiers.length > 1 && (

@@ -27,23 +27,22 @@ export default function LoginScreen({ storeId, onMockLogin, loading }: Props) {
       <div className="flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-8">
         <div className="text-center">
           <div className="text-5xl mb-4">🥕</div>
-          <h2 className="text-white text-xl font-bold">카카오로 시작하기</h2>
+          <h2 className="text-white text-xl font-bold">카카오로 결과 확인하기</h2>
           <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-            쿠폰 발급을 위해 카카오 계정이 필요해요
+            게임은 이미 끝났어요. 로그인하면 당첨 결과를 보여드릴게요.
           </p>
         </div>
 
         <a
-          href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}`}
+          href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=claim`}
           className="w-full max-w-sm flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-6 py-4 rounded-2xl text-base transition-colors"
         >
           <KakaoIcon />
-          카카오로 시작하기
+          카카오로 결과 확인하기
         </a>
 
         <p className="text-gray-600 text-xs text-center">
-          전화번호 동의 시 쿠폰 발급 알림을 받을 수 있어요<br />
-          동의하지 않아도 게임은 정상 참여 가능합니다
+          전화번호 동의는 알림 수신용이며, 동의하지 않아도 결과는 확인할 수 있어요
         </p>
       </div>
     )
@@ -54,8 +53,8 @@ export default function LoginScreen({ storeId, onMockLogin, loading }: Props) {
     <div className="flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-8">
       <div className="text-center">
         <div className="text-5xl mb-4">👤</div>
-        <h2 className="text-white text-xl font-bold">로그인이 필요해요</h2>
-        <p className="text-gray-400 text-sm mt-2">게임 참여를 위해 로그인해 주세요</p>
+        <h2 className="text-white text-xl font-bold">결과를 확인하려면 로그인하세요</h2>
+        <p className="text-gray-400 text-sm mt-2">카카오 로그인하면 당첨 결과를 보여드릴게요</p>
       </div>
 
       <button

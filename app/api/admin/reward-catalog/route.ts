@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       point_cost: Number(point_cost),
       active: true,
       stock: stock !== undefined && stock !== '' ? Number(stock) : null,
-      requires_verification: requires_verification === true,
+      requires_verification: true,
       reward_type: reward_type ?? 'free_item',
       start_at: start_at || null,
       end_at: end_at || null,

@@ -26,8 +26,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/`)
   }
 
-  // state에서 storeId 파싱
-  const storeId = state.startsWith('storeId:') ? state.slice('storeId:'.length) : ''
+  // state에서 storeId / next 파싱
+  let storeId = ''
+  let nextPage = ''
+  if (state.startsWith('storeId:')) {
+    const rest = state.slice('storeId:'.length)
+    const idx = rest.indexOf('|next:')
+    if (idx >= 0) {
+      storeId = rest.slice(0, idx)
+      nextPage = rest.slice(idx + '|next:'.length)
+    } else {
+      storeId = rest
+    }
+  }
 
   const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
@@ -62,7 +73,9 @@ export async function GET(req: NextRequest) {
     await session.save()
 
     // ── 5. 게임 페이지로 리다이렉트 ───────────────────────────
-    const dest = storeId ? `${appUrl}/play/${storeId}` : `${appUrl}/`
+    const dest = storeId
+      ? (nextPage === 'checkout' ? `${appUrl}/checkout/${storeId}` : `${appUrl}/play/${storeId}`)
+      : `${appUrl}/`
     return NextResponse.redirect(dest)
 
   } catch (err) {

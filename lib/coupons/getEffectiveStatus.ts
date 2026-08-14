@@ -1,4 +1,4 @@
-export type CouponStatus = 'issued' | 'pending_verify' | 'used' | 'expired' | 'unverified'
+export type CouponStatus = 'issued' | 'pending_verify' | 'pending_apply' | 'used' | 'expired' | 'unverified'
 
 export interface CouponForStatusCheck {
   status: CouponStatus
@@ -16,7 +16,7 @@ export interface CouponForStatusCheck {
  *
  * 우선순위:
  * 1. status가 이미 'used' 또는 'expired'면 그대로 신뢰한다 (되돌릴 수 없는 확정 상태).
- * 2. 그 외 상태(issued/pending_verify/unverified)인데 valid_until이 지났으면 'expired'로 간주한다.
+ * 2. 그 외 상태(issued/pending_verify/pending_apply/unverified)인데 valid_until이 지났으면 'expired'로 간주한다.
  * 3. 그 외에는 DB status를 그대로 사용한다.
  *
  * 이 함수는 /staff 계산대 화면의 쿠폰 조회(GET /api/coupons/lookup)뿐 아니라,
