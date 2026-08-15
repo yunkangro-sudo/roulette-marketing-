@@ -98,20 +98,15 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
 
       {/* 다음 화면(채널 CTA) 또는 단골 유도 */}
       {onContinue || onVerificationCta ? (
-        <>
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            onClick={onContinue ?? onVerificationCta}
-            className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
-          >
-            {continueLabel ?? (onContinue ? '다음' : '당근 단골 추가하러 가기')}
-          </motion.button>
-          <button onClick={onReplay} className="text-gray-500 text-xs">
-            처음부터 다시 보기
-          </button>
-        </>
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          onClick={onContinue ?? onVerificationCta}
+          className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
+        >
+          {continueLabel ?? (onContinue ? '다음' : '다음')}
+        </motion.button>
       ) : (
         <motion.button
           initial={{ opacity: 0 }}

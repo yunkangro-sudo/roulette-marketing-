@@ -7,6 +7,8 @@ interface Props {
 }
 
 const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+// TEMP: 카카오 심사 대기용 임시 우회 - 심사 승인 후 제거
+const KAKAO_REVIEW_PENDING = process.env.NEXT_PUBLIC_KAKAO_REVIEW_PENDING === 'true'
 
 export default function ResultLockedScreen({ storeId, onMockLogin, loading }: Props) {
   return (
@@ -22,12 +24,24 @@ export default function ResultLockedScreen({ storeId, onMockLogin, loading }: Pr
 
       {KAKAO_KEY ? (
         <>
-          <a
-            href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=claim`}
-            className="w-full max-w-sm flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-6 py-4 rounded-2xl text-base transition-colors"
-          >
-            카카오로 결과 확인하기
-          </a>
+          {KAKAO_REVIEW_PENDING ? (
+            // TEMP: 카카오 심사 대기용 임시 우회 - 심사 승인 후 제거
+            <button
+              type="button"
+              onClick={() => onMockLogin?.('test-user-1')}
+              disabled={loading}
+              className="w-full max-w-sm flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-6 py-4 rounded-2xl text-base transition-colors disabled:opacity-50"
+            >
+              카카오로 결과 확인하기
+            </button>
+          ) : (
+            <a
+              href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=claim`}
+              className="w-full max-w-sm flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold px-6 py-4 rounded-2xl text-base transition-colors"
+            >
+              카카오로 결과 확인하기
+            </a>
+          )}
           <p className="text-gray-600 text-xs">
             전화번호 동의는 알림 수신용이며, 동의하지 않아도 결과는 확인할 수 있어요
           </p>

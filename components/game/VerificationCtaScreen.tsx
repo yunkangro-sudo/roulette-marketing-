@@ -8,6 +8,7 @@ interface Props {
   result: PrizeResult
   onDone: () => void
   daangnUrl?: string | null
+  storeId?: string
 }
 
 function formatDate(iso: string) {
@@ -15,9 +16,18 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-export default function VerificationCtaScreen({ result, onDone, daangnUrl }: Props) {
+export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-6 text-center">
+    <div className="relative flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-6 text-center">
+      {storeId ? (
+        <a
+          href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
+          className="absolute top-5 right-5 text-gray-400 hover:text-white text-xl leading-none"
+          aria-label="닫기"
+        >
+          ✕
+        </a>
+      ) : null}
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}

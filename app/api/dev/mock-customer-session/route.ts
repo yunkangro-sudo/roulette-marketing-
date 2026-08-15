@@ -7,7 +7,9 @@ import { NextResponse } from 'next/server'
 import { getCustomerSession } from '@/lib/auth/session'
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === 'production') {
+  // TEMP: 카카오 심사 대기용 임시 우회 - 심사 승인 후 제거
+  const reviewPending = process.env.NEXT_PUBLIC_KAKAO_REVIEW_PENDING === 'true'
+  if (process.env.NODE_ENV === 'production' && !reviewPending) {
     return NextResponse.json({ error: 'not found' }, { status: 404 })
   }
 

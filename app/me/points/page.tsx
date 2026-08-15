@@ -41,6 +41,21 @@ interface Mission {
   completedAt: string | null
 }
 
+interface MyCoupon {
+  id: string
+  amount: number
+  shortCode: string | null
+  validUntil: string
+  storeName: string
+  displayStatus: 'usable' | 'used' | 'expired'
+}
+
+const COUPON_STATUS_LABEL = {
+  usable: '사용가능',
+  used: '사용완료',
+  expired: '만료',
+} as const
+
 function PointsContent() {
   const searchParams = useSearchParams()
   const storeId = searchParams.get('store_id') ?? ''
@@ -53,6 +68,7 @@ function PointsContent() {
   const [catalog, setCatalog] = useState<Reward[]>([])
   const [history, setHistory] = useState<LedgerEntry[]>([])
   const [missions, setMissions] = useState<Mission[]>([])
+  const [coupons, setCoupons] = useState<MyCoupon[]>([])
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -81,6 +97,7 @@ function PointsContent() {
       setCatalog(data.catalog ?? [])
       setHistory(data.history ?? [])
       setMissions(data.missions ?? [])
+      setCoupons(data.coupons ?? [])
     } finally {
       setLoading(false)
     }
@@ -122,7 +139,7 @@ function PointsContent() {
   if (needLogin) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-8 gap-6 text-center">
-        <p className="text-gray-900 text-xl font-bold">포인트를 보려면 로그인이 필요해요</p>
+        <p className="text-gray-900 text-xl font-bold">쿠폰과 포인트를 보려면 로그인이 필요해요</p>
         <a
           href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=points`}
           className="w-full max-w-sm bg-yellow-400 text-gray-900 font-bold py-4 rounded-2xl"
@@ -148,11 +165,11 @@ function PointsContent() {
       <div className="max-w-md mx-auto px-4 py-8 space-y-5">
         {/* 포인트 잔액 카드 */}
         <div className="bg-gradient-to-br from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg">
-          <p className="text-orange-100 text-sm mb-1">내 포인트</p>
+          <p className="text-orange-100 text-sm mb-1">내 쿠폰보관</p>
           <p className="text-5xl font-black mb-4">{balance.toLocaleString()}P</p>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-orange-100">방문 {visitCount}회</span>
-            <span className="text-orange-100">방문 1회당 +{pointPerVisit}P</span>
+            <span className="text-orange-100">보유 쿠폰 {coupons.length}장</span>
+            <span className="text-orange-100">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
           </div>
 
           {/* 사용 가능 여부 */}
@@ -177,6 +194,49 @@ function PointsContent() {
             {message.text}
           </div>
         )}
+
+        <div>
+          <h2 className="text-sm font-bold text-gray-700 mb-3">보유 쿠폰</h2>
+          {coupons.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center text-gray-400 text-sm">
+              아직 받은 쿠폰이 없어요
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {coupons.map((c) => (
+                <div key={c.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-lg font-bold text-gray-900">{c.amount.toLocaleString()}원</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{c.storeName}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        사용기한 ~{new Date(c.validUntil).toLocaleDateString('ko-KR')}
+                        {c.shortCode ? ` · ${c.shortCode}` : ''}
+                      </p>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-lg shrink-0 ${
+                      c.displayStatus === 'usable'
+                        ? 'bg-orange-50 text-orange-600'
+                        : c.displayStatus === 'used'
+                          ? 'bg-gray-100 text-gray-500'
+                          : 'bg-red-50 text-red-500'
+                    }`}>
+                      {COUPON_STATUS_LABEL[c.displayStatus]}
+                    </span>
+                  </div>
+                  {c.displayStatus === 'usable' && (
+                    <a
+                      href={`/checkout/${encodeURIComponent(storeId)}`}
+                      className="mt-3 block text-center text-sm font-bold text-orange-600"
+                    >
+                      계산대에서 사용
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* 진행 중 미션 — v3.1 Next Visit Loop */}
         {missions.length > 0 && (

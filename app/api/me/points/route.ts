@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
   const now = new Date().toISOString()
 
-  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes] = await Promise.all([
+  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes] = await Promise.all([
     supabase
       .from('customer_loyalty')
       .select('point_balance, visit_count, last_visit_at')
@@ -67,6 +67,18 @@ export async function GET(req: Request) {
       .select('mission_id, current_value, completed_at')
       .eq('store_id', storeId)
       .eq('kakao_user_id', kakaoUserId),
+    supabase
+      .from('coupons')
+      .select('id, amount, status, short_code, valid_until, issued_at')
+      .eq('store_id', storeId)
+      .eq('kakao_user_id', kakaoUserId)
+      .order('issued_at', { ascending: false })
+      .limit(50),
+    supabase
+      .from('store_settings')
+      .select('store_name')
+      .eq('store_id', storeId)
+      .maybeSingle(),
   ])
 
   // 미션 + 진행률 합산 — 완료된 미션 제외
@@ -91,11 +103,28 @@ export async function GET(req: Request) {
     })
     .filter((m) => !m.completedAt)  // 완료된 미션 제외
 
+  const storeName = storeRes.data?.store_name ?? storeId
+  const coupons = (couponsRes.data ?? []).map((c) => {
+    const expired = new Date(c.valid_until).getTime() < Date.now()
+    let displayStatus: 'usable' | 'used' | 'expired' = 'usable'
+    if (c.status === 'used') displayStatus = 'used'
+    else if (c.status === 'expired' || c.status === 'unverified' || expired) displayStatus = 'expired'
+    return {
+      id: c.id,
+      amount: c.amount,
+      shortCode: c.short_code,
+      validUntil: c.valid_until,
+      storeName,
+      displayStatus,
+    }
+  })
+
   return NextResponse.json({
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },
     catalog:  catalogRes.data ?? [],
     history:  historyRes.data ?? [],
     missions,
+    coupons,
   })
 }

@@ -150,6 +150,7 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 
 - [x] **카카오 로그인 실연동 완료** — `NEXT_PUBLIC_KAKAO_JS_KEY` 설정 완료. `/api/auth/kakao` OAuth 서버사이드 흐름 구현, 전화번호 암호화 저장(AES-256-CBC), iron-session 고객 세션 쿠키 적용. Mock 로그인은 키 미설정 시 개발 폴백으로만 유지
 - [ ] **알림톡 발송대행사(솔라피 등) 가입 및 실제 발송 연동은 별도 진행 예정** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태. `KAKAO_ALIMTALK_SENDER_KEY` 입력 후 stub 내부 주석 해제하면 즉시 연동 가능
+- [ ] **카카오 로그인 심사 대기 우회** — `.env.local` 또는 Vercel에 `NEXT_PUBLIC_KAKAO_REVIEW_PENDING=true` 이면 화면 3 버튼이 실제 카카오 대신 `test-user-1` mock 세션으로 claim 한다. **심사 승인 후: 플래그를 false/삭제하고 `ResultLockedScreen.tsx`·`mock-customer-session`의 `TEMP: 카카오 심사 대기용` 주석 구간을 제거한다.**
 - [ ] **카카오 비즈앱 전환 및 전화번호 동의항목 심사** — 개인사업자/법인 사업자 기준으로 카카오 비즈앱 전환 신청 후, 카카오 개발자 센터에서 "전화번호" 동의항목 심사 신청 필요. 심사 전에는 `phone_number`가 null로 내려와 전화번호 저장이 생략됨 (로그인 자체는 정상 동작)
 - [ ] **알림톡 발송대행사 가입 및 KAKAO_ALIMTALK_SENDER_KEY 실제값 입력** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태. 대행사(비즈뿌리오, 알리고, 솔라피 등) 가입 후 Sender Key 발급 → `.env.local`에 `KAKAO_ALIMTALK_SENDER_KEY` 입력 → `sendAlimtalk()` 내부 주석 해제 후 대행사 API 호출 코드 추가
 - [ ] **개인정보처리방침 업데이트** — "전화번호 수집·이용 목적(카카오 쿠폰 알림 발송)" 항목 추가 필요. 수집 근거, 보유 기간, 제3자 제공 여부(대행사 전달 포함) 명시 필요

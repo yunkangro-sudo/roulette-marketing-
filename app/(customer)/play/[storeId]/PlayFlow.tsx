@@ -216,7 +216,13 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
 
   if (step === 'landing') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-8">
+      <div className="relative flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-8">
+        <a
+          href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
+          className="absolute top-5 right-5 text-sm text-gray-300 hover:text-white"
+        >
+          내 쿠폰보관
+        </a>
         <div className="w-full max-w-sm aspect-video bg-gray-800 rounded-2xl border border-gray-700 flex flex-col items-center justify-center gap-2">
           <span className="text-5xl">🥕</span>
           <span className="text-gray-400 text-sm">이벤트 썸네일</span>
@@ -225,12 +231,15 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
           <h1 className="text-white text-2xl font-bold">{event.name}</h1>
           <p className="text-gray-400 text-sm mt-2">로그인 없이 바로 도전해 보세요!</p>
         </div>
-        <button
-          onClick={() => setStep('playing')}
-          className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-lg font-bold transition-colors"
-        >
-          시작하기
-        </button>
+        <div className="w-full max-w-sm">
+          <button
+            onClick={() => setStep('playing')}
+            className="w-full bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-lg font-bold transition-colors"
+          >
+            뽑기 시작
+          </button>
+          <p className="text-gray-500 text-xs text-center mt-3">1일 1회 응모 가능</p>
+        </div>
       </div>
     )
   }
@@ -292,7 +301,12 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
   if (step === 'verification_cta' && result) {
     return (
       <div className="relative w-full h-screen overflow-hidden bg-gray-900">
-        <VerificationCtaScreen result={result} onDone={handleSwitchAccount} daangnUrl={daangnUrl} />
+        <VerificationCtaScreen
+          result={result}
+          onDone={handleSwitchAccount}
+          daangnUrl={daangnUrl}
+          storeId={storeId}
+        />
       </div>
     )
   }
