@@ -1,10 +1,13 @@
 import { createServerClient } from '@/lib/supabase/server'
 import PlayFlow from './PlayFlow'
+import ResultPreview from '@/components/game/ResultPreview'
+import ResultLockedScreen from '@/components/play/ResultLockedScreen'
+import FlowPreview from '@/components/play/FlowPreview'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 interface Props {
   params: Promise<{ storeId: string }>
-  searchParams: Promise<{ claim?: string }>
+  searchParams: Promise<{ claim?: string; preview_result?: string }>
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -14,7 +17,20 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function PlayPage({ params, searchParams }: Props) {
   const { storeId } = await params
-  const { claim } = await searchParams
+  const { claim, preview_result } = await searchParams
+  if (preview_result === 'big' || preview_result === 'small' || preview_result === 'miss') {
+    return <ResultPreview tier={preview_result} />
+  }
+  if (preview_result === 'locked') {
+    return <ResultLockedScreen storeId={storeId} />
+  }
+  if (
+    preview_result === 'already_participated' ||
+    preview_result === 'channel_cta' ||
+    preview_result === 'verification'
+  ) {
+    return <FlowPreview screen={preview_result} storeId={storeId} />
+  }
   const supabase = createServerClient()
 
   const { data: event, error } = await supabase

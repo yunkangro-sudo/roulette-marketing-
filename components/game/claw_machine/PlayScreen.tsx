@@ -1,19 +1,55 @@
 'use client'
 
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, useAnimation, AnimatePresence } from 'framer-motion'
 import { rollPrize, resolveTier } from './gameUtils'
 import type { PrizeResult } from '../types'
 
-// 진열장에 배치할 캐릭터 (이후 실제 이미지로 교체 예정)
-const TOTAL_CHARACTERS = 9
-const CLAW_DROP_PX = 170 // 크레인 하강 거리(px)
+const BG_SRC = '/characters/bg_default_empty.png'
+const CRANE_SRC = '/characters/crane_claw_arm.png'
+const DISPLAY_CHARS = [
+  '/characters/char_display_mint.png',
+  '/characters/char_display_lavender.png',
+  '/characters/char_display_peach.png',
+  '/characters/char_display_yellow.png',
+  '/characters/char_display_gold.png',
+] as const
+
+const IMG_W = 941
+const IMG_H = 1672
+/** 집게 스프라이트(crane_claw_arm.png, 투명 배경)를 배경의 레일 고리 위치에 맞춘 좌표 */
+const CLAW_MIN_X = 196
+const CLAW_MIN_Y = 396
+const CLAW_SRC_W = 210
+const CLAW_SRC_H = 337
+const CLAW_MAX_X = CLAW_MIN_X + CLAW_SRC_W
+const CLAW_MAX_Y = CLAW_MIN_Y + CLAW_SRC_H
+const CHAR_Y = 1100
+/** 집게 프롱이 인형을 감싸 쥐는 지점(집게 높이 기준 비율) */
+const GRIP_Y_RATIO = 0.52
+/** 집게 폭 대비 인형 폭 비율 */
+const GRIP_CHAR_SCALE = 1.35
+const GLASS_LEFT = 170
+const GLASS_RIGHT = 770
+const RISE_SEC = 2
+/** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
+const SEARCH_SEC = 1.5
+
+interface CoverLayout {
+  scale: number
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 interface Props {
   onResult: (result: PrizeResult) => void
   onLocked?: () => void
   /** 있으면 /api/games/play로 서버 추첨, 없으면(데모 모드) 클라이언트 로컬 추첨 */
   eventId?: string
+  /** QA용 — 항상 결과 잠금(onLocked)으로 보낸다. 로그인 게이트(화면 3) 확인용 */
+  forceLocked?: boolean
 }
 
 /** 서버에서 결과를 받아온다. 실서비스는 locked만 반환하고 당첨액은 세션에만 둔다. */
@@ -45,50 +81,53 @@ async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
   }
 }
 
-export default function PlayScreen({ onResult, onLocked, eventId }: Props) {
-  const railContainerRef = useRef<HTMLDivElement>(null)
-  const [constraints, setConstraints] = useState({ left: -140, right: 140 })
+export default function PlayScreen({ onResult, onLocked, eventId, forceLocked }: Props) {
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [layout, setLayout] = useState<CoverLayout>({ scale: 1, x: 0, y: 0, w: 0, h: 0 })
   const [isAnimating, setIsAnimating] = useState(false)
-  const [showFallback, setShowFallback] = useState(false)
-  const [idleTick, setIdleTick] = useState(0) // 증가할 때마다 타이머 리셋
-  const [removedCharacters, setRemovedCharacters] = useState<Set<number>>(new Set())
-  const [characterGrabbed, setCharacterGrabbed] = useState<boolean>(false)
+  const [characterGrabbed, setCharacterGrabbed] = useState(false)
   const clawControls = useAnimation()
 
-  // 컨테이너 너비 계산 → drag constraints 설정
+  const displaySrc = useMemo(
+    () => DISPLAY_CHARS[Math.floor(Math.random() * DISPLAY_CHARS.length)],
+    []
+  )
+
+  const clawW = CLAW_SRC_W * layout.scale
+  const clawH = CLAW_SRC_H * layout.scale
+  const restLeft = layout.x + CLAW_MIN_X * layout.scale
+  const restTop = layout.y + CLAW_MIN_Y * layout.scale
+  const constraints = {
+    left: (GLASS_LEFT - CLAW_MIN_X) * layout.scale,
+    right: (GLASS_RIGHT - CLAW_MAX_X) * layout.scale,
+  }
+
   useEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+
     const update = () => {
-      if (railContainerRef.current) {
-        const w = railContainerRef.current.offsetWidth
-        // 크레인 너비 48px 기준, 레일 끝에서 살짝 여유
-        setConstraints({ left: -(w / 2 - 28), right: w / 2 - 28 })
-      }
+      const w = el.clientWidth
+      const h = el.clientHeight
+      const scale = Math.max(w / IMG_W, h / IMG_H)
+      setLayout({
+        scale,
+        x: (w - IMG_W * scale) / 2,
+        y: (h - IMG_H * scale) / 2,
+        w,
+        h,
+      })
     }
+
     update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
-  // 5초 유휴 → 폴백 버튼 노출
-  useEffect(() => {
-    if (isAnimating) {
-      setShowFallback(false)
-      return
-    }
-    setShowFallback(false)
-    const t = setTimeout(() => setShowFallback(true), 5000)
-    return () => clearTimeout(t)
-  }, [isAnimating, idleTick])
-
-  const resetIdle = useCallback(() => {
-    setIdleTick((n) => n + 1)
-  }, [])
-
-  // 실제 크레인 하강 → 집기 → 상승 → 결과 시퀀스
   const triggerDrop = useCallback(async () => {
     if (isAnimating) return
     setIsAnimating(true)
-    setShowFallback(false)
 
     let result: PrizeResult | 'locked'
     try {
@@ -100,167 +139,115 @@ export default function PlayScreen({ onResult, onLocked, eventId }: Props) {
       return
     }
 
-    const locked = result === 'locked'
-    const isWin = result !== 'locked' && result.tier !== 'miss'
+    const locked = forceLocked || result === 'locked'
+    const isWin = !locked && result !== 'locked' && result.tier !== 'miss'
+    const dropY = Math.max(80, (CHAR_Y - CLAW_MAX_Y) * (layout.scale || 1))
 
-    // 집을 캐릭터 선택 (visible 중 랜덤)
-    const available = Array.from({ length: TOTAL_CHARACTERS }, (_, i) => i).filter(
-      (i) => !removedCharacters.has(i)
-    )
-    const pickedIdx =
-      available.length > 0
-        ? available[Math.floor(Math.random() * available.length)]
-        : null
+    // 좌우로 자동 탐색하다가 매번 다른 랜덤 위치에 멈춘다
+    const margin = (constraints.right - constraints.left) * 0.08
+    const safeLeft = constraints.left + margin
+    const safeRight = constraints.right - margin
+    const randomX = safeLeft + Math.random() * (safeRight - safeLeft)
 
-    // 1. 하강
     await clawControls.start({
-      y: CLAW_DROP_PX,
+      x: [0, safeRight, safeLeft, safeRight, safeLeft, randomX],
+      transition: {
+        duration: SEARCH_SEC,
+        times: [0, 0.2, 0.4, 0.6, 0.8, 1],
+        ease: 'easeInOut',
+      },
+    })
+
+    await clawControls.start({
+      y: dropY,
       transition: { duration: 0.55, ease: 'easeIn' },
     })
 
-    // 잠금 모드에서는 당첨/꽝을 연출로 누설하지 않음 — 항상 집기
-    if ((locked || isWin) && pickedIdx !== null) {
+    if (locked || isWin) {
       setCharacterGrabbed(true)
     }
-    await new Promise((r) => setTimeout(r, 280))
+    await new Promise((r) => setTimeout(r, 220))
 
     await clawControls.start({
+      x: 0,
       y: 0,
-      transition: { duration: 0.65, ease: 'easeOut' },
+      transition: { duration: RISE_SEC, ease: 'easeOut' },
     })
-    await new Promise((r) => setTimeout(r, 120))
+    await new Promise((r) => setTimeout(r, 180))
 
-    if ((locked || isWin) && pickedIdx !== null) {
-      setRemovedCharacters((prev) => new Set([...prev, pickedIdx]))
-    }
     setCharacterGrabbed(false)
-
     setIsAnimating(false)
-    if (result === 'locked') onLocked?.()
-    else onResult(result)
-  }, [isAnimating, clawControls, removedCharacters, onResult, onLocked, eventId])
-
-  const handleDragEnd = useCallback(() => {
-    triggerDrop()
-  }, [triggerDrop])
-
-  const handleFallbackTap = useCallback(() => {
-    resetIdle()
-    triggerDrop()
-  }, [resetIdle, triggerDrop])
+    if (locked) onLocked?.()
+    else onResult(result as PrizeResult)
+  }, [isAnimating, clawControls, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
 
   return (
-    <div className="relative w-full h-screen bg-gray-900 overflow-hidden select-none">
-      {/* 게임 상단 레이블 */}
-      <div className="absolute top-4 left-0 right-0 text-center">
-        <p className="text-gray-500 text-xs">← 드래그해서 위치 조정 후 손 떼기 →</p>
-      </div>
+    <div
+      ref={stageRef}
+      className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]"
+    >
+      <img
+        src={BG_SRC}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+      />
 
-      {/* 레일 + 크레인 시스템 */}
-      <div
-        ref={railContainerRef}
-        className="absolute left-0 right-0"
-        style={{ top: '18%' }}
-      >
-        {/* 레일 (시각적) */}
-        <div className="absolute left-0 right-0 h-3 bg-gray-600 rounded-full shadow-inner" />
+      <p className="absolute top-[4.5%] left-0 right-0 z-10 text-center text-xs text-[#222222]/45">
+        뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
+      </p>
 
-        {/* 크레인 — 드래그 가능 */}
+      {layout.w > 0 && (
         <motion.div
-          className="absolute top-0 flex flex-col items-center touch-none z-20"
-          style={{ left: '50%', marginLeft: '-24px' }} // 크레인 중앙 정렬
-          drag={isAnimating ? false : 'x'}
-          dragConstraints={constraints}
-          dragElastic={0}
-          dragMomentum={false}
-          onDragStart={resetIdle}
-          onDragEnd={handleDragEnd}
+          className="absolute z-20"
+          style={{
+            left: restLeft,
+            top: restTop,
+            width: clawW,
+            height: clawH,
+          }}
+          animate={clawControls}
         >
-          {/* 크레인 암 */}
-          <div className="w-1.5 h-16 bg-yellow-400 rounded-b shadow-md" />
-
-          {/* 집게 (y 방향 애니메이션) */}
-          <motion.div animate={clawControls} className="flex flex-col items-center">
-            {/* 집게 머리 */}
-            <div className="w-12 h-2.5 bg-yellow-300 rounded shadow" />
-            {/* 집게 발 */}
-            <div className="flex gap-1.5 mt-0.5">
-              <div
-                className="w-1 h-6 bg-yellow-300 rounded-b-full"
-                style={{ transformOrigin: 'top', transform: 'rotate(-14deg)' }}
-              />
-              <div className="w-1 h-7 bg-yellow-300 rounded-b-full" />
-              <div
-                className="w-1 h-6 bg-yellow-300 rounded-b-full"
-                style={{ transformOrigin: 'top', transform: 'rotate(14deg)' }}
-              />
-            </div>
-
-            {/* 집힌 캐릭터 (당첨 시 상승 중 표시) */}
+          <div className="relative h-full w-full overflow-visible">
+            {/* 집게 프롱 사이에 물려 함께 들리는 인형 — 집게보다 뒤(아래)에 그려서 프롱이 감싸 쥔 것처럼 보이게 함 */}
             <AnimatePresence>
               {characterGrabbed && (
-                <motion.div
+                <motion.img
                   key="grabbed"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="text-3xl mt-1"
-                >
-                  🥕
-                </motion.div>
+                  src={displaySrc}
+                  alt=""
+                  initial={{ opacity: 0, x: '-50%', y: -10, scale: 0.85 }}
+                  animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: '-50%' }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="pointer-events-none absolute left-1/2 z-0"
+                  style={{
+                    top: `${GRIP_Y_RATIO * 100}%`,
+                    width: clawW * GRIP_CHAR_SCALE,
+                  }}
+                />
               )}
             </AnimatePresence>
-          </motion.div>
+            <img
+              src={CRANE_SRC}
+              alt=""
+              draggable={false}
+              className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+            />
+          </div>
         </motion.div>
+      )}
+
+      <div className="absolute bottom-[7%] left-0 right-0 z-30 px-8">
+        <button
+          type="button"
+          disabled={isAnimating}
+          onClick={triggerDrop}
+          className="mx-auto block w-full max-w-sm rounded-full bg-orange-500 px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400 disabled:opacity-60"
+        >
+          뽑기 시작
+        </button>
       </div>
 
-      {/* 진열장 — 캐릭터 그리드 */}
-      <div className="absolute bottom-20 left-0 right-0 px-5">
-        <div className="border border-gray-700 rounded-2xl p-4 bg-gray-800/60">
-          <div className="grid grid-cols-3 gap-3">
-            {Array.from({ length: TOTAL_CHARACTERS }, (_, i) => (
-              <motion.div
-                key={i}
-                animate={
-                  removedCharacters.has(i)
-                    ? { opacity: 0, scale: 0 }
-                    : { opacity: 1, scale: 1 }
-                }
-                transition={{ duration: 0.3 }}
-                className="text-5xl text-center py-1"
-              >
-                🥕
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 5초 폴백 버튼 */}
-      <AnimatePresence>
-        {showFallback && !isAnimating && (
-          <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{
-                opacity: 1,
-                scale: [1, 1.07, 1],
-              }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{
-                opacity: { duration: 0.3 },
-                scale: { repeat: Infinity, duration: 1.3, ease: 'easeInOut' },
-              }}
-              className="bg-orange-500 text-white px-7 py-4 rounded-full text-sm font-bold shadow-2xl pointer-events-auto"
-              onClick={handleFallbackTap}
-            >
-              여기를 눌러도 뽑을 수 있어요 👆
-            </motion.button>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* 애니메이션 중 입력 차단 오버레이 */}
       {isAnimating && <div className="absolute inset-0 z-40" />}
     </div>
   )

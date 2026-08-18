@@ -1,4 +1,4 @@
-export type GamePhase = 'start' | 'play' | 'result' | 'verification_cta'
+export type GamePhase = 'start' | 'play' | 'result_locked' | 'result' | 'verification_cta'
 
 export type PrizeTier = 'miss' | 'small' | 'big'
 

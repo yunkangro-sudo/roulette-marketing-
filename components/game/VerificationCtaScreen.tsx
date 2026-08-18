@@ -18,68 +18,94 @@ function formatDate(iso: string) {
 
 export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId }: Props) {
   return (
-    <div className="relative flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-6 text-center">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
+      <img
+        src="/characters/bg_result_spotlight.png"
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+      />
+
       {storeId ? (
         <a
           href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-          className="absolute top-5 right-5 text-gray-400 hover:text-white text-xl leading-none"
+          className="absolute right-5 top-5 z-10 text-xl leading-none text-[#222222]/40 transition-colors hover:text-[#222222]"
           aria-label="닫기"
         >
           ✕
         </a>
       ) : null}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 14 }}
-        className="text-5xl"
-      >
-        🥕
-      </motion.div>
 
-      <div>
-        <h2 className="text-white text-xl font-bold leading-relaxed">
-          당근마켓 단골 추가하고
-          <br />
-          쿠폰 사용하세요
-        </h2>
-        <p className="text-gray-400 text-sm mt-2 leading-relaxed">
-          모든 경품은 당근 단골 확인 후에
-          <br />
-          매장에서 사용하실 수 있어요
-        </p>
-      </div>
-
-      {result.coupon && (
-        <div className="w-full max-w-sm rounded-2xl border border-gray-700 bg-gray-800/60 p-5 text-center">
-          <p className="text-gray-400 text-xs mb-1">직원에게 보여주세요</p>
-          <p className="text-white font-mono font-black text-4xl tracking-[0.2em] mb-3">
-            {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
-          </p>
-          <p className="text-gray-500 text-xs">
-            사용기한 ~{formatDate(result.coupon.validUntil)}
-          </p>
-        </div>
-      )}
-
-      {daangnUrl ? (
-        <a
-          href={daangnUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors text-center"
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-6 px-8 pb-[10%] text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 14 }}
+          className="text-5xl"
         >
-          당근에서 단골 추가하기
-        </a>
-      ) : (
-        <p className="text-gray-500 text-sm">당근 단골 링크 준비중</p>
-      )}
-      <button
-        onClick={onDone}
-        className="text-gray-500 text-xs"
-      >
-        확인했어요
-      </button>
+          🥕
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 16, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.35 }}
+        >
+          <h2 className="text-xl font-bold leading-relaxed text-[#222222]">
+            당근마켓 단골 추가하고
+            <br />
+            쿠폰 사용하세요
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#222222]/55">
+            모든 경품은 당근 단골 확인 후에
+            <br />
+            매장에서 사용하실 수 있어요
+          </p>
+        </motion.div>
+
+        {result.coupon && (
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.35 }}
+            className="w-full max-w-sm rounded-2xl bg-white/70 p-5 text-center shadow-sm backdrop-blur-sm"
+          >
+            <p className="mb-1 text-xs text-[#222222]/45">직원에게 보여주세요</p>
+            <p className="mb-2 font-mono text-4xl font-black tracking-[0.2em] text-[#222222]">
+              {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+            </p>
+            <p className="text-xs text-[#222222]/40">
+              사용기한 ~{formatDate(result.coupon.validUntil)}
+            </p>
+          </motion.div>
+        )}
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.35, duration: 0.35 }}
+          className="w-full max-w-sm space-y-3"
+        >
+          {daangnUrl ? (
+            <a
+              href={daangnUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
+            >
+              당근에서 단골 추가하기
+            </a>
+          ) : (
+            <p className="text-sm text-[#222222]/40">당근 단골 링크 준비중</p>
+          )}
+          <button
+            type="button"
+            onClick={onDone}
+            className="text-xs text-[#222222]/45 hover:text-[#222222]/70"
+          >
+            확인했어요
+          </button>
+        </motion.div>
+      </div>
     </div>
   )
 }

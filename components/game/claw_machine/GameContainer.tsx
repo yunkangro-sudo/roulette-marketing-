@@ -1,14 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { GamePhase, PrizeResult } from '../types'
 import StartScreen from './StartScreen'
-import OnboardingOverlay from './OnboardingOverlay'
 import PlayScreen from './PlayScreen'
 import ResultScreen from '../ResultScreen'
 import VerificationCtaScreen from '../VerificationCtaScreen'
-
-const ONBOARDING_KEY = 'game_onboarding_seen'
+import ResultLockedScreen from '../../play/ResultLockedScreen'
 
 interface Props {
   /** 게임 결과 발생 시 외부에서 처리 (DB 저장 등). 없으면 독립 실행. */
@@ -21,27 +19,16 @@ interface Props {
   onLocked?: () => void
   /** PlayFlow 랜딩에서 이미 시작한 경우 start 화면을 건너뛴다 */
   initialPhase?: GamePhase
+  /** QA용 — 항상 화면 3(결과 잠금)으로 보낸다. onLocked이 없으면 컨테이너 내부에서 잠금 화면을 보여준다 */
+  forceLocked?: boolean
 }
 
-export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase }: Props = {}) {
+export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase, forceLocked }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>(initialPhase ?? 'start')
-  const [showOnboarding, setShowOnboarding] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
 
-  useEffect(() => {
-    if ((initialPhase ?? 'start') !== 'play') return
-    if (!sessionStorage.getItem(ONBOARDING_KEY)) setShowOnboarding(true)
-  }, [initialPhase])
-
   const handleStart = () => {
-    const seen = sessionStorage.getItem(ONBOARDING_KEY)
-    setShowOnboarding(!seen)
     setPhase('play')
-  }
-
-  const handleSkipOnboarding = () => {
-    sessionStorage.setItem(ONBOARDING_KEY, '1')
-    setShowOnboarding(false)
   }
 
   const handleResult = (r: PrizeResult) => {
@@ -51,7 +38,8 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
   }
 
   const handleLocked = () => {
-    onLocked?.()
+    if (onLocked) onLocked()
+    else setPhase('result_locked')
   }
 
   const handleReplay = () => {
@@ -66,15 +54,30 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gray-900">
+    <div className="relative w-full h-screen overflow-hidden bg-[#EFE6D6]">
       {phase === 'start' && <StartScreen onStart={handleStart} />}
 
       {phase === 'play' && (
         <div className="relative w-full h-full">
-          <PlayScreen onResult={handleResult} onLocked={deferReveal ? handleLocked : undefined} eventId={eventId} />
-          {showOnboarding && (
-            <OnboardingOverlay onSkip={handleSkipOnboarding} />
-          )}
+          <PlayScreen
+            onResult={handleResult}
+            onLocked={deferReveal || forceLocked ? handleLocked : undefined}
+            eventId={eventId}
+            forceLocked={forceLocked}
+          />
+        </div>
+      )}
+
+      {phase === 'result_locked' && (
+        <div className="relative h-full w-full">
+          <ResultLockedScreen storeId="demo" />
+          <button
+            type="button"
+            onClick={handleReplay}
+            className="absolute left-1/2 top-5 z-20 -translate-x-1/2 rounded-full bg-black/30 px-4 py-1.5 text-xs text-white backdrop-blur-sm"
+          >
+            ← 데모: 다시 플레이
+          </button>
         </div>
       )}
 

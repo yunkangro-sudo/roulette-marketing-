@@ -13,111 +13,120 @@ interface Props {
   continueLabel?: string
 }
 
+const RESULT_CHAR = {
+  big: '/characters/char_result_jackpot.png',
+  small: '/characters/char_result_small.png',
+  miss: '/characters/char_result_miss.png',
+} as const
+
+const TINT = {
+  big: 'bg-[#00C7A7]/20',
+  small: 'bg-[#00C7A7]/10',
+  miss: 'bg-black/10',
+} as const
+
 function formatDate(iso: string) {
   const d = new Date(iso)
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
 export default function ResultScreen({ result, onReplay, onVerificationCta, onContinue, continueLabel }: Props) {
-  const isBig = result.tier === 'big'
-  const isSmall = result.tier === 'small'
   const isMiss = result.tier === 'miss'
+  const tint = TINT[result.tier]
+  const charSrc = RESULT_CHAR[result.tier]
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gray-900 px-8 gap-8">
-      {/* 짠! */}
-      <motion.div
-        initial={{ scale: 0, rotate: -15 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 280, damping: 14 }}
-        className="text-5xl font-black text-white tracking-tight"
-      >
-        짠! 🎰
-      </motion.div>
+    <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
+      <img
+        src="/characters/bg_result_spotlight.png"
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+      />
+      <div className={`pointer-events-none absolute inset-0 ${tint}`} />
 
-      {/* 결과 카드 */}
-      <motion.div
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.25, duration: 0.4 }}
-        className={`w-full max-w-sm rounded-3xl p-8 text-center shadow-2xl ${
-          isBig
-            ? 'bg-gradient-to-br from-yellow-400 to-orange-500'
-            : isSmall
-            ? 'bg-gradient-to-br from-orange-500 to-red-500'
-            : 'bg-gray-800 border border-gray-700'
-        }`}
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.4, type: 'spring', stiffness: 300 }}
-          className="text-7xl mb-4"
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center px-8 pb-8 pt-[8%]">
+        <motion.p
+          initial={{ scale: 0, rotate: -15 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 14 }}
+          className="text-[40px] font-black tracking-tight text-[#222222]"
         >
-          {isBig ? '🎊' : isSmall ? '🎉' : '💨'}
-        </motion.div>
+          짠!
+        </motion.p>
 
-        <p className={`text-2xl font-bold ${isMiss ? 'text-gray-300' : 'text-white'}`}>
-          {result.label}
-        </p>
+        <motion.img
+          src={charSrc}
+          alt=""
+          initial={{ scale: 0, y: 24 }}
+          animate={{ scale: 1, y: 0 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 260, damping: 16 }}
+          className="mt-2 h-auto w-[42%] max-w-[200px] select-none"
+        />
 
-        {isMiss && (
-          <p className="text-gray-500 text-sm mt-3">다음엔 꼭 당첨되실 거예요!</p>
-        )}
+        <motion.div
+          initial={{ y: 28, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.35, duration: 0.35 }}
+          className="mt-3 w-full max-w-sm text-center"
+        >
+          <p className="text-2xl font-bold text-[#222222]">{result.label}</p>
 
-        {(result.pointsAwarded ?? 0) > 0 && (
-          <p className={`text-sm font-semibold mt-3 ${isMiss ? 'text-orange-300' : 'text-white/90'}`}>
-            +{result.pointsAwarded!.toLocaleString()}P 적립
-          </p>
-        )}
+          {isMiss && (
+            <p className="mt-2 text-sm text-[#222222]/50">다음엔 꼭 당첨되실 거예요!</p>
+          )}
 
-        {result.coupon && (
-          <div className="mt-4 bg-black/20 rounded-xl p-4 text-center">
-            {/* 6자리 인증 코드 — 직원에게 보여줄 코드 */}
-            <p className="text-white/60 text-xs mb-1">직원에게 보여주세요</p>
-            <p className="text-white font-mono font-black text-4xl tracking-[0.2em] mb-3">
-              {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+          {(result.pointsAwarded ?? 0) > 0 && (
+            <p className="mt-2 text-sm font-semibold text-[#222222]/70">
+              +{result.pointsAwarded!.toLocaleString()}P 적립
             </p>
-            <p className="text-white/50 text-xs">
-              사용기간 ~{formatDate(result.coupon.validUntil)}
-            </p>
-            {result.coupon && (
-              <p className="text-white/90 text-sm font-semibold mt-2 pt-2 border-t border-white/10">
+          )}
+
+          {result.coupon && (
+            <div className="mt-4 rounded-2xl bg-white/70 px-4 py-4 text-center shadow-sm backdrop-blur-sm">
+              <p className="mb-1 text-xs text-[#222222]/45">직원에게 보여주세요</p>
+              <p className="mb-2 font-mono text-4xl font-black tracking-[0.2em] text-[#222222]">
+                {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+              </p>
+              <p className="text-xs text-[#222222]/40">
+                사용기간 ~{formatDate(result.coupon.validUntil)}
+              </p>
+              <p className="mt-2 border-t border-[#222222]/10 pt-2 text-sm font-semibold text-[#222222]/80">
                 당근마켓 단골 확인 후 매장에서 사용 가능
               </p>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {result.coupon && (
-          <p className="text-white/80 text-sm mt-3">
-            매장에서 직원에게 화면을 보여주세요
-          </p>
-        )}
-      </motion.div>
+          {result.coupon && (
+            <p className="mt-3 text-sm text-[#222222]/55">
+              매장에서 직원에게 화면을 보여주세요
+            </p>
+          )}
+        </motion.div>
 
-      {/* 다음 화면(채널 CTA) 또는 단골 유도 */}
-      {onContinue || onVerificationCta ? (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          onClick={onContinue ?? onVerificationCta}
-          className="w-full max-w-sm bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-base font-bold transition-colors"
-        >
-          {continueLabel ?? (onContinue ? '다음' : '다음')}
-        </motion.button>
-      ) : (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          onClick={onReplay}
-          className="text-gray-400 text-sm border border-gray-700 hover:border-gray-500 px-8 py-3 rounded-full transition-colors"
-        >
-          처음부터 다시 보기
-        </motion.button>
-      )}
+        <div className="mt-auto w-full max-w-sm pt-6">
+          {onContinue || onVerificationCta ? (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              onClick={onContinue ?? onVerificationCta}
+              className="w-full rounded-full bg-orange-500 px-10 py-4 text-base font-bold text-white transition-colors hover:bg-orange-400"
+            >
+              {continueLabel ?? '다음'}
+            </motion.button>
+          ) : (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              onClick={onReplay}
+              className="w-full rounded-full border border-[#222222]/15 px-8 py-3 text-sm text-[#222222]/50"
+            >
+              처음부터 다시 보기
+            </motion.button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

@@ -216,29 +216,34 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
 
   if (step === 'landing') {
     return (
-      <div className="relative flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-8">
+      <div className="relative h-screen overflow-hidden bg-[#EFE6D6]">
+        <img
+          src="/characters/bg_default.png"
+          alt=""
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+        />
         <a
           href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-          className="absolute top-5 right-5 text-sm text-gray-300 hover:text-white"
+          className="absolute right-5 top-5 z-10 text-[13px] font-medium text-[#222222]/75 hover:text-[#222222]"
         >
           내 쿠폰보관
         </a>
-        <div className="w-full max-w-sm aspect-video bg-gray-800 rounded-2xl border border-gray-700 flex flex-col items-center justify-center gap-2">
-          <span className="text-5xl">🥕</span>
-          <span className="text-gray-400 text-sm">이벤트 썸네일</span>
+        <div className="absolute top-[5%] left-0 right-0 z-10 px-8 text-center">
+          <h1 className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
+            {event.name}
+          </h1>
+          <p className="mt-2 text-sm text-[#222222]/55">로그인 없이 바로 도전해 보세요!</p>
         </div>
-        <div className="text-center">
-          <h1 className="text-white text-2xl font-bold">{event.name}</h1>
-          <p className="text-gray-400 text-sm mt-2">로그인 없이 바로 도전해 보세요!</p>
-        </div>
-        <div className="w-full max-w-sm">
-          <button
-            onClick={() => setStep('playing')}
-            className="w-full bg-orange-500 hover:bg-orange-400 text-white px-10 py-4 rounded-full text-lg font-bold transition-colors"
-          >
-            뽑기 시작
-          </button>
-          <p className="text-gray-500 text-xs text-center mt-3">1일 1회 응모 가능</p>
+        <div className="absolute bottom-[7%] left-0 right-0 z-10 px-8">
+          <div className="mx-auto w-full max-w-sm">
+            <button
+              onClick={() => setStep('playing')}
+              className="w-full rounded-full bg-orange-500 px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400"
+            >
+              뽑기 시작
+            </button>
+            <p className="mt-3 text-center text-xs text-[#222222]/45">1일 1회 응모 가능</p>
+          </div>
         </div>
       </div>
     )
@@ -275,7 +280,7 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
 
   if (step === 'result' && result) {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-gray-900">
+      <div className="relative w-full h-screen overflow-hidden bg-[#EFE6D6]">
         <ResultScreen
           result={result}
           onReplay={handleSwitchAccount}
