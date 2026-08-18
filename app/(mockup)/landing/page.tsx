@@ -42,7 +42,7 @@ function Navbar() {
             className="text-sm font-semibold px-5 py-2 rounded-lg text-white transition-all hover:opacity-90"
             style={{ background: '#3D5AFE' }}
           >
-            무료 시작
+            회원가입
           </a>
         </div>
       </div>

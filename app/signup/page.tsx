@@ -213,7 +213,7 @@ export default function SignupPage() {
               className="w-full py-4 rounded-xl text-white font-bold text-base transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: '#3D5AFE', boxShadow: '0 4px 16px rgba(61,90,254,0.3)' }}
             >
-              {loading ? '신청 중...' : '무료 체험 신청하기 →'}
+              {loading ? '신청 중...' : '회원가입'}
             </button>
 
             <p className="text-center text-xs text-[#9CA3AF]">
