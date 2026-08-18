@@ -8,6 +8,7 @@ import VerificationCtaScreen from '@/components/game/VerificationCtaScreen'
 import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
 import ResultLockedScreen from '@/components/play/ResultLockedScreen'
 import ChannelCtaScreen from '@/components/play/ChannelCtaScreen'
+import PrizeListSheet from '@/components/play/PrizeListSheet'
 import type { PrizeResult } from '@/components/game/types'
 import { resolveTier } from '@/components/game/claw_machine/gameUtils'
 
@@ -70,6 +71,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
+  const [showPrizeList, setShowPrizeList] = useState(false)
   const claimingRef = useRef(false)
 
   const claimResult = useCallback(async () => {
@@ -223,12 +225,24 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
         />
+        <button
+          type="button"
+          onClick={() => setShowPrizeList(true)}
+          className="absolute right-5 top-5 z-10 text-sm font-semibold text-[#222222]/45 underline underline-offset-2 hover:text-[#222222]/70"
+        >
+          🎁 경품 보기
+        </button>
+
         <div className="absolute top-[5%] left-0 right-0 z-10 px-8 text-center">
           <h1 className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
             {event.name}
           </h1>
           <p className="mt-2 text-sm text-[#222222]/55">로그인 없이 바로 도전해 보세요!</p>
         </div>
+
+        {showPrizeList && (
+          <PrizeListSheet storeId={storeId} onClose={() => setShowPrizeList(false)} />
+        )}
         <div className="absolute bottom-[6%] left-0 right-0 z-10 px-8">
           <div className="mx-auto w-full max-w-sm">
             <div className="flex gap-2.5">

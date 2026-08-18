@@ -163,6 +163,12 @@ function PointsContent() {
   return (
     <div className="min-h-screen bg-[#EFE6D6]">
       <div className="mx-auto max-w-md space-y-5 px-4 py-8">
+        <a
+          href={`/play/${encodeURIComponent(storeId)}`}
+          className="inline-flex items-center gap-1 text-sm font-medium text-[#222222]/50 transition-colors hover:text-[#222222]/80"
+        >
+          ← 게임으로 돌아가기
+        </a>
         <h1 className="text-xl font-extrabold text-[#222222]">내 쿠폰함</h1>
 
         {/* 포인트 잔액 카드 */}
