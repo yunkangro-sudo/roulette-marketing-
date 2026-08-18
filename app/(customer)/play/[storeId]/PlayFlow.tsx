@@ -152,10 +152,10 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
     boot()
   }, [storeId, event, claimResult, resumeClaim])
 
-  useEffect(() => {
-    if (step !== 'result_locked' || !user) return
-    claimResult()
-  }, [step, user, claimResult])
+  // 데모 시연용: 이미 로그인된 세션이 남아있어도 "카카오로 결과 확인하기" 화면을
+  // 항상 거치도록 한다 (실제 손님이 처음 겪는 화면 순서를 매번 동일하게 시연하기 위함).
+  // → 여기서는 세션 유무로 자동 claim하지 않는다. claim은 (1) 카카오 로그인 콜백
+  //   복귀 시(resumeClaim) 또는 (2) 목업 로그인 버튼 클릭(handleMockClaim) 시에만 실행한다.
 
   const handleMockClaim = useCallback(async (kakaoUserId: string) => {
     if (!kakaoUserId.trim()) return
@@ -169,7 +169,6 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
       })
       if (res.ok) {
         setUser({ kakao_user_id: kakaoUserId, nickname: kakaoUserId })
-        return
       }
       await claimResult()
     } finally {
@@ -271,10 +270,7 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
         eventId={event.id}
         deferReveal
         initialPhase="play"
-        onLocked={() => {
-          if (user) claimResult()
-          else setStep('result_locked')
-        }}
+        onLocked={() => setStep('result_locked')}
         onReplay={handleSwitchAccount}
       />
     )
