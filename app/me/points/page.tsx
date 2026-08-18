@@ -130,19 +130,19 @@ function PointsContent() {
 
   if (!storeId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">잘못된 접근입니다. 카카오 채널 링크를 통해 접근해주세요.</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#EFE6D6]">
+        <p className="text-sm text-[#222222]/45">잘못된 접근입니다. 카카오 채널 링크를 통해 접근해주세요.</p>
       </div>
     )
   }
 
   if (needLogin) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-8 gap-6 text-center">
-        <p className="text-gray-900 text-xl font-bold">쿠폰과 포인트를 보려면 로그인이 필요해요</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#EFE6D6] px-8 text-center">
+        <p className="text-xl font-bold text-[#222222]">쿠폰과 포인트를 보려면 로그인이 필요해요</p>
         <a
           href={`/api/auth/kakao?storeId=${encodeURIComponent(storeId)}&next=points`}
-          className="w-full max-w-sm bg-yellow-400 text-gray-900 font-bold py-4 rounded-2xl"
+          className="w-full max-w-sm rounded-full bg-[#FEE500] py-4 text-center font-bold text-[#222222] shadow-sm transition-colors hover:bg-[#FADA00]"
         >
           카카오로 시작하기
         </a>
@@ -152,8 +152,8 @@ function PointsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">불러오는 중...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#EFE6D6]">
+        <p className="text-sm text-[#222222]/45">불러오는 중...</p>
       </div>
     )
   }
@@ -161,22 +161,24 @@ function PointsContent() {
   const canUsePoints = balance >= threshold
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto px-4 py-8 space-y-5">
+    <div className="min-h-screen bg-[#EFE6D6]">
+      <div className="mx-auto max-w-md space-y-5 px-4 py-8">
+        <h1 className="text-xl font-extrabold text-[#222222]">내 쿠폰함</h1>
+
         {/* 포인트 잔액 카드 */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg">
-          <p className="text-orange-100 text-sm mb-1">내 쿠폰보관</p>
-          <p className="text-5xl font-black mb-4">{balance.toLocaleString()}P</p>
+        <div className="rounded-2xl bg-gradient-to-br from-orange-500 to-orange-400 p-6 text-white shadow-sm">
+          <p className="mb-1 text-sm text-orange-100">포인트 잔액</p>
+          <p className="mb-4 text-5xl font-black">{balance.toLocaleString()}P</p>
           <div className="flex items-center justify-between text-sm">
             <span className="text-orange-100">보유 쿠폰 {coupons.length}장</span>
             <span className="text-orange-100">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
           </div>
 
           {/* 사용 가능 여부 */}
-          <div className={`mt-4 px-3 py-2 rounded-lg text-sm font-semibold ${
+          <div className={`mt-4 rounded-lg px-3 py-2 text-sm font-semibold ${
             canUsePoints
               ? 'bg-white/20 text-white'
-              : 'bg-white/10 text-orange-200'
+              : 'bg-white/10 text-orange-100'
           }`}>
             {canUsePoints
               ? `✅ 리워드 교환 가능 (${balance}P ≥ ${threshold}P)`
@@ -188,51 +190,52 @@ function PointsContent() {
         {message && (
           <div className={`rounded-xl px-4 py-3 text-sm font-medium ${
             message.ok
-              ? 'bg-green-50 border border-green-200 text-green-700'
-              : 'bg-red-50 border border-red-200 text-red-700'
+              ? 'border border-green-200 bg-green-50 text-green-700'
+              : 'border border-red-200 bg-red-50 text-red-700'
           }`}>
             {message.text}
           </div>
         )}
 
         <div>
-          <h2 className="text-sm font-bold text-gray-700 mb-3">보유 쿠폰</h2>
+          <h2 className="mb-3 text-sm font-bold text-[#222222]/70">보유 쿠폰</h2>
           {coupons.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center text-gray-400 text-sm">
+            <div className="rounded-xl bg-white/70 px-5 py-8 text-center text-sm text-[#222222]/40 shadow-sm backdrop-blur-sm">
               아직 받은 쿠폰이 없어요
             </div>
           ) : (
             <div className="space-y-3">
               {coupons.map((c) => (
-                <div key={c.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+                <a
+                  key={c.id}
+                  href={`/me/points/${encodeURIComponent(c.id)}?store_id=${encodeURIComponent(storeId)}`}
+                  className="block rounded-xl bg-white/70 px-5 py-4 shadow-sm backdrop-blur-sm transition-colors hover:bg-white/90"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-lg font-bold text-gray-900">{c.amount.toLocaleString()}원</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{c.storeName}</p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-lg font-bold text-[#222222]">{c.amount.toLocaleString()}원</p>
+                      <p className="mt-0.5 text-xs text-[#222222]/50">{c.storeName}</p>
+                      <p className="mt-1 text-xs text-[#222222]/40">
                         사용기한 ~{new Date(c.validUntil).toLocaleDateString('ko-KR')}
                         {c.shortCode ? ` · ${c.shortCode}` : ''}
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-lg shrink-0 ${
+                    <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold ${
                       c.displayStatus === 'usable'
                         ? 'bg-orange-50 text-orange-600'
                         : c.displayStatus === 'used'
-                          ? 'bg-gray-100 text-gray-500'
+                          ? 'bg-[#222222]/8 text-[#222222]/45'
                           : 'bg-red-50 text-red-500'
                     }`}>
                       {COUPON_STATUS_LABEL[c.displayStatus]}
                     </span>
                   </div>
                   {c.displayStatus === 'usable' && (
-                    <a
-                      href={`/checkout/${encodeURIComponent(storeId)}`}
-                      className="mt-3 block text-center text-sm font-bold text-orange-600"
-                    >
-                      계산대에서 사용
-                    </a>
+                    <p className="mt-3 text-center text-sm font-bold text-orange-600">
+                      쿠폰 보기 →
+                    </p>
                   )}
-                </div>
+                </a>
               ))}
             </div>
           )}
@@ -241,36 +244,36 @@ function PointsContent() {
         {/* 진행 중 미션 — v3.1 Next Visit Loop */}
         {missions.length > 0 && (
           <div>
-            <h2 className="text-sm font-bold text-gray-700 mb-3">🎯 진행 중인 미션</h2>
+            <h2 className="mb-3 text-sm font-bold text-[#222222]/70">🎯 진행 중인 미션</h2>
             <div className="space-y-3">
               {missions.map((mission) => {
                 const pct = Math.min(100, Math.round((mission.currentValue / mission.targetValue) * 100))
                 const remaining = mission.targetValue - mission.currentValue
                 return (
-                  <div key={mission.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
-                    <div className="flex items-start justify-between mb-2">
+                  <div key={mission.id} className="rounded-xl bg-white/70 px-5 py-4 shadow-sm backdrop-blur-sm">
+                    <div className="mb-2 flex items-start justify-between">
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">{mission.name}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-sm font-semibold text-[#222222]">{mission.name}</p>
+                        <p className="mt-0.5 text-xs text-[#222222]/40">
                           달성 시 {mission.rewardType === 'point'
                             ? `${mission.rewardValue.toLocaleString()}P 적립`
                             : `${mission.rewardValue.toLocaleString()}원 쿠폰 지급`}
                         </p>
                       </div>
-                      <span className="text-sm font-bold text-orange-500 whitespace-nowrap ml-2">
+                      <span className="ml-2 whitespace-nowrap text-sm font-bold text-orange-500">
                         {mission.currentValue}/{mission.targetValue}회
                       </span>
                     </div>
 
                     {/* 진행률 바 */}
-                    <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[#222222]/8">
                       <div
-                        className="bg-orange-400 h-2 rounded-full transition-all duration-500"
+                        className="h-2 rounded-full bg-orange-400 transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
 
-                    <p className="text-xs text-gray-400 mt-1.5">
+                    <p className="mt-1.5 text-xs text-[#222222]/40">
                       {remaining > 0
                         ? `앞으로 ${remaining}회 더 방문하면 달성!`
                         : '달성 완료 처리 중...'}
@@ -287,11 +290,11 @@ function PointsContent() {
           </div>
         )}
 
-        {/* 리워드 카탈로그 */}
+        {/* 리워드 교환 */}
         <div>
-          <h2 className="text-sm font-bold text-gray-700 mb-3">리워드 교환</h2>
+          <h2 className="mb-3 text-sm font-bold text-[#222222]/70">리워드 교환</h2>
           {catalog.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 px-5 py-8 text-center text-gray-400 text-sm">
+            <div className="rounded-xl bg-white/70 px-5 py-8 text-center text-sm text-[#222222]/40 shadow-sm backdrop-blur-sm">
               현재 교환 가능한 리워드가 없습니다
             </div>
           ) : (
@@ -300,23 +303,23 @@ function PointsContent() {
                 const canRedeem = canUsePoints && balance >= reward.point_cost
                 const outOfStock = reward.stock !== null && reward.stock <= 0
                 return (
-                  <div key={reward.id} className={`bg-white rounded-xl border px-4 py-4 flex items-center gap-4 ${
-                    outOfStock ? 'border-gray-100 opacity-50' : 'border-gray-200'
+                  <div key={reward.id} className={`flex items-center gap-4 rounded-xl bg-white/70 px-4 py-4 shadow-sm backdrop-blur-sm ${
+                    outOfStock ? 'opacity-50' : ''
                   }`}>
                     {/* 이미지 또는 아이콘 */}
                     {reward.image_url ? (
                       <img src={reward.image_url} alt={reward.name}
-                        className="w-14 h-14 rounded-xl object-cover shrink-0 bg-gray-100" />
+                        className="h-14 w-14 shrink-0 rounded-xl bg-[#222222]/5 object-cover" />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-orange-50 flex items-center justify-center text-2xl shrink-0">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-2xl">
                         {REWARD_TYPE_ICONS[reward.reward_type ?? 'free_item']}
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{reward.name}</p>
-                      <p className="text-sm text-orange-500 font-bold mt-0.5">{reward.point_cost.toLocaleString()}P</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-[#222222]">{reward.name}</p>
+                      <p className="mt-0.5 text-sm font-bold text-orange-500">{reward.point_cost.toLocaleString()}P</p>
                       {reward.stock !== null && (
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="mt-0.5 text-xs text-[#222222]/40">
                           {outOfStock ? '품절' : `잔여 ${reward.stock}개`}
                         </p>
                       )}
@@ -324,10 +327,10 @@ function PointsContent() {
                     <button
                       onClick={() => handleRedeem(reward)}
                       disabled={!canRedeem || outOfStock || redeeming === reward.id}
-                      className={`text-sm font-bold px-4 py-2 rounded-lg transition-colors ${
+                      className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
                         canRedeem && !outOfStock
-                          ? 'bg-orange-500 hover:bg-orange-400 text-white'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          ? 'bg-orange-500 text-white hover:bg-orange-400'
+                          : 'cursor-not-allowed bg-[#222222]/8 text-[#222222]/35'
                       } disabled:opacity-50`}
                     >
                       {redeeming === reward.id ? '처리 중...' : '교환하기'}
@@ -342,13 +345,13 @@ function PointsContent() {
         {/* 포인트 내역 */}
         {history.length > 0 && (
           <div>
-            <h2 className="text-sm font-bold text-gray-700 mb-3">포인트 내역</h2>
-            <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+            <h2 className="mb-3 text-sm font-bold text-[#222222]/70">포인트 내역</h2>
+            <div className="divide-y divide-[#222222]/8 rounded-xl bg-white/70 shadow-sm backdrop-blur-sm">
               {history.map((h, i) => (
                 <div key={i} className="flex items-center justify-between px-5 py-3">
                   <div>
-                    <p className="text-sm text-gray-700">{h.type === 'earn' ? '게임 참여 적립' : '리워드 교환'}</p>
-                    <p className="text-xs text-gray-400">{new Date(h.created_at).toLocaleDateString('ko-KR')}</p>
+                    <p className="text-sm text-[#222222]/70">{h.type === 'earn' ? '게임 참여 적립' : '리워드 교환'}</p>
+                    <p className="text-xs text-[#222222]/35">{new Date(h.created_at).toLocaleDateString('ko-KR')}</p>
                   </div>
                   <p className={`text-sm font-bold ${h.type === 'earn' ? 'text-green-600' : 'text-red-500'}`}>
                     {h.type === 'earn' ? '+' : '-'}{h.amount}P
@@ -366,8 +369,8 @@ function PointsContent() {
 export default function PointsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">불러오는 중...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#EFE6D6]">
+        <p className="text-sm text-[#222222]/45">불러오는 중...</p>
       </div>
     }>
       <PointsContent />

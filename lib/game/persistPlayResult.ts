@@ -217,6 +217,9 @@ export async function persistPendingPlay(params: {
     },
   }).catch(() => {})
 
+  // 카카오 로그인 → 결과 공개 시 당첨 내용을 손님 카카오톡으로 자동 발송.
+  // 실제 카카오 앱키/talk_message 동의가 없는 데모·mock 로그인 상태에서는
+  // accessToken이 없어 자동으로 스킵된다 — 심사 완료 후 별도 코드 변경 없이 활성화됨.
   ;(async () => {
     try {
       const session = await getCustomerSession()

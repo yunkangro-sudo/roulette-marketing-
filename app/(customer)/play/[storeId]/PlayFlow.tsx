@@ -38,6 +38,7 @@ interface Props {
 }
 
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
+const ADVERTISER_KAKAO_URL = process.env.NEXT_PUBLIC_ADVERTISER_KAKAO_URL
 
 function toPrizeResult(revealed: {
   label: string
@@ -222,27 +223,42 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
         />
-        <a
-          href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-          className="absolute right-5 top-5 z-10 text-[13px] font-medium text-[#222222]/75 hover:text-[#222222]"
-        >
-          내 쿠폰보관
-        </a>
         <div className="absolute top-[5%] left-0 right-0 z-10 px-8 text-center">
           <h1 className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
             {event.name}
           </h1>
           <p className="mt-2 text-sm text-[#222222]/55">로그인 없이 바로 도전해 보세요!</p>
         </div>
-        <div className="absolute bottom-[7%] left-0 right-0 z-10 px-8">
+        <div className="absolute bottom-[6%] left-0 right-0 z-10 px-8">
           <div className="mx-auto w-full max-w-sm">
-            <button
-              onClick={() => setStep('playing')}
-              className="w-full rounded-full bg-orange-500 px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400"
-            >
-              뽑기 시작
-            </button>
+            <div className="flex gap-2.5">
+              <a
+                href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
+                className="flex flex-1 items-center justify-center rounded-full border border-[#222222]/15 bg-white/60 px-4 py-4 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/80"
+              >
+                내 쿠폰함
+              </a>
+              <button
+                onClick={() => setStep('playing')}
+                className="flex-[1.6] rounded-full bg-orange-500 px-6 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400"
+              >
+                뽑기 시작
+              </button>
+            </div>
             <p className="mt-3 text-center text-xs text-[#222222]/45">1일 1회 응모 가능</p>
+            <p className="mt-4 text-center text-[11px] text-[#222222]/35">
+              * 현재 이 게임은 데모 버전으로 테스트용입니다.
+            </p>
+            {ADVERTISER_KAKAO_URL && (
+              <a
+                href={ADVERTISER_KAKAO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1.5 block text-center text-[11px] font-semibold text-[#222222]/45 underline underline-offset-2 hover:text-[#222222]/65"
+              >
+                광고주 상담 문의하기
+              </a>
+            )}
           </div>
         </div>
       </div>

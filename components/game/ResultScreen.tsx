@@ -44,60 +44,53 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
       />
       <div className={`pointer-events-none absolute inset-0 ${tint}`} />
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center px-8 pb-8 pt-[8%]">
-        <motion.p
-          initial={{ scale: 0, rotate: -15 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 280, damping: 14 }}
-          className="text-[40px] font-black tracking-tight text-[#222222]"
-        >
-          짠!
-        </motion.p>
-
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center px-8 pb-8 pt-[4%]">
         <motion.img
           src={charSrc}
           alt=""
           initial={{ scale: 0, y: 24 }}
           animate={{ scale: 1, y: 0 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 260, damping: 16 }}
-          className="mt-2 h-auto w-[42%] max-w-[200px] select-none"
+          className="mt-[22vh] h-auto w-[42%] max-w-[200px] select-none"
         />
 
         <motion.div
           initial={{ y: 28, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35, duration: 0.35 }}
-          className="mt-3 w-full max-w-sm text-center"
+          className="mt-4 w-full max-w-sm text-center"
         >
-          <p className="text-2xl font-bold text-[#222222]">{result.label}</p>
+          <p className="text-3xl font-extrabold text-[#222222]">{result.label}</p>
 
           {isMiss && (
-            <p className="mt-2 text-sm text-[#222222]/50">다음엔 꼭 당첨되실 거예요!</p>
+            <p className="mt-2 text-base text-[#222222]/50">다음엔 꼭 당첨되실 거예요!</p>
           )}
 
           {(result.pointsAwarded ?? 0) > 0 && (
-            <p className="mt-2 text-sm font-semibold text-[#222222]/70">
+            <p className="mt-2 text-base font-semibold text-[#222222]/70">
               +{result.pointsAwarded!.toLocaleString()}P 적립
             </p>
           )}
 
           {result.coupon && (
-            <div className="mt-4 rounded-2xl bg-white/70 px-4 py-4 text-center shadow-sm backdrop-blur-sm">
-              <p className="mb-1 text-xs text-[#222222]/45">직원에게 보여주세요</p>
-              <p className="mb-2 font-mono text-4xl font-black tracking-[0.2em] text-[#222222]">
+            <div className="mt-4 rounded-2xl bg-white/70 px-4 py-5 text-center shadow-sm backdrop-blur-sm">
+              <p className="mb-1.5 text-sm text-[#222222]/45">직원에게 보여주세요</p>
+              <p className="mb-2 font-mono text-5xl font-black tracking-[0.15em] text-[#222222]">
                 {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
               </p>
-              <p className="text-xs text-[#222222]/40">
+              <p className="text-sm text-[#222222]/40">
                 사용기간 ~{formatDate(result.coupon.validUntil)}
               </p>
-              <p className="mt-2 border-t border-[#222222]/10 pt-2 text-sm font-semibold text-[#222222]/80">
-                당근마켓 단골 확인 후 매장에서 사용 가능
-              </p>
+              <div className="mt-3 border-t border-[#222222]/10 pt-3">
+                <p className="rounded-xl bg-orange-500 px-4 py-2.5 text-base font-bold leading-snug text-white shadow-sm">
+                  🥕 당근마켓 단골 확인 후 매장에서 사용 가능
+                </p>
+              </div>
             </div>
           )}
 
           {result.coupon && (
-            <p className="mt-3 text-sm text-[#222222]/55">
+            <p className="mt-3 text-base text-[#222222]/55">
               매장에서 직원에게 화면을 보여주세요
             </p>
           )}
