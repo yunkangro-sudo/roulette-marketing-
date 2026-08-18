@@ -21,6 +21,29 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 | 004 | [`004_quantity_based_prize_tiers.sql`](./004_quantity_based_prize_tiers.sql) | `prize_tiers` 확률(%) 직접입력 → 수량 기반(`total_quantity`/`remaining_quantity`/`computed_probability`) 자동계산으로 전환, `tier_usage_counters` 삭제, `events.expected_daily_participants` 추가 |
 | 005 | [`005_normalize_prize_tier_probability.sql`](./005_normalize_prize_tier_probability.sql) | `computed_probability`가 이벤트당 합계 100%가 안 되던 문제 수정 (정규화 적용) |
 | 006 | [`006_add_coupons.sql`](./006_add_coupons.sql) | `coupons` 테이블 추가 (게임 당첨 쿠폰 발급), `events.coupon_validity_type`/`coupon_validity_value` 추가 |
+| 007 | [`007_payment_logs_and_store_settings.sql`](./007_payment_logs_and_store_settings.sql) | `payment_logs`, `store_settings` (광고비·객단가) 추가 |
+| 008 | [`008_store_accounts.sql`](./008_store_accounts.sql) | `store_accounts` (이메일·비밀번호 매장 관리자 계정) 추가 |
+| 009 | [`009_tier_quantity_changes.sql`](./009_tier_quantity_changes.sql) | 경품 티어 수량 변경 이력 테이블 추가 |
+| 010 | [`010_store_contracts.sql`](./010_store_contracts.sql) | `store_contracts` (업체 계약 정보) 테이블 추가 |
+| 011 | [`011_event_status_changes.sql`](./011_event_status_changes.sql) | 이벤트 상태 변경 이력 테이블 추가 |
+| 012 | [`012_points_system.sql`](./012_points_system.sql) | 포인트 시스템 5개 테이블 + RPC 2개 (`customer_loyalty`, `point_ledger` 등) 추가 |
+| 013 | [`013_short_codes.sql`](./013_short_codes.sql) | 쿠폰/리워드 `short_code` 컬럼 추가 |
+| 014 | [`014_manual_coupon.sql`](./014_manual_coupon.sql) | 수동 쿠폰 발급 지원 |
+| 015 | [`015_game_type.sql`](./015_game_type.sql) | `events.game_type` 컬럼 추가 (게임 교체 대비) |
+| 016 | [`016_store_contracts_extended.sql`](./016_store_contracts_extended.sql) | `store_contracts` 확장 컬럼 추가 |
+| 017 | [`017_phone_alimtalk.sql`](./017_phone_alimtalk.sql) | 전화번호 암호화 저장 + 알림톡 발송 로그 추가 |
+| 018 | [`018_message_consent.sql`](./018_message_consent.sql) | 메시지 발송 동의/빈도 규칙 추가 |
+| 019 | [`019_activity_log.sql`](./019_activity_log.sql) | `activity_log` 행동 이력 테이블 추가 |
+| 020 | [`020_missions.sql`](./020_missions.sql) | `missions` / `mission_progress` 방문 미션 테이블 추가 |
+| 021 | [`021_customer_segments.sql`](./021_customer_segments.sql) | 고객 세그먼트 자동 분류 추가 |
+| 022 | [`022_churn_risk_alerts.sql`](./022_churn_risk_alerts.sql) | `churn_risk_alerts` Win-back 3단계 추가 |
+| 023 | [`023_reward_verification.sql`](./023_reward_verification.sql) | `reward_catalog.requires_verification` 추가 |
+| 024 | [`024_reward_catalog_extended.sql`](./024_reward_catalog_extended.sql) | `reward_catalog` 확장 (유형·기간한정 등) |
+| 025 | [`025_signup_inquiries.sql`](./025_signup_inquiries.sql) | 랜딩 무료 체험 신청 `signup_inquiries` 테이블 추가 |
+| 026 | [`026_message_log_extended.sql`](./026_message_log_extended.sql) | `message_log` 확장 (쿠폰 만료 알림 중복방지) |
+| 027 | [`027_grant_delete_permissions.sql`](./027_grant_delete_permissions.sql) | `service_role` DELETE 권한 부여 + 테스트 데이터 정리 |
 | 028 | [`028_universal_danggeun_verify.sql`](./028_universal_danggeun_verify.sql) | 전 경품 당근 확인 + 계산대 대기열 |
 | 029 | [`029_points_enabled.sql`](./029_points_enabled.sql) | `store_settings.points_enabled` — 매장별 포인트 적립 온/오프 |
 | 030 | [`030_store_profile_urls.sql`](./030_store_profile_urls.sql) | `store_contracts.daangn_url`, `kakao_channel_url` |
+
+> 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.

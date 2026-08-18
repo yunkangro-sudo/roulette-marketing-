@@ -23,10 +23,10 @@ alwaysApply: true
 
 막힐 때 이 순서로 확인한다:
 1. `docs/당근인형뽑기_게임설계도.md` — 게임/쿠폰/포인트 로직 관련 (단일 진실 소스, 3~4/6/8/9/13/14절)
-2. `docs/02-system-architecture.md` — 구조·권한 관련
-3. `docs/04-data-api-security.md` — 데이터/API 스펙 관련
-4. `docs/03-game-cta-design.md` — 게임/CTA 플로우 관련
-5. `docs/01-marketing-strategy.md` — 비즈니스 맥락 관련
+2. `docs/손님여정_프로세스_v2.md` — 손님 화면 흐름·라우트·세션 관련
+3. `docs/관리자_메뉴_구조_확정.md` — 관리자 구조·권한 관련
+4. `docs/당근인형뽑기_재방문확장설계도_v2.1.md` — 미션/세그먼트/이탈방지 등 재방문 확장 관련
+5. `docs/_archive/01-marketing-strategy.md`, `03-game-cta-design.md`, `04-data-api-security.md` — 초창기 기획안 (현재 구현과 불일치할 수 있음, 참고용)
 
 ## Git
 - 세션 시작/종료 시 git 작업 순서는 `.cursor/rules/git-workflow.mdc`를 따른다 (여기서 중복 정의하지 않음).
