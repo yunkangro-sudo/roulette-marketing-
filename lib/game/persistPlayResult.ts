@@ -24,7 +24,16 @@ function kstToday(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
+/**
+ * 데모 버전 전용 — 하루 1회 참여 제한을 끄고 무제한 테스트를 허용한다.
+ * 실제 서비스(진짜 매장 운영) 전환 시에는 반드시 false(미설정)로 되돌려야 한다.
+ * .env.local / Vercel 환경변수에 DEMO_UNLIMITED_PLAY=true 로 설정해 켠다.
+ */
+const DEMO_UNLIMITED_PLAY = process.env.DEMO_UNLIMITED_PLAY === 'true'
+
 export async function hasPlayedToday(storeId: string, kakaoUserId: string): Promise<boolean> {
+  if (DEMO_UNLIMITED_PLAY) return false
+
   const supabase = createServerClient()
   const { data } = await supabase
     .from('daily_participation_log')
@@ -48,10 +57,10 @@ export async function persistPendingPlay(params: {
     kakao_user_id: kakaoUserId,
     date: kstToday(),
   })
-  if (logError?.code === '23505') {
+  if (logError?.code === '23505' && !DEMO_UNLIMITED_PLAY) {
     throw new AlreadyParticipatedError()
   }
-  if (logError) {
+  if (logError && logError.code !== '23505') {
     throw new Error(`참여 기록 저장 실패: ${logError.message}`)
   }
 
