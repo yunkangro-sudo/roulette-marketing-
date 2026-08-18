@@ -9,6 +9,7 @@ interface Props {
   onDone: () => void
   daangnUrl?: string | null
   storeId?: string
+  storeName?: string | null
 }
 
 function formatDate(iso: string) {
@@ -16,7 +17,7 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
-export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId }: Props) {
+export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId, storeName }: Props) {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
@@ -36,14 +37,26 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
       ) : null}
 
       <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-6 px-8 pb-[10%] text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 280, damping: 14 }}
-          className="text-5xl"
-        >
-          🥕
-        </motion.div>
+        {storeName ? (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 14 }}
+          >
+            <p className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
+              {storeName}
+            </p>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 14 }}
+            className="text-5xl"
+          >
+            🥕
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ y: 16, opacity: 0 }}
@@ -104,6 +117,15 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
           >
             확인했어요
           </button>
+
+          {storeId && (
+            <a
+              href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
+              className="block w-full rounded-full border border-[#222222]/15 bg-white/60 px-10 py-3.5 text-center text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/80"
+            >
+              내 쿠폰함
+            </a>
+          )}
         </motion.div>
       </div>
     </div>

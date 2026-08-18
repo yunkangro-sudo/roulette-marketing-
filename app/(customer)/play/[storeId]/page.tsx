@@ -46,6 +46,12 @@ export default async function PlayPage({ params, searchParams }: Props) {
     .eq('store_id', storeId)
     .maybeSingle()
 
+  const { data: store } = await supabase
+    .from('store_settings')
+    .select('store_name')
+    .eq('store_id', storeId)
+    .maybeSingle()
+
   console.log('[play] storeId:', storeId)
   console.log('[play] event:', event)
   console.log('[play] error:', error)
@@ -54,6 +60,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
     <PlayFlow
       storeId={storeId}
       event={event}
+      storeName={store?.store_name ?? null}
       daangnUrl={safeHttpUrl(contract?.daangn_url)}
       kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
       resumeClaim={claim === '1'}

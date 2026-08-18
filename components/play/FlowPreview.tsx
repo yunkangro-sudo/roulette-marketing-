@@ -44,6 +44,7 @@ export default function FlowPreview({ screen, storeId }: Props) {
         onDone={() => {}}
         daangnUrl="https://www.daangn.com/_preview"
         storeId={storeId}
+        storeName="명동찜닭"
       />
     </div>
   )

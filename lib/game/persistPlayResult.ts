@@ -234,8 +234,13 @@ export async function persistPendingPlay(params: {
       const session = await getCustomerSession()
       const accessToken = session.user?.accessToken
       if (!accessToken || !session.user?.hasTalkMsg) return
+      const { data: store } = await supabase
+        .from('store_settings')
+        .select('store_name')
+        .eq('store_id', pending.storeId)
+        .maybeSingle()
       await sendMeMessage(accessToken, {
-        storeName: '매장',
+        storeName: store?.store_name || '매장',
         shortCode: coupon.short_code ?? coupon.id.slice(0, 8).toUpperCase(),
         amount: pending.amount,
         label: pending.label,

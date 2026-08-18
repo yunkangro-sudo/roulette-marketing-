@@ -31,6 +31,7 @@ interface Event {
 interface Props {
   storeId: string
   event: Event | null
+  storeName?: string | null
   daangnUrl?: string | null
   kakaoChannelUrl?: string | null
   /** 카카오 로그인 직후(?claim=1)에만 잠금 결과/claim을 이어간다 */
@@ -64,7 +65,7 @@ function toPrizeResult(revealed: {
   }
 }
 
-export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, resumeClaim = false }: Props) {
+export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoChannelUrl, resumeClaim = false }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
@@ -323,6 +324,7 @@ export default function PlayFlow({ storeId, event, daangnUrl, kakaoChannelUrl, r
           onDone={handleSwitchAccount}
           daangnUrl={daangnUrl}
           storeId={storeId}
+          storeName={storeName}
         />
       </div>
     )
