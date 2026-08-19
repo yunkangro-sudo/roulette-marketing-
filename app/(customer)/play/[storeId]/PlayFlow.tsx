@@ -232,46 +232,63 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'landing') {
     return (
-      <div className="relative h-screen overflow-hidden bg-[#EFE6D6]">
-        <img
-          src="/characters/bg_default.png"
-          alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPrizeList(true)}
-          className="absolute right-5 top-5 z-10 text-sm font-semibold text-[#222222]/45 underline underline-offset-2 hover:text-[#222222]/70"
+      <div className="relative flex h-screen flex-col overflow-hidden bg-[#EFE6D6]">
+        {/* 상단 헤더 — 문서 흐름(static)으로 쌓아서 겹침 원천 차단 */}
+        <div
+          className="shrink-0 px-6 pb-2 text-center"
+          style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}
         >
-          🎁 경품 보기
-        </button>
-
-        <div className="absolute top-[5%] left-0 right-0 z-10 px-8 text-center">
-          <h1 className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
+          <h1 className="text-[20px] font-bold leading-snug tracking-tight text-[#222222]">
             {event.name}
           </h1>
           <p className="mt-2 text-sm text-[#222222]/55">로그인 없이 바로 도전해 보세요!</p>
+          {storeName && (
+            <p className="mt-3 text-[26px] font-extrabold leading-tight tracking-tight text-[#222222]">
+              {storeName}
+            </p>
+          )}
+        </div>
+
+        {/* 캐비닛 이미지 — 좌우/상하 세이프 여백 확보(object-contain) */}
+        <div className="relative min-h-0 flex-1 px-5 py-2">
+          <img
+            src="/characters/bg_default_blank_sign.png"
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-center"
+          />
         </div>
 
         {showPrizeList && (
           <PrizeListSheet storeId={storeId} onClose={() => setShowPrizeList(false)} />
         )}
-        <div className="absolute bottom-[6%] left-0 right-0 z-10 px-8">
+
+        {/* 하단 버튼 영역 */}
+        <div
+          className="shrink-0 px-6 pt-2"
+          style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+        >
           <div className="mx-auto w-full max-w-sm">
             <div className="flex gap-2.5">
               <a
                 href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-                className="flex flex-1 items-center justify-center rounded-full border border-[#222222]/15 bg-white/60 px-4 py-4 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/80"
+                className="flex flex-1 items-center justify-center rounded-full border border-[#222222]/15 bg-white/70 px-4 py-3.5 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/90"
               >
                 내 쿠폰함
               </a>
               <button
-                onClick={() => setStep('playing')}
-                className="flex-[1.6] rounded-full bg-orange-500 px-6 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400"
+                type="button"
+                onClick={() => setShowPrizeList(true)}
+                className="flex flex-1 items-center justify-center rounded-full border border-[#222222]/15 bg-white/70 px-4 py-3.5 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/90"
               >
-                뽑기 시작
+                🎁 경품 보기
               </button>
             </div>
+            <button
+              onClick={() => setStep('playing')}
+              className="mt-2.5 w-full rounded-full bg-[#00C7A7] px-6 py-4 text-lg font-bold text-white transition-colors hover:bg-[#00b399]"
+            >
+              뽑기 시작
+            </button>
             <p className="mt-3 text-center text-xs text-[#222222]/45">1일 1회 응모 가능</p>
             <p className="mt-4 text-center text-[11px] text-[#222222]/35">
               * 현재 이 게임은 데모 버전으로 테스트용입니다.
