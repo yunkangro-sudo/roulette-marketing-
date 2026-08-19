@@ -37,6 +37,16 @@ const GRIP_Y_RATIO = 0.52
 const GRIP_CHAR_SCALE = 1.35
 const GLASS_LEFT = 170
 const GLASS_RIGHT = 770
+/** 캐비닛 내부 배경 연출(빛줄기·비네트·보케·바닥그림자)용 대략 좌표 — 장식용이라 정밀 측정 불필요 */
+const GLASS_TOP = 430
+const LIGHT_X = (GLASS_LEFT + GLASS_RIGHT) / 2
+const LIGHT_Y = 415
+const BOKEH_DOTS = [
+  { x: 250, y: 560, size: 60, opacity: 0.3 },
+  { x: 705, y: 520, size: 46, opacity: 0.24 },
+  { x: 335, y: 830, size: 50, opacity: 0.26 },
+  { x: 640, y: 860, size: 38, opacity: 0.2 },
+] as const
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
@@ -190,91 +200,172 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
   }, [isAnimating, clawControls, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
 
   return (
-    <div
-      ref={stageRef}
-      className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]"
-    >
-      <img
-        src={BG_SRC}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-      />
+    <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
+      {/* 캐비닛 스테이지 — 좌우 20px 안전 여백 + 상단 세이프 영역 확보 */}
+      <div
+        ref={stageRef}
+        className="absolute left-5 right-5 bottom-0"
+        style={{ top: 'max(16px, env(safe-area-inset-top))' }}
+      >
+        <img
+          src={BG_SRC}
+          alt=""
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+        />
 
-      {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시 */}
-      {layout.w > 0 && storeName && (
-        <div
-          className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden rounded-md border-[3px] border-[#C9971F] bg-[#FEEBC8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"
-          style={{
-            left: layout.x + SIGN_LEFT * layout.scale,
-            top: layout.y + SIGN_TOP * layout.scale,
-            width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
-            height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
-            borderWidth: Math.max(1, 3 * layout.scale),
-          }}
-        >
-          <span
-            className="truncate px-2 font-extrabold text-[#3A2A18]"
-            style={{ fontSize: Math.max(12, 58 * layout.scale) }}
+        {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시 */}
+        {layout.w > 0 && storeName && (
+          <div
+            className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden rounded-md border-[3px] border-[#C9971F] bg-[#FEEBC8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"
+            style={{
+              left: layout.x + SIGN_LEFT * layout.scale,
+              top: layout.y + SIGN_TOP * layout.scale,
+              width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
+              height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
+              borderWidth: Math.max(1, 3 * layout.scale),
+            }}
           >
-            {storeName}
-          </span>
-        </div>
-      )}
-
-      <p className="absolute top-[4.5%] left-0 right-0 z-10 text-center text-xs text-[#222222]/45">
-        뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
-      </p>
-
-      {layout.w > 0 && (
-        <motion.div
-          className="absolute z-20"
-          style={{
-            left: restLeft,
-            top: restTop,
-            width: clawW,
-            height: clawH,
-          }}
-          animate={clawControls}
-        >
-          <div className="relative h-full w-full overflow-visible">
-            {/* 집게 프롱 사이에 물려 함께 들리는 인형 — 집게보다 뒤(아래)에 그려서 프롱이 감싸 쥔 것처럼 보이게 함 */}
-            <AnimatePresence>
-              {characterGrabbed && (
-                <motion.img
-                  key="grabbed"
-                  src={displaySrc}
-                  alt=""
-                  initial={{ opacity: 0, x: '-50%', y: -10, scale: 0.85 }}
-                  animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: '-50%' }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  className="pointer-events-none absolute left-1/2 z-0"
-                  style={{
-                    top: `${GRIP_Y_RATIO * 100}%`,
-                    width: clawW * GRIP_CHAR_SCALE,
-                  }}
-                />
-              )}
-            </AnimatePresence>
-            <img
-              src={CRANE_SRC}
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-            />
+            <span
+              className="truncate px-2 font-extrabold text-[#3A2A18]"
+              style={{ fontSize: Math.max(12, 58 * layout.scale) }}
+            >
+              {storeName}
+            </span>
           </div>
-        </motion.div>
-      )}
+        )}
 
-      <div className="absolute bottom-[7%] left-0 right-0 z-30 px-8">
-        <button
+        {/* 캐비닛 내부 배경 연출 — 은은한 조명 빔 + 비네트 + 보케 + 바닥 그림자 (전부 장식용, 클릭 불가) */}
+        {layout.w > 0 && (
+          <>
+            {/* 조명 빔: 천장 조명에서 아래로 부드럽게 퍼지는 빛 */}
+            <div
+              className="pointer-events-none absolute z-[4]"
+              style={{
+                left: layout.x + (LIGHT_X - 260) * layout.scale,
+                top: layout.y + LIGHT_Y * layout.scale,
+                width: 520 * layout.scale,
+                height: (CHAR_Y - LIGHT_Y) * layout.scale,
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(255,248,225,0.5), rgba(255,248,225,0) 68%)',
+                mixBlendMode: 'screen',
+              }}
+            />
+            {/* 보케 반짝임 — 캐릭터 무리 뒤 배경에 아주 옅게 */}
+            {BOKEH_DOTS.map((dot, i) => (
+              <div
+                key={i}
+                className="pointer-events-none absolute z-[3] rounded-full"
+                style={{
+                  left: layout.x + (dot.x - dot.size / 2) * layout.scale,
+                  top: layout.y + (dot.y - dot.size / 2) * layout.scale,
+                  width: dot.size * layout.scale,
+                  height: dot.size * layout.scale,
+                  opacity: dot.opacity,
+                  filter: 'blur(5px)',
+                  background: 'radial-gradient(circle, rgba(255,241,199,0.95), rgba(255,241,199,0) 70%)',
+                }}
+              />
+            ))}
+            {/* 바닥 그림자/반사 — 캐릭터들이 바닥을 딛고 있는 입체감 */}
+            <div
+              className="pointer-events-none absolute z-[4]"
+              style={{
+                left: layout.x + (GLASS_LEFT + 40) * layout.scale,
+                top: layout.y + (CHAR_Y + 70) * layout.scale,
+                width: (GLASS_RIGHT - GLASS_LEFT - 80) * layout.scale,
+                height: 70 * layout.scale,
+                filter: 'blur(5px)',
+                background: 'radial-gradient(ellipse at center, rgba(60,40,20,0.28), rgba(60,40,20,0) 75%)',
+              }}
+            />
+            {/* 방사형 비네트 — 가장자리를 살짝 어둡게 해 중앙(크레인·캐릭터)에 시선 집중 */}
+            <div
+              className="pointer-events-none absolute z-[4]"
+              style={{
+                left: layout.x + GLASS_LEFT * layout.scale,
+                top: layout.y + GLASS_TOP * layout.scale,
+                width: (GLASS_RIGHT - GLASS_LEFT) * layout.scale,
+                height: (CHAR_Y + 140 - GLASS_TOP) * layout.scale,
+                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(35,22,8,0.16) 100%)',
+              }}
+            />
+          </>
+        )}
+
+        {layout.w > 0 && (
+          <motion.div
+            className="absolute z-20"
+            style={{
+              left: restLeft,
+              top: restTop,
+              width: clawW,
+              height: clawH,
+            }}
+            animate={clawControls}
+          >
+            <div className="relative h-full w-full overflow-visible">
+              {/* 집게 프롱 사이에 물려 함께 들리는 인형 — 집게보다 뒤(아래)에 그려서 프롱이 감싸 쥔 것처럼 보이게 함 */}
+              <AnimatePresence>
+                {characterGrabbed && (
+                  <motion.img
+                    key="grabbed"
+                    src={displaySrc}
+                    alt=""
+                    initial={{ opacity: 0, x: '-50%', y: -10, scale: 0.85 }}
+                    animate={{ opacity: 1, x: '-50%', y: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: '-50%' }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="pointer-events-none absolute left-1/2 z-0"
+                    style={{
+                      top: `${GRIP_Y_RATIO * 100}%`,
+                      width: clawW * GRIP_CHAR_SCALE,
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+              <img
+                src={CRANE_SRC}
+                alt=""
+                draggable={false}
+                className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+              />
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* 하단 안내문구 + 버튼 — 스테이지와 동일한 좌우 20px 여백 */}
+      <div
+        className="absolute left-5 right-5 bottom-0 z-30"
+        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+      >
+        <p className="mb-2.5 text-center text-xs font-semibold text-[#222222]/70">
+          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
+        </p>
+        <motion.button
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="mx-auto block w-full max-w-sm rounded-full bg-orange-500 px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400 disabled:opacity-60"
+          className="mx-auto block w-full max-w-sm rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          animate={
+            !isAnimating
+              ? {
+                  scale: [1, 1.015, 1],
+                  boxShadow: [
+                    '0 0 0px 0px rgba(0,199,167,0)',
+                    '0 0 18px 6px rgba(0,199,167,0.4)',
+                    '0 0 0px 0px rgba(0,199,167,0)',
+                  ],
+                }
+              : { scale: 1, boxShadow: '0 0 0px 0px rgba(0,199,167,0)' }
+          }
+          transition={
+            !isAnimating
+              ? { duration: 2.75, repeat: Infinity, ease: 'easeInOut' }
+              : { duration: 0.2 }
+          }
         >
           뽑기 시작
-        </button>
+        </motion.button>
       </div>
 
       {isAnimating && <div className="absolute inset-0 z-40" />}
