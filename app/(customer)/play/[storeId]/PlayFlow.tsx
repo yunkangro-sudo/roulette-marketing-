@@ -317,6 +317,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         initialPhase="play"
         onLocked={() => setStep('result_locked')}
         onReplay={handleSwitchAccount}
+        storeName={storeName}
       />
     )
   }

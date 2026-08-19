@@ -25,6 +25,12 @@ const CLAW_SRC_H = 337
 const CLAW_MAX_X = CLAW_MIN_X + CLAW_SRC_W
 const CLAW_MAX_Y = CLAW_MIN_Y + CLAW_SRC_H
 const CHAR_Y = 1100
+/** 배경 이미지 상단에 그려진 상호명 명판의 실측 좌표(원본 픽셀 기준).
+ *  명판 안의 예시 텍스트("명동찜닭")를 가리고 실제 매장명을 그 위에 표시하기 위함. */
+const SIGN_LEFT = 40
+const SIGN_RIGHT = 908
+const SIGN_TOP = 98
+const SIGN_BOTTOM = 315
 /** 집게 프롱이 인형을 감싸 쥐는 지점(집게 높이 기준 비율) */
 const GRIP_Y_RATIO = 0.52
 /** 집게 폭 대비 인형 폭 비율 */
@@ -50,6 +56,8 @@ interface Props {
   eventId?: string
   /** QA용 — 항상 결과 잠금(onLocked)으로 보낸다. 로그인 게이트(화면 3) 확인용 */
   forceLocked?: boolean
+  /** 진열장 상단 명판에 표시할 실제 매장명 */
+  storeName?: string | null
 }
 
 /** 서버에서 결과를 받아온다. 실서비스는 locked만 반환하고 당첨액은 세션에만 둔다. */
@@ -81,7 +89,7 @@ async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
   }
 }
 
-export default function PlayScreen({ onResult, onLocked, eventId, forceLocked }: Props) {
+export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, storeName }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [layout, setLayout] = useState<CoverLayout>({ scale: 1, x: 0, y: 0, w: 0, h: 0 })
   const [isAnimating, setIsAnimating] = useState(false)
@@ -191,6 +199,27 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked }:
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />
+
+      {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시 */}
+      {layout.w > 0 && storeName && (
+        <div
+          className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden rounded-md border-[3px] border-[#C9971F] bg-[#FEEBC8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"
+          style={{
+            left: layout.x + SIGN_LEFT * layout.scale,
+            top: layout.y + SIGN_TOP * layout.scale,
+            width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
+            height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
+            borderWidth: Math.max(1, 3 * layout.scale),
+          }}
+        >
+          <span
+            className="truncate px-2 font-extrabold text-[#3A2A18]"
+            style={{ fontSize: Math.max(12, 58 * layout.scale) }}
+          >
+            {storeName}
+          </span>
+        </div>
+      )}
 
       <p className="absolute top-[4.5%] left-0 right-0 z-10 text-center text-xs text-[#222222]/45">
         뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요

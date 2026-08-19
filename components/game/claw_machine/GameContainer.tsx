@@ -21,9 +21,11 @@ interface Props {
   initialPhase?: GamePhase
   /** QA용 — 항상 화면 3(결과 잠금)으로 보낸다. onLocked이 없으면 컨테이너 내부에서 잠금 화면을 보여준다 */
   forceLocked?: boolean
+  /** 진열장 상단 명판에 표시할 실제 매장명 */
+  storeName?: string | null
 }
 
-export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase, forceLocked }: Props = {}) {
+export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase, forceLocked, storeName }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>(initialPhase ?? 'start')
   const [result, setResult] = useState<PrizeResult | null>(null)
 
@@ -64,6 +66,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
             onLocked={deferReveal || forceLocked ? handleLocked : undefined}
             eventId={eventId}
             forceLocked={forceLocked}
+            storeName={storeName}
           />
         </div>
       )}
