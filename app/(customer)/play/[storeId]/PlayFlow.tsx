@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { login as mockLogin, logout as mockLogout, type MockUser } from '@/lib/auth/mockLogin'
 import GameContainer from '@/components/game/claw_machine/GameContainer'
 import ResultScreen from '@/components/game/ResultScreen'
@@ -192,26 +193,38 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (!event) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 px-8 gap-6 text-center">
-        <div className="text-6xl">🥕</div>
+      <div className="flex h-screen flex-col items-center justify-center gap-6 bg-[#FFF3DE] px-8 text-center">
+        <img
+          src="/characters/char_result_miss.png"
+          alt=""
+          className="h-20 w-20 select-none object-contain"
+        />
         <div>
-          <h2 className="text-white text-xl font-bold">현재 진행중인 이벤트가 없어요</h2>
-          <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+          <h2 className="text-xl font-bold text-[#222222]">현재 진행중인 이벤트가 없어요</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#222222]/50">
             매장에서 새로운 이벤트를 준비 중이에요.<br />
             조금만 기다려 주세요!
           </p>
         </div>
-        <p className="text-gray-600 text-xs">store: {storeId}</p>
+        <p className="text-xs text-[#222222]/30">store: {storeId}</p>
       </div>
     )
   }
 
   if (step === 'loading' || step === 'claiming') {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-bounce">🥕</div>
-          <p className="text-gray-400 text-sm">{step === 'claiming' ? '결과를 확인하고 있어요...' : '로딩 중...'}</p>
+      <div className="flex h-screen items-center justify-center bg-[#FFF3DE]">
+        <div className="flex flex-col items-center">
+          <motion.img
+            src="/characters/char_result_jackpot.png"
+            alt=""
+            className="h-16 w-16 select-none object-contain"
+            animate={{ scale: [0.9, 1.05, 0.9] }}
+            transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <p className="mt-3 text-[11px] text-[#6B7280]">
+            {step === 'claiming' ? '확인 중' : '잠시만요'}
+          </p>
         </div>
       </div>
     )

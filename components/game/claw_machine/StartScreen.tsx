@@ -6,16 +6,20 @@ interface Props {
 
 export default function StartScreen({ onStart }: Props) {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-8 px-8 bg-gray-900">
+    <div className="flex h-full flex-col items-center justify-center gap-8 bg-[#FFF3DE] px-8">
       {/* 이벤트 썸네일 플레이스홀더 */}
-      <div className="w-full max-w-sm aspect-video bg-gray-800 rounded-2xl border border-gray-700 flex flex-col items-center justify-center gap-2">
-        <span className="text-5xl">🥕</span>
-        <span className="text-gray-400 text-sm">이벤트 썸네일</span>
+      <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 rounded-2xl border border-[#222222]/10 bg-white/60">
+        <img
+          src="/characters/char_result_jackpot.png"
+          alt=""
+          className="h-14 w-14 select-none object-contain"
+        />
+        <span className="text-sm text-[#222222]/40">이벤트 썸네일</span>
       </div>
 
       <div className="text-center">
-        <h1 className="text-white text-2xl font-bold tracking-tight">당근 인형뽑기</h1>
-        <p className="text-gray-400 text-sm mt-2">지금 도전하고 쿠폰 받아가세요!</p>
+        <h1 className="text-2xl font-bold tracking-tight text-[#222222]">럭키박스 뽑기</h1>
+        <p className="mt-2 text-sm text-[#222222]/50">지금 도전하고 쿠폰 받아가세요!</p>
       </div>
 
       <button

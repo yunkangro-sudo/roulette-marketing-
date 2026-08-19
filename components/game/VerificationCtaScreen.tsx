@@ -48,14 +48,14 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
             </p>
           </motion.div>
         ) : (
-          <motion.div
+          <motion.img
+            src="/characters/char_result_jackpot.png"
+            alt=""
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 280, damping: 14 }}
-            className="text-5xl"
-          >
-            🥕
-          </motion.div>
+            className="h-16 w-16 select-none object-contain"
+          />
         )}
 
         <motion.div

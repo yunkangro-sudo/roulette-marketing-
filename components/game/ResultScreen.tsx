@@ -83,7 +83,7 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
               </p>
               <div className="mt-3 border-t border-[#222222]/10 pt-3">
                 <p className="rounded-xl bg-orange-500 px-4 py-2.5 text-base font-bold leading-snug text-white shadow-sm">
-                  🥕 당근마켓 단골 확인 후 매장에서 사용 가능
+                  당근마켓 단골 확인 후 매장에서 사용 가능
                 </p>
               </div>
             </div>
