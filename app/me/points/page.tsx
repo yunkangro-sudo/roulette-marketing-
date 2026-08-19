@@ -61,6 +61,7 @@ function PointsContent() {
   const storeId = searchParams.get('store_id') ?? ''
 
   const [needLogin, setNeedLogin] = useState(false)
+  const [storeName, setStoreName] = useState('')
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
   const [threshold, setThreshold] = useState(100)
@@ -90,6 +91,7 @@ function PointsContent() {
         return
       }
       const data = await res.json()
+      setStoreName(data.storeName ?? '')
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
       setThreshold(data.settings?.usage_threshold ?? 100)
@@ -169,22 +171,32 @@ function PointsContent() {
         >
           ← 게임으로 돌아가기
         </a>
-        <h1 className="text-xl font-extrabold text-[#222222]">내 쿠폰함</h1>
 
-        {/* 포인트 잔액 카드 */}
-        <div className="rounded-2xl bg-gradient-to-br from-orange-500 to-orange-400 p-6 text-white shadow-sm">
-          <p className="mb-1 text-sm text-orange-100">포인트 잔액</p>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-extrabold text-[#222222]">내 쿠폰함</h1>
+          {storeName && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-[#222222]/60 shadow-sm backdrop-blur-sm">
+              🏪 {storeName}
+            </span>
+          )}
+        </div>
+
+        {/* 포인트 잔액 카드 — 매장별 집계 */}
+        <div className="rounded-2xl bg-gradient-to-br from-[#00C7A7] to-[#00B399] p-6 text-white shadow-sm">
+          <p className="mb-1 text-sm text-white/80">
+            포인트 잔액{storeName ? ` (${storeName})` : ''}
+          </p>
           <p className="mb-4 text-5xl font-black">{balance.toLocaleString()}P</p>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-orange-100">보유 쿠폰 {coupons.length}장</span>
-            <span className="text-orange-100">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
+            <span className="text-white/80">보유 쿠폰 {coupons.length}장</span>
+            <span className="text-white/80">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
           </div>
 
           {/* 사용 가능 여부 */}
           <div className={`mt-4 rounded-lg px-3 py-2 text-sm font-semibold ${
             canUsePoints
               ? 'bg-white/20 text-white'
-              : 'bg-white/10 text-orange-100'
+              : 'bg-white/10 text-white/80'
           }`}>
             {canUsePoints
               ? `✅ 리워드 교환 가능 (${balance}P ≥ ${threshold}P)`
@@ -223,12 +235,11 @@ function PointsContent() {
                       <p className="mt-0.5 text-xs text-[#222222]/50">{c.storeName}</p>
                       <p className="mt-1 text-xs text-[#222222]/40">
                         사용기한 ~{new Date(c.validUntil).toLocaleDateString('ko-KR')}
-                        {c.shortCode ? ` · ${c.shortCode}` : ''}
                       </p>
                     </div>
                     <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold ${
                       c.displayStatus === 'usable'
-                        ? 'bg-orange-50 text-orange-600'
+                        ? 'bg-[#00C7A7]/10 text-[#00947A]'
                         : c.displayStatus === 'used'
                           ? 'bg-[#222222]/8 text-[#222222]/45'
                           : 'bg-red-50 text-red-500'
@@ -237,7 +248,7 @@ function PointsContent() {
                     </span>
                   </div>
                   {c.displayStatus === 'usable' && (
-                    <p className="mt-3 text-center text-sm font-bold text-orange-600">
+                    <p className="mt-3 text-center text-sm font-bold text-[#00947A]">
                       쿠폰 보기 →
                     </p>
                   )}
@@ -266,7 +277,7 @@ function PointsContent() {
                             : `${mission.rewardValue.toLocaleString()}원 쿠폰 지급`}
                         </p>
                       </div>
-                      <span className="ml-2 whitespace-nowrap text-sm font-bold text-orange-500">
+                      <span className="ml-2 whitespace-nowrap text-sm font-bold text-[#00947A]">
                         {mission.currentValue}/{mission.targetValue}회
                       </span>
                     </div>
@@ -274,7 +285,7 @@ function PointsContent() {
                     {/* 진행률 바 */}
                     <div className="h-2 w-full overflow-hidden rounded-full bg-[#222222]/8">
                       <div
-                        className="h-2 rounded-full bg-orange-400 transition-all duration-500"
+                        className="h-2 rounded-full bg-[#00C7A7] transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -317,13 +328,13 @@ function PointsContent() {
                       <img src={reward.image_url} alt={reward.name}
                         className="h-14 w-14 shrink-0 rounded-xl bg-[#222222]/5 object-cover" />
                     ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-2xl">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#00C7A7]/10 text-2xl">
                         {REWARD_TYPE_ICONS[reward.reward_type ?? 'free_item']}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-[#222222]">{reward.name}</p>
-                      <p className="mt-0.5 text-sm font-bold text-orange-500">{reward.point_cost.toLocaleString()}P</p>
+                      <p className="mt-0.5 text-sm font-bold text-[#00947A]">{reward.point_cost.toLocaleString()}P</p>
                       {reward.stock !== null && (
                         <p className="mt-0.5 text-xs text-[#222222]/40">
                           {outOfStock ? '품절' : `잔여 ${reward.stock}개`}
@@ -335,7 +346,7 @@ function PointsContent() {
                       disabled={!canRedeem || outOfStock || redeeming === reward.id}
                       className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
                         canRedeem && !outOfStock
-                          ? 'bg-orange-500 text-white hover:bg-orange-400'
+                          ? 'bg-[#00C7A7] text-white hover:bg-[#00B399]'
                           : 'cursor-not-allowed bg-[#222222]/8 text-[#222222]/35'
                       } disabled:opacity-50`}
                     >

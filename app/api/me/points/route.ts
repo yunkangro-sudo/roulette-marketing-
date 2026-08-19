@@ -120,6 +120,7 @@ export async function GET(req: Request) {
   })
 
   return NextResponse.json({
+    storeName,
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },
     catalog:  catalogRes.data ?? [],
