@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react'
-import { motion, useAnimation, AnimatePresence } from 'framer-motion'
+import { motion, animate, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { rollPrize, resolveTier } from './gameUtils'
 import type { PrizeResult } from '../types'
 
@@ -50,6 +50,25 @@ const BOKEH_DOTS = [
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
+
+/** 상단 레일 마운트 ~ 집게 사이를 잇는 코일형 케이블 path를 생성한다.
+ *  길이(length)가 늘어날수록 지그재그 반복 횟수도 비례해서 늘어나
+ *  "코일이 늘어나는" 느낌을 낸다. cx는 코일의 중심 x좌표(로컬 좌표계). */
+function makeCoilPath(length: number, cx: number, amplitude: number, period: number): string {
+  const len = Math.max(0, length)
+  if (len < 2) return `M ${cx} 0 L ${cx} ${len}`
+
+  const segments = Math.max(2, Math.round(len / period))
+  const step = len / segments
+  let d = `M ${cx} 0`
+  for (let i = 1; i <= segments; i++) {
+    const y = step * i
+    const midY = y - step / 2
+    const side = i % 2 === 0 ? 1 : -1
+    d += ` Q ${cx + side * amplitude} ${midY} ${cx} ${y}`
+  }
+  return d
+}
 
 interface CoverLayout {
   scale: number
@@ -104,7 +123,10 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
   const [layout, setLayout] = useState<CoverLayout>({ scale: 1, x: 0, y: 0, w: 0, h: 0 })
   const [isAnimating, setIsAnimating] = useState(false)
   const [characterGrabbed, setCharacterGrabbed] = useState(false)
-  const clawControls = useAnimation()
+  /** 크레인의 현재 이동값(정지 위치 기준 오프셋, 화면 px) — 케이블 SVG가 이 값을
+   *  실시간으로 구독해 리렌더 없이 매 프레임 다시 그려지도록 useAnimation 대신 사용 */
+  const clawX = useMotionValue(0)
+  const clawY = useMotionValue(0)
 
   const displaySrc = useMemo(
     () => DISPLAY_CHARS[Math.floor(Math.random() * DISPLAY_CHARS.length)],
@@ -119,6 +141,15 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
     left: (GLASS_LEFT - CLAW_MIN_X) * layout.scale,
     right: (GLASS_RIGHT - CLAW_MAX_X) * layout.scale,
   }
+
+  /** 케이블 코일 스타일 — 집게(clawW) 대비 확연히 가늘게 */
+  const cableAmplitude = Math.max(2, clawW * 0.05)
+  const cablePeriod = Math.max(10, clawW * 0.16)
+  const cableCx = clawW * 0.15
+  const cableBoxWidth = clawW * 0.3
+  const cablePathD = useTransform(clawY, (y) =>
+    makeCoilPath(y, cableCx, cableAmplitude, cablePeriod)
+  )
 
   useEffect(() => {
     const el = stageRef.current
@@ -167,45 +198,39 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
     const safeRight = constraints.right - margin
     const randomX = safeLeft + Math.random() * (safeRight - safeLeft)
 
-    await clawControls.start({
-      x: [0, safeRight, safeLeft, safeRight, safeLeft, randomX],
-      transition: {
-        duration: SEARCH_SEC,
-        times: [0, 0.2, 0.4, 0.6, 0.8, 1],
-        ease: 'easeInOut',
-      },
+    await animate(clawX, [0, safeRight, safeLeft, safeRight, safeLeft, randomX], {
+      duration: SEARCH_SEC,
+      times: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      ease: 'easeInOut',
     })
 
-    await clawControls.start({
-      y: dropY,
-      transition: { duration: 0.55, ease: 'easeIn' },
-    })
+    await animate(clawY, dropY, { duration: 0.55, ease: 'easeIn' })
 
     if (locked || isWin) {
       setCharacterGrabbed(true)
     }
     await new Promise((r) => setTimeout(r, 220))
 
-    await clawControls.start({
-      x: 0,
-      y: 0,
-      transition: { duration: RISE_SEC, ease: 'easeOut' },
-    })
+    await Promise.all([
+      animate(clawX, 0, { duration: RISE_SEC, ease: 'easeOut' }),
+      animate(clawY, 0, { duration: RISE_SEC, ease: 'easeOut' }),
+    ])
     await new Promise((r) => setTimeout(r, 180))
 
     setCharacterGrabbed(false)
     setIsAnimating(false)
     if (locked) onLocked?.()
     else onResult(result as PrizeResult)
-  }, [isAnimating, clawControls, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
+  }, [isAnimating, clawX, clawY, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
 
   return (
     <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
-      {/* 캐비닛 스테이지 — 좌우 20px 안전 여백 + 상단 세이프 영역 확보 */}
+      {/* 캐비닛 스테이지 — 좌우 10px 여백(과도한 여백 피드백 반영해 축소) + 상단 세이프 영역 확보
+          overflow-hidden 필수: 명판 등 장식 오버레이가 여백 바깥으로 삐져나오지 않도록 스테이지 경계에서 잘라낸다 */}
       <div
         ref={stageRef}
-        className="absolute left-5 right-5 bottom-0"
-        style={{ top: 'max(16px, env(safe-area-inset-top))' }}
+        className="absolute left-[10px] right-[10px] bottom-0 overflow-hidden"
+        style={{ top: 'max(12px, env(safe-area-inset-top))' }}
       >
         <img
           src={BG_SRC}
@@ -237,16 +262,18 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         {/* 캐비닛 내부 배경 연출 — 은은한 조명 빔 + 비네트 + 보케 + 바닥 그림자 (전부 장식용, 클릭 불가) */}
         {layout.w > 0 && (
           <>
-            {/* 조명 빔: 천장 조명에서 아래로 부드럽게 퍼지는 빛 */}
+            {/* 조명 빔: 천장 조명에서 아래로 부드럽게 퍼지는 빛
+                — 사각 경계가 눈에 보이지 않도록 여유 폭 + blur로 가장자리를 완전히 흐린다 */}
             <div
               className="pointer-events-none absolute z-[4]"
               style={{
-                left: layout.x + (LIGHT_X - 260) * layout.scale,
-                top: layout.y + LIGHT_Y * layout.scale,
-                width: 520 * layout.scale,
-                height: (CHAR_Y - LIGHT_Y) * layout.scale,
-                background: 'radial-gradient(ellipse at 50% 0%, rgba(255,248,225,0.5), rgba(255,248,225,0) 68%)',
+                left: layout.x + (LIGHT_X - 300) * layout.scale,
+                top: layout.y + (LIGHT_Y - 20) * layout.scale,
+                width: 600 * layout.scale,
+                height: (CHAR_Y - LIGHT_Y + 20) * layout.scale,
+                background: 'radial-gradient(ellipse at 50% 0%, rgba(255,248,225,0.45), rgba(255,248,225,0) 55%)',
                 mixBlendMode: 'screen',
+                filter: 'blur(14px)',
               }}
             />
             {/* 보케 반짝임 — 캐릭터 무리 뒤 배경에 아주 옅게 */}
@@ -277,31 +304,65 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
                 background: 'radial-gradient(ellipse at center, rgba(60,40,20,0.28), rgba(60,40,20,0) 75%)',
               }}
             />
-            {/* 방사형 비네트 — 가장자리를 살짝 어둡게 해 중앙(크레인·캐릭터)에 시선 집중 */}
+            {/* 방사형 비네트 — 가장자리를 살짝 어둡게 해 중앙(크레인·캐릭터)에 시선 집중
+                — 유리 안쪽 경계선 바로 위에 사각 경계가 겹쳐 보이지 않도록 여유 있게 넓히고 blur로 마무리 */}
             <div
               className="pointer-events-none absolute z-[4]"
               style={{
-                left: layout.x + GLASS_LEFT * layout.scale,
-                top: layout.y + GLASS_TOP * layout.scale,
-                width: (GLASS_RIGHT - GLASS_LEFT) * layout.scale,
-                height: (CHAR_Y + 140 - GLASS_TOP) * layout.scale,
-                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(35,22,8,0.16) 100%)',
+                left: layout.x + (GLASS_LEFT - 40) * layout.scale,
+                top: layout.y + (GLASS_TOP - 30) * layout.scale,
+                width: (GLASS_RIGHT - GLASS_LEFT + 80) * layout.scale,
+                height: (CHAR_Y + 170 - GLASS_TOP) * layout.scale,
+                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0) 62%, rgba(35,22,8,0.14) 100%)',
+                filter: 'blur(10px)',
               }}
             />
           </>
         )}
 
         {layout.w > 0 && (
-          <motion.div
-            className="absolute z-20"
-            style={{
-              left: restLeft,
-              top: restTop,
-              width: clawW,
-              height: clawH,
-            }}
-            animate={clawControls}
-          >
+          <>
+            {/* 크레인 케이블 — 천장 레일 마운트(고정 y, 크레인을 따라 좌우로만 이동)와
+                집게 사이를 잇는 코일형 케이블. 하강 시 길이가, 좌우 탐색 시 x위치만 따라간다 */}
+            <motion.svg
+              className="pointer-events-none absolute z-[19] overflow-visible"
+              style={{
+                left: restLeft + clawW / 2 - cableBoxWidth / 2,
+                top: restTop,
+                width: cableBoxWidth,
+                height: 1,
+                x: clawX,
+              }}
+            >
+              <defs>
+                <linearGradient id="cableGoldGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#9C6B10" />
+                  <stop offset="45%" stopColor="#F0C868" />
+                  <stop offset="55%" stopColor="#F0C868" />
+                  <stop offset="100%" stopColor="#8A5D0C" />
+                </linearGradient>
+              </defs>
+              <motion.path
+                d={cablePathD}
+                stroke="url(#cableGoldGrad)"
+                strokeWidth={Math.max(1.5, clawW * 0.035)}
+                fill="none"
+                strokeLinecap="round"
+                style={{ filter: 'drop-shadow(0 1px 1px rgba(60,40,10,0.35))' }}
+              />
+            </motion.svg>
+
+            <motion.div
+              className="absolute z-20"
+              style={{
+                left: restLeft,
+                top: restTop,
+                width: clawW,
+                height: clawH,
+                x: clawX,
+                y: clawY,
+              }}
+            >
             <div className="relative h-full w-full overflow-visible">
               {/* 집게 프롱 사이에 물려 함께 들리는 인형 — 집게보다 뒤(아래)에 그려서 프롱이 감싸 쥔 것처럼 보이게 함 */}
               <AnimatePresence>
@@ -329,30 +390,29 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
                 className="pointer-events-none absolute inset-0 z-10 h-full w-full"
               />
             </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </div>
 
-      {/* 하단 안내문구 + 버튼 — 스테이지와 동일한 좌우 20px 여백 */}
+      {/* 하단 버튼 + 안내문구 — 스테이지와 동일한 좌우 10px 여백
+          버튼을 먼저 배치하고, 안내문구는 버튼 아래 작은 캡션으로 내려서 버튼에 시선이 먼저 가게 한다 */}
       <div
-        className="absolute left-5 right-5 bottom-0 z-30"
-        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+        className="absolute left-[10px] right-[10px] bottom-0 z-30"
+        style={{ paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}
       >
-        <p className="mb-2.5 text-center text-xs font-semibold text-[#222222]/70">
-          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
-        </p>
         <motion.button
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="mx-auto block w-full max-w-sm rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          className="mx-auto block w-full max-w-[300px] rounded-full bg-[#00C7A7] px-8 py-3.5 text-base font-bold text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
           animate={
             !isAnimating
               ? {
-                  scale: [1, 1.015, 1],
+                  scale: [1, 1.012, 1],
                   boxShadow: [
                     '0 0 0px 0px rgba(0,199,167,0)',
-                    '0 0 18px 6px rgba(0,199,167,0.4)',
+                    '0 0 12px 3px rgba(0,199,167,0.35)',
                     '0 0 0px 0px rgba(0,199,167,0)',
                   ],
                 }
@@ -366,6 +426,9 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         >
           뽑기 시작
         </motion.button>
+        <p className="mt-2 text-center text-xs font-semibold text-[#222222]/70">
+          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
+        </p>
       </div>
 
       {isAnimating && <div className="absolute inset-0 z-40" />}
