@@ -17,6 +17,9 @@ const DISPLAY_CHARS = [
 
 const IMG_W = 941
 const IMG_H = 1672
+/** 이미지 상단에 baked-in된 여백(명판 위 빈 공간)을 화면 밖으로 밀어내기 위한 미세 확대 배율.
+ *  세로 방향 초과분은 전부 상단에서만 잘라내(하단 기준 정렬) 캐릭터/받침대 쪽은 그대로 보존한다 */
+const OVERZOOM = 1.04
 /** 집게 스프라이트(crane_claw_arm.png, 투명 배경)를 배경의 레일 고리 위치에 맞춘 좌표 */
 const CLAW_MIN_X = 196
 const CLAW_MIN_Y = 396
@@ -50,8 +53,6 @@ const BOKEH_DOTS = [
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
-/** 좌우 세이프 여백(px) — 게임 화면(캐비닛)을 최대한 크게 보여주기 위해 최소한으로만 확보 */
-const STAGE_MARGIN = 8
 
 /** 상단 레일 마운트 ~ 집게 사이를 잇는 코일형 케이블 path를 생성한다.
  *  길이(length)가 늘어날수록 지그재그 반복 횟수도 비례해서 늘어나
@@ -160,11 +161,11 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
     const update = () => {
       const w = el.clientWidth
       const h = el.clientHeight
-      const scale = Math.max(w / IMG_W, h / IMG_H)
+      const scale = Math.max(w / IMG_W, h / IMG_H) * OVERZOOM
       setLayout({
         scale,
         x: (w - IMG_W * scale) / 2,
-        y: (h - IMG_H * scale) / 2,
+        y: h - IMG_H * scale,
         w,
         h,
       })
@@ -227,28 +228,26 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
 
   return (
     <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
-      {/* 캐비닛 스테이지 — 게임 화면을 최대한 크게 보여주기 위해 좌우/상하 여백을 최소화.
-          rounded + shadow로 은은한 입체감만 주고, 여백 자체는 늘리지 않는다.
-          overflow-hidden 필수: 명판 등 장식 오버레이가 카드 바깥으로 삐져나오지 않도록 경계에서 잘라낸다 */}
-      <div
-        ref={stageRef}
-        className="absolute overflow-hidden rounded-[18px] shadow-[0_10px_24px_-12px_rgba(70,48,14,0.4)]"
-        style={{
-          left: STAGE_MARGIN,
-          right: STAGE_MARGIN,
-          top: 'max(10px, env(safe-area-inset-top))',
-          bottom: 0,
-        }}
-      >
+      {/* 캐비닛 스테이지 — 화면 가장자리까지 완전히 채운다 (여백 없음) */}
+      <div ref={stageRef} className="absolute inset-0 overflow-hidden">
+        {/* object-fit: cover 대신 layout(x/y/scale)으로 직접 배치 — 오버레이(명판/조명/집게 등)와
+            정확히 같은 좌표계를 공유해야 확대/기준점을 바꿔도 어긋나지 않는다 */}
         <img
           src={BG_SRC}
           alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+          className="pointer-events-none absolute select-none"
+          style={{
+            left: layout.x,
+            top: layout.y,
+            width: IMG_W * layout.scale,
+            height: IMG_H * layout.scale,
+            maxWidth: 'none',
+          }}
         />
 
         {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시.
-            박스 테두리 없이, 실측한 배경 그라데이션과 같은 톤 + 가장자리 페더링으로
-            "붙여넣은 사각형"이 아니라 배경 위에 자연스럽게 얹힌 것처럼 보이게 처리 */}
+            실측한 배경 그라데이션과 같은 톤으로 채워서 사각형처럼 붙어 보이지 않게 하되,
+            위/아래 경계는 동일하게 또렷이 — 가장자리 페더링(마스크) 없음 */}
         {layout.w > 0 && storeName && (
           <div
             className="pointer-events-none absolute z-10 flex items-center justify-center"
@@ -258,10 +257,6 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
               width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
               height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
               background: 'linear-gradient(180deg, #EFDDC2 0%, #E7CB9C 55%, #D6AC72 100%)',
-              WebkitMaskImage:
-                'radial-gradient(ellipse 86% 74% at 50% 50%, black 48%, transparent 100%)',
-              maskImage:
-                'radial-gradient(ellipse 86% 74% at 50% 50%, black 48%, transparent 100%)',
             }}
           >
             <span
@@ -413,24 +408,16 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         )}
       </div>
 
-      {/* 하단 버튼 + 안내문구 — 별도 여백을 만들지 않고, 캐비닛(인형뽑기 기계) 그림 안쪽
-          하단 받침대 여백 위에 그대로 얹는다. 게임 화면 크기는 그대로 유지된다 */}
+      {/* 하단 버튼 — 화면/기계 맨 아래에 폭 전체로 딱 붙인다 (별도 여백·안내문구 없음) */}
       <div
-        className="absolute bottom-0 z-30"
-        style={{
-          left: STAGE_MARGIN,
-          right: STAGE_MARGIN,
-          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-        }}
+        className="absolute inset-x-0 bottom-0 z-30"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <p className="mb-2.5 text-center text-xs font-semibold text-[#222222]/70">
-          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
-        </p>
         <motion.button
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="mx-auto block w-full max-w-[300px] rounded-full bg-[#00C7A7] px-8 py-3.5 text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          className="block w-full rounded-full bg-[#00C7A7] px-8 py-4 text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
           animate={
             !isAnimating
               ? {
