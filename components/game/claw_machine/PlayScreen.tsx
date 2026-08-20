@@ -50,11 +50,8 @@ const BOKEH_DOTS = [
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
-/** 좌우 세이프 여백(px) — 매장명 헤더/캐비닛/버튼 영역이 모두 이 기준선에 맞춰 정렬된다 */
-const STAGE_MARGIN = 20
-/** 캐비닛 아래 버튼 전용 여백 높이(px, safe-area-inset-bottom은 별도 가산) —
- *  버튼이 캐비닛 이미지 위에 겹쳐 뜨지 않고 독립된 공간에서 문구+버튼이 수직 중앙 정렬되도록 확보 */
-const FOOTER_H = 118
+/** 좌우 세이프 여백(px) — 게임 화면(캐비닛)을 최대한 크게 보여주기 위해 최소한으로만 확보 */
+const STAGE_MARGIN = 8
 
 /** 상단 레일 마운트 ~ 집게 사이를 잇는 코일형 케이블 path를 생성한다.
  *  길이(length)가 늘어날수록 지그재그 반복 횟수도 비례해서 늘어나
@@ -230,17 +227,17 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
 
   return (
     <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
-      {/* 캐비닛 스테이지 — 좌우/상단 세이프 여백 확보, 하단은 FOOTER_H만큼 띄워서
-          버튼 영역과 겹치지 않는 독립된 카드로 분리. rounded + shadow로 "떠 있는" 카드 느낌 부여.
+      {/* 캐비닛 스테이지 — 게임 화면을 최대한 크게 보여주기 위해 좌우/상하 여백을 최소화.
+          rounded + shadow로 은은한 입체감만 주고, 여백 자체는 늘리지 않는다.
           overflow-hidden 필수: 명판 등 장식 오버레이가 카드 바깥으로 삐져나오지 않도록 경계에서 잘라낸다 */}
       <div
         ref={stageRef}
-        className="absolute overflow-hidden rounded-[22px] shadow-[0_18px_36px_-14px_rgba(70,48,14,0.4)]"
+        className="absolute overflow-hidden rounded-[18px] shadow-[0_10px_24px_-12px_rgba(70,48,14,0.4)]"
         style={{
           left: STAGE_MARGIN,
           right: STAGE_MARGIN,
-          top: 'max(16px, env(safe-area-inset-top))',
-          bottom: `calc(${FOOTER_H}px + max(14px, env(safe-area-inset-bottom)))`,
+          top: 'max(10px, env(safe-area-inset-top))',
+          bottom: 0,
         }}
       >
         <img
@@ -250,21 +247,30 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         />
 
         {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시.
-            딱딱한 박스 테두리 대신 하단 얇은 골드 라인 하나로만 캐비닛 영역과 자연스럽게 구분 */}
+            박스 테두리 없이, 실측한 배경 그라데이션과 같은 톤 + 가장자리 페더링으로
+            "붙여넣은 사각형"이 아니라 배경 위에 자연스럽게 얹힌 것처럼 보이게 처리 */}
         {layout.w > 0 && storeName && (
           <div
-            className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden bg-[#FFF6E7]"
+            className="pointer-events-none absolute z-10 flex items-center justify-center"
             style={{
               left: layout.x + SIGN_LEFT * layout.scale,
               top: layout.y + SIGN_TOP * layout.scale,
               width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
               height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
-              borderBottom: `${Math.max(1, 2 * layout.scale)}px solid #D8AF55`,
+              background: 'linear-gradient(180deg, #EFDDC2 0%, #E7CB9C 55%, #D6AC72 100%)',
+              WebkitMaskImage:
+                'radial-gradient(ellipse 86% 74% at 50% 50%, black 48%, transparent 100%)',
+              maskImage:
+                'radial-gradient(ellipse 86% 74% at 50% 50%, black 48%, transparent 100%)',
             }}
           >
             <span
-              className="truncate px-2 font-extrabold text-[#3A2A18]"
-              style={{ fontSize: Math.max(12, 56 * layout.scale), letterSpacing: Math.max(0.5, 2.2 * layout.scale) }}
+              className="truncate px-2 font-extrabold tracking-wide text-[#3A2A18]"
+              style={{
+                fontSize: Math.max(12, 56 * layout.scale),
+                letterSpacing: Math.max(0.5, 2.2 * layout.scale),
+                textShadow: '0 1px 3px rgba(255,246,225,0.6)',
+              }}
             >
               {storeName}
             </span>
@@ -407,15 +413,14 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         )}
       </div>
 
-      {/* 하단 버튼 + 안내문구 — 캐비닛과 겹치지 않는 독립된 여백(FOOTER_H) 안에서 수직 중앙 정렬.
-          안내문구를 버튼 위 캡션으로 두어 하나의 세트로 묶는다 */}
+      {/* 하단 버튼 + 안내문구 — 별도 여백을 만들지 않고, 캐비닛(인형뽑기 기계) 그림 안쪽
+          하단 받침대 여백 위에 그대로 얹는다. 게임 화면 크기는 그대로 유지된다 */}
       <div
-        className="absolute bottom-0 z-30 flex flex-col justify-center"
+        className="absolute bottom-0 z-30"
         style={{
           left: STAGE_MARGIN,
           right: STAGE_MARGIN,
-          height: `calc(${FOOTER_H}px + max(14px, env(safe-area-inset-bottom)))`,
-          paddingBottom: 'max(14px, env(safe-area-inset-bottom))',
+          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
         }}
       >
         <p className="mb-2.5 text-center text-xs font-semibold text-[#222222]/70">
