@@ -50,6 +50,11 @@ const BOKEH_DOTS = [
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
+/** 좌우 세이프 여백(px) — 매장명 헤더/캐비닛/버튼 영역이 모두 이 기준선에 맞춰 정렬된다 */
+const STAGE_MARGIN = 20
+/** 캐비닛 아래 버튼 전용 여백 높이(px, safe-area-inset-bottom은 별도 가산) —
+ *  버튼이 캐비닛 이미지 위에 겹쳐 뜨지 않고 독립된 공간에서 문구+버튼이 수직 중앙 정렬되도록 확보 */
+const FOOTER_H = 118
 
 /** 상단 레일 마운트 ~ 집게 사이를 잇는 코일형 케이블 path를 생성한다.
  *  길이(length)가 늘어날수록 지그재그 반복 횟수도 비례해서 늘어나
@@ -225,12 +230,18 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
 
   return (
     <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
-      {/* 캐비닛 스테이지 — 좌우 10px 여백(과도한 여백 피드백 반영해 축소) + 상단 세이프 영역 확보
-          overflow-hidden 필수: 명판 등 장식 오버레이가 여백 바깥으로 삐져나오지 않도록 스테이지 경계에서 잘라낸다 */}
+      {/* 캐비닛 스테이지 — 좌우/상단 세이프 여백 확보, 하단은 FOOTER_H만큼 띄워서
+          버튼 영역과 겹치지 않는 독립된 카드로 분리. rounded + shadow로 "떠 있는" 카드 느낌 부여.
+          overflow-hidden 필수: 명판 등 장식 오버레이가 카드 바깥으로 삐져나오지 않도록 경계에서 잘라낸다 */}
       <div
         ref={stageRef}
-        className="absolute left-[10px] right-[10px] bottom-0 overflow-hidden"
-        style={{ top: 'max(12px, env(safe-area-inset-top))' }}
+        className="absolute overflow-hidden rounded-[22px] shadow-[0_18px_36px_-14px_rgba(70,48,14,0.4)]"
+        style={{
+          left: STAGE_MARGIN,
+          right: STAGE_MARGIN,
+          top: 'max(16px, env(safe-area-inset-top))',
+          bottom: `calc(${FOOTER_H}px + max(14px, env(safe-area-inset-bottom)))`,
+        }}
       >
         <img
           src={BG_SRC}
@@ -238,21 +249,22 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
           className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         />
 
-        {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시 */}
+        {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시.
+            딱딱한 박스 테두리 대신 하단 얇은 골드 라인 하나로만 캐비닛 영역과 자연스럽게 구분 */}
         {layout.w > 0 && storeName && (
           <div
-            className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden rounded-md border-[3px] border-[#C9971F] bg-[#FEEBC8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)]"
+            className="pointer-events-none absolute z-10 flex items-center justify-center overflow-hidden bg-[#FFF6E7]"
             style={{
               left: layout.x + SIGN_LEFT * layout.scale,
               top: layout.y + SIGN_TOP * layout.scale,
               width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
               height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
-              borderWidth: Math.max(1, 3 * layout.scale),
+              borderBottom: `${Math.max(1, 2 * layout.scale)}px solid #D8AF55`,
             }}
           >
             <span
               className="truncate px-2 font-extrabold text-[#3A2A18]"
-              style={{ fontSize: Math.max(12, 58 * layout.scale) }}
+              style={{ fontSize: Math.max(12, 56 * layout.scale), letterSpacing: Math.max(0.5, 2.2 * layout.scale) }}
             >
               {storeName}
             </span>
@@ -301,7 +313,7 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
                 width: (GLASS_RIGHT - GLASS_LEFT - 80) * layout.scale,
                 height: 70 * layout.scale,
                 filter: 'blur(5px)',
-                background: 'radial-gradient(ellipse at center, rgba(60,40,20,0.28), rgba(60,40,20,0) 75%)',
+                background: 'radial-gradient(ellipse at center, rgba(60,40,20,0.34), rgba(60,40,20,0) 75%)',
               }}
             />
             {/* 방사형 비네트 — 가장자리를 살짝 어둡게 해 중앙(크레인·캐릭터)에 시선 집중
@@ -395,40 +407,44 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         )}
       </div>
 
-      {/* 하단 버튼 + 안내문구 — 스테이지와 동일한 좌우 10px 여백
-          버튼을 먼저 배치하고, 안내문구는 버튼 아래 작은 캡션으로 내려서 버튼에 시선이 먼저 가게 한다 */}
+      {/* 하단 버튼 + 안내문구 — 캐비닛과 겹치지 않는 독립된 여백(FOOTER_H) 안에서 수직 중앙 정렬.
+          안내문구를 버튼 위 캡션으로 두어 하나의 세트로 묶는다 */}
       <div
-        className="absolute left-[10px] right-[10px] bottom-0 z-30"
-        style={{ paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}
+        className="absolute bottom-0 z-30 flex flex-col justify-center"
+        style={{
+          left: STAGE_MARGIN,
+          right: STAGE_MARGIN,
+          height: `calc(${FOOTER_H}px + max(14px, env(safe-area-inset-bottom)))`,
+          paddingBottom: 'max(14px, env(safe-area-inset-bottom))',
+        }}
       >
+        <p className="mb-2.5 text-center text-xs font-semibold text-[#222222]/70">
+          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
+        </p>
         <motion.button
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="mx-auto block w-full max-w-[300px] rounded-full bg-[#00C7A7] px-8 py-3.5 text-base font-bold text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          className="mx-auto block w-full max-w-[300px] rounded-full bg-[#00C7A7] px-8 py-3.5 text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
           animate={
             !isAnimating
               ? {
-                  scale: [1, 1.012, 1],
                   boxShadow: [
                     '0 0 0px 0px rgba(0,199,167,0)',
-                    '0 0 12px 3px rgba(0,199,167,0.35)',
+                    '0 0 22px 7px rgba(0,199,167,0.4)',
                     '0 0 0px 0px rgba(0,199,167,0)',
                   ],
                 }
-              : { scale: 1, boxShadow: '0 0 0px 0px rgba(0,199,167,0)' }
+              : { boxShadow: '0 0 0px 0px rgba(0,199,167,0)' }
           }
           transition={
             !isAnimating
-              ? { duration: 2.75, repeat: Infinity, ease: 'easeInOut' }
+              ? { duration: 2.8, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 0.2 }
           }
         >
           뽑기 시작
         </motion.button>
-        <p className="mt-2 text-center text-xs font-semibold text-[#222222]/70">
-          뽑기 시작을 누르면 집게가 자동으로 상품을 찾아요
-        </p>
       </div>
 
       {isAnimating && <div className="absolute inset-0 z-40" />}
