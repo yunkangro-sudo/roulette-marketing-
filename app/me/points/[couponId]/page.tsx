@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
+import CouponTicket from '@/components/game/CouponTicket'
 
 interface CouponDetail {
   id: string
@@ -142,34 +143,27 @@ function CouponDetailContent() {
             alt=""
             className="h-auto w-[38%] max-w-[160px] select-none"
           />
-          <p className="mt-3 text-2xl font-extrabold text-[#222222]">
-            {coupon.amount.toLocaleString()}원 쿠폰
-          </p>
-          <p className="mt-1 text-sm text-[#222222]/50">{coupon.storeName}</p>
+          <p className="mt-2 text-sm font-semibold text-[#222222]/50">{coupon.storeName}</p>
         </div>
 
-        <div className="mt-6 rounded-2xl bg-white/70 px-5 py-6 text-center shadow-sm backdrop-blur-sm">
-          <p className="text-sm font-semibold text-[#222222]/60">
-            계산대에서 이 쿠폰 화면을 보여주세요
-          </p>
-          <p className="mt-4 font-mono text-5xl font-black tracking-[0.15em] text-[#222222]">
-            {coupon.shortCode ?? coupon.id.slice(0, 6).toUpperCase()}
-          </p>
-          <p className="mt-3 text-sm text-[#222222]/40">
-            유효기간 ~{formatDate(coupon.validUntil)}
-          </p>
-
-          {coupon.status === 'used' && (
-            <div className="mt-4 rounded-xl bg-[#222222]/8 px-4 py-2.5 text-base font-bold text-[#222222]/60">
-              ✅ 사용 완료된 쿠폰입니다
-            </div>
-          )}
-          {coupon.status === 'expired' && (
-            <div className="mt-4 rounded-xl bg-red-500/10 px-4 py-2.5 text-base font-bold text-red-500">
-              사용기간이 지난 쿠폰입니다
-            </div>
-          )}
-        </div>
+        <CouponTicket
+          className="mt-5"
+          amountLabel={`${coupon.amount.toLocaleString()}원 쿠폰`}
+          code={coupon.shortCode ?? coupon.id.slice(0, 6).toUpperCase()}
+          validUntilLabel={`~${formatDate(coupon.validUntil)}`}
+          noteText="계산대에서 이 쿠폰 화면을 보여주세요"
+          footer={
+            coupon.status === 'used' ? (
+              <div className="rounded-xl bg-[#222222]/8 px-4 py-2.5 text-base font-bold text-[#222222]/60">
+                ✅ 사용 완료된 쿠폰입니다
+              </div>
+            ) : coupon.status === 'expired' ? (
+              <div className="rounded-xl bg-red-500/10 px-4 py-2.5 text-base font-bold text-red-500">
+                사용기간이 지난 쿠폰입니다
+              </div>
+            ) : undefined
+          }
+        />
 
         {usable && (
           <div className="mt-6">
@@ -182,7 +176,7 @@ function CouponDetailContent() {
             <button
               onClick={handleConfirm}
               disabled={confirming}
-              className="mt-3 w-full rounded-full bg-orange-500 px-10 py-4 text-lg font-bold text-white transition-colors hover:bg-orange-400 disabled:opacity-60"
+              className="mt-3 w-full rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white shadow-sm transition-colors hover:bg-[#00b296] disabled:opacity-60"
             >
               {confirming ? '처리 중...' : '사장님 확인'}
             </button>

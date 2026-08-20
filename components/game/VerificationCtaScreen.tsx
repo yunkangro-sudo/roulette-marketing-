@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { PrizeResult } from './types'
+import CouponTicket from './CouponTicket'
 // VerificationCtaScreen은 공통 컴포넌트 — 특정 game_type에 종속되지 않음
 
 interface Props {
@@ -80,15 +81,13 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
             initial={{ y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25, duration: 0.35 }}
-            className="w-full max-w-sm rounded-2xl bg-white/70 p-5 text-center shadow-sm backdrop-blur-sm"
+            className="w-full max-w-sm"
           >
-            <p className="mb-1 text-xs text-[#222222]/45">직원에게 보여주세요</p>
-            <p className="mb-2 font-mono text-4xl font-black tracking-[0.2em] text-[#222222]">
-              {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
-            </p>
-            <p className="text-xs text-[#222222]/40">
-              사용기한 ~{formatDate(result.coupon.validUntil)}
-            </p>
+            <CouponTicket
+              amountLabel={result.label}
+              code={result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+              validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
+            />
           </motion.div>
         )}
 

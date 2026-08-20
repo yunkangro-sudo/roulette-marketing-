@@ -91,6 +91,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
           onVerificationCta={
             result.amount > 0 ? () => setPhase('verification_cta') : undefined
           }
+          continueLabel={result.amount > 0 ? '당근마켓 단골 추가하러 가기' : undefined}
         />
       )}
 

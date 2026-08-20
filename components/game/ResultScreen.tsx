@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { PrizeResult } from './types'
+import CouponTicket from './CouponTicket'
 
 interface Props {
   result: PrizeResult
@@ -60,7 +61,9 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
           transition={{ delay: 0.35, duration: 0.35 }}
           className="mt-4 w-full max-w-sm text-center"
         >
-          <p className="text-3xl font-extrabold text-[#222222]">{result.label}</p>
+          {/* 쿠폰 티켓이 있으면 금액은 티켓 박스 안에서 크게 보여주므로, 바깥 헤드라인은 중복을
+              피하기 위해 생략한다 (꽝/포인트만 적립되는 경우는 티켓이 없으므로 계속 노출) */}
+          {!result.coupon && <p className="text-3xl font-extrabold text-[#222222]">{result.label}</p>}
 
           {isMiss && (
             <p className="mt-2 text-base text-[#222222]/50">다음엔 꼭 당첨되실 거예요!</p>
@@ -73,26 +76,17 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
           )}
 
           {result.coupon && (
-            <div className="mt-4 rounded-2xl bg-white/70 px-4 py-5 text-center shadow-sm backdrop-blur-sm">
-              <p className="mb-1.5 text-sm text-[#222222]/45">직원에게 보여주세요</p>
-              <p className="mb-2 font-mono text-5xl font-black tracking-[0.15em] text-[#222222]">
-                {result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
-              </p>
-              <p className="text-sm text-[#222222]/40">
-                사용기간 ~{formatDate(result.coupon.validUntil)}
-              </p>
-              <div className="mt-3 border-t border-[#222222]/10 pt-3">
+            <CouponTicket
+              className="mt-4"
+              amountLabel={result.label}
+              code={result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
+              validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
+              footer={
                 <p className="rounded-xl bg-orange-500 px-4 py-2.5 text-base font-bold leading-snug text-white shadow-sm">
                   당근마켓 단골 확인 후 매장에서 사용 가능
                 </p>
-              </div>
-            </div>
-          )}
-
-          {result.coupon && (
-            <p className="mt-3 text-base text-[#222222]/55">
-              매장에서 직원에게 화면을 보여주세요
-            </p>
+              }
+            />
           )}
         </motion.div>
 
@@ -103,7 +97,7 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
               onClick={onContinue ?? onVerificationCta}
-              className="w-full rounded-full bg-orange-500 px-10 py-4 text-base font-bold text-white transition-colors hover:bg-orange-400"
+              className="w-full rounded-full bg-[#00C7A7] px-10 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-[#00b296]"
             >
               {continueLabel ?? '다음'}
             </motion.button>
