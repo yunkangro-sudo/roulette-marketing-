@@ -14,28 +14,6 @@ interface CouponTicketProps {
   className?: string
 }
 
-/** 페이지 배경(크림톤)과 맞춰 "뚫린 것처럼" 보이게 하는 티켓 절취선 노치 색상 */
-const NOTCH_BG = '#EFE6D6'
-const NOTCH_POSITIONS = ['16%', '50%', '84%'] as const
-
-function Notches({ side }: { side: 'left' | 'right' }) {
-  return (
-    <div
-      className={`pointer-events-none absolute top-0 bottom-0 z-10 ${
-        side === 'left' ? '-left-[7px]' : '-right-[7px]'
-      }`}
-    >
-      {NOTCH_POSITIONS.map((top) => (
-        <span
-          key={top}
-          className="absolute block h-[14px] w-[14px] rounded-full"
-          style={{ top, background: NOTCH_BG, transform: 'translateY(-50%)' }}
-        />
-      ))}
-    </div>
-  )
-}
-
 /** 결과화면/쿠폰함/당근인증 화면에서 공통으로 쓰는 "완결된 종이 티켓" 스타일 쿠폰 박스.
  *  금액을 코드보다 크게 배치하고, 영수증 절취선(점선)으로 금액-코드 영역을 나눈다. */
 export default function CouponTicket({
@@ -48,11 +26,8 @@ export default function CouponTicket({
 }: CouponTicketProps) {
   return (
     <div
-      className={`relative overflow-visible rounded-[26px] bg-[#FFFBF2] px-5 py-6 text-center shadow-[0_12px_28px_-10px_rgba(120,90,40,0.4)] ${className}`}
+      className={`relative rounded-[26px] bg-[#FFFBF2] px-5 py-6 text-center shadow-[0_12px_28px_-10px_rgba(120,90,40,0.4)] ${className}`}
     >
-      <Notches side="left" />
-      <Notches side="right" />
-
       <p className="text-[28px] font-black leading-tight text-[#222222]">{amountLabel}</p>
 
       <div
