@@ -15,5 +15,5 @@ interface Props {
  */
 export default async function GameDemoPage({ searchParams }: Props) {
   const { locked } = await searchParams
-  return <GameContainer forceLocked={locked === '1'} />
+  return <GameContainer forceLocked={locked === '1'} initialPhase="play" />
 }

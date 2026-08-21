@@ -17,9 +17,14 @@ const DISPLAY_CHARS = [
 
 const IMG_W = 941
 const IMG_H = 1672
-/** 이미지 상단에 baked-in된 여백(명판 위 빈 공간)을 화면 밖으로 밀어내기 위한 미세 확대 배율.
- *  세로 방향 초과분은 전부 상단에서만 잘라내(하단 기준 정렬) 캐릭터/받침대 쪽은 그대로 보존한다 */
-const OVERZOOM = 1.04
+/** 이미지 상단의 순수 여백만 살짝 줄이기 위한 확대 배율 — 명판·프레임 구조는 그대로 유지한 채,
+ *  이미지 하단(캐릭터·받침대·그림자)이 화면 하단에 딱 맞게 정렬된 상태에서 위쪽 여백만 화면 밖으로 밀려난다 */
+const OVERZOOM = 1.034
+/** 진열장 상단 명판 영역(원본 이미지 941x1672 기준 baked-in 좌표) — 이 위에 실제 매장명을 덮어 표시한다 */
+const SIGN_LEFT = 40
+const SIGN_RIGHT = 908
+const SIGN_TOP = 98
+const SIGN_BOTTOM = 315
 /** 집게 스프라이트(crane_claw_arm.png, 투명 배경)를 배경의 레일 고리 위치에 맞춘 좌표 */
 const CLAW_MIN_X = 196
 const CLAW_MIN_Y = 396
@@ -28,12 +33,6 @@ const CLAW_SRC_H = 337
 const CLAW_MAX_X = CLAW_MIN_X + CLAW_SRC_W
 const CLAW_MAX_Y = CLAW_MIN_Y + CLAW_SRC_H
 const CHAR_Y = 1100
-/** 배경 이미지 상단에 그려진 상호명 명판의 실측 좌표(원본 픽셀 기준).
- *  명판 안의 예시 텍스트("명동찜닭")를 가리고 실제 매장명을 그 위에 표시하기 위함. */
-const SIGN_LEFT = 40
-const SIGN_RIGHT = 908
-const SIGN_TOP = 98
-const SIGN_BOTTOM = 315
 /** 집게 프롱이 인형을 감싸 쥐는 지점(집게 높이 기준 비율) */
 const GRIP_Y_RATIO = 0.52
 /** 집게 폭 대비 인형 폭 비율 */
@@ -53,6 +52,15 @@ const BOKEH_DOTS = [
 const RISE_SEC = 2
 /** 뽑기 시작 후 좌우로 자동 탐색하는 시간 */
 const SEARCH_SEC = 1.5
+
+/** 뽑기 시작 버튼 — 캐비닛 받침대의 유리 프레임 하단과 하단 금색 트림 사이 빈 여백
+ *  정중앙에 배치한다 (원본 이미지 941x1672 기준 실측 좌표) */
+const BTN_LEFT = 168
+const BTN_RIGHT = 770
+const BTN_HEIGHT = 121
+const HOUSING_BLANK_TOP = 1370
+const HOUSING_BLANK_BOTTOM = 1530
+const BTN_TOP = (HOUSING_BLANK_TOP + HOUSING_BLANK_BOTTOM) / 2 - BTN_HEIGHT / 2
 
 /** 상단 레일 마운트 ~ 집게 사이를 잇는 코일형 케이블 path를 생성한다.
  *  길이(length)가 늘어날수록 지그재그 반복 횟수도 비례해서 늘어나
@@ -228,9 +236,9 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
 
   return (
     <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
-      {/* 캐비닛 스테이지 — 화면 가장자리까지 완전히 채운다 (여백 없음) */}
+      {/* 캐비닛 스테이지 — 화면 전체를 채우고, 매장명/버튼은 이미지 위 오버레이로 얹는다 */}
       <div ref={stageRef} className="absolute inset-0 overflow-hidden">
-        {/* object-fit: cover 대신 layout(x/y/scale)으로 직접 배치 — 오버레이(명판/조명/집게 등)와
+        {/* object-fit: cover 대신 layout(x/y/scale)으로 직접 배치 — 오버레이(명판/조명/집게/버튼 등)와
             정확히 같은 좌표계를 공유해야 확대/기준점을 바꿔도 어긋나지 않는다 */}
         <img
           src={BG_SRC}
@@ -245,12 +253,10 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
           }}
         />
 
-        {/* 배경 이미지에 그려진 예시 상호명("명동찜닭")을 가리고 실제 매장명을 표시.
-            실측한 배경 그라데이션과 같은 톤으로 채워서 사각형처럼 붙어 보이지 않게 하되,
-            위/아래 경계는 동일하게 또렷이 — 가장자리 페더링(마스크) 없음 */}
+        {/* 진열장 상단 명판 — baked-in 예시 문구를 가리고 실제 매장명을 표시 */}
         {layout.w > 0 && storeName && (
           <div
-            className="pointer-events-none absolute z-10 flex items-center justify-center"
+            className="pointer-events-none absolute z-[5] flex items-center justify-center overflow-hidden"
             style={{
               left: layout.x + SIGN_LEFT * layout.scale,
               top: layout.y + SIGN_TOP * layout.scale,
@@ -260,12 +266,8 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
             }}
           >
             <span
-              className="truncate px-2 font-extrabold tracking-wide text-[#3A2A18]"
-              style={{
-                fontSize: Math.max(12, 56 * layout.scale),
-                letterSpacing: Math.max(0.5, 2.2 * layout.scale),
-                textShadow: '0 1px 3px rgba(255,246,225,0.6)',
-              }}
+              className="truncate px-4 text-center font-extrabold tracking-tight text-[#3A2A18]"
+              style={{ fontSize: 30 * layout.scale, letterSpacing: 1 * layout.scale }}
             >
               {storeName}
             </span>
@@ -408,16 +410,20 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         )}
       </div>
 
-      {/* 하단 버튼 — 화면/기계 맨 아래에 폭 전체로 딱 붙인다 (별도 여백·안내문구 없음) */}
-      <div
-        className="absolute inset-x-0 bottom-0 z-30"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
+      {/* 뽑기 시작 버튼 — 캐비닛 받침대의 유리 프레임과 하단 금색 트림 사이 빈 여백 정중앙에 오버레이로 얹는다 */}
+      {layout.w > 0 && (
         <motion.button
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="block w-full rounded-full bg-[#00C7A7] px-8 py-4 text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          className="absolute z-30 flex items-center justify-center rounded-full bg-[#00C7A7] text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          style={{
+            left: layout.x + BTN_LEFT * layout.scale,
+            top: layout.y + BTN_TOP * layout.scale,
+            width: (BTN_RIGHT - BTN_LEFT) * layout.scale,
+            height: BTN_HEIGHT * layout.scale,
+            fontSize: BTN_HEIGHT * layout.scale * 0.33,
+          }}
           animate={
             !isAnimating
               ? {
@@ -437,7 +443,7 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
         >
           뽑기 시작
         </motion.button>
-      </div>
+      )}
 
       {isAnimating && <div className="absolute inset-0 z-40" />}
     </div>
