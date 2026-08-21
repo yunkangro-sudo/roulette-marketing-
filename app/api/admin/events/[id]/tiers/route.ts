@@ -5,7 +5,8 @@ import { getAdminSession, getAllowedStoreId } from '@/lib/admin/session'
 type Params = { params: Promise<{ id: string }> }
 
 interface TierInput {
-  id: string
+  /** 없으면 신규 등록 */
+  id?: string
   label: string
   amount: number
   total_quantity: number
@@ -23,12 +24,17 @@ function calcProbabilities(quantities: number[], totalParticipants: number): num
 
 /**
  * PATCH /api/admin/events/[id]/tiers
- * 경품 티어 일괄 수정 (등급명 · 금액 · 총수량 자유 수정)
+ * 경품 티어 일괄 수정 — 등급명 · 금액 · 총수량 수정 + 티어 추가/삭제
  *
- * body: { tiers: [{ id, label, amount, total_quantity, requires_verification? }] }
+ * body: {
+ *   tiers: [{ id?, label, amount, total_quantity, requires_verification? }, ...]  ← 저장 후 남아있어야 할 전체 티어 목록 (id 없으면 신규)
+ *   deleted_tier_ids?: string[]  ← 삭제할 기존 티어 id 목록
+ * }
  *
- * - 총수량은 이미 지급된 수량(total_quantity - remaining_quantity)보다 적게 설정할 수 없음
- * - 확률은 이벤트의 "하루 예상 참여자 수" × "노출 기간"을 기준으로 전체 티어를 다시 정규화해서 저장
+ * - 기존 티어의 총수량은 이미 지급된 수량(total_quantity - remaining_quantity)보다 적게 설정할 수 없음
+ * - 삭제는 쿠폰(coupons)이 티어를 외래키로 참조하지 않아 이미 지급된 쿠폰에는 영향 없음
+ * - 이벤트에는 최소 1개의 티어가 남아있어야 함
+ * - 확률은 이벤트의 "하루 예상 참여자 수" × "노출 기간"을 기준으로 저장 후 남는 전체 티어를 다시 정규화해서 계산
  */
 export async function PATCH(req: Request, { params }: Params) {
   const session = await getAdminSession()
@@ -39,9 +45,10 @@ export async function PATCH(req: Request, { params }: Params) {
   const { id: eventId } = await params
   const body = await req.json().catch(() => null)
   const tiersInput: TierInput[] = Array.isArray(body?.tiers) ? body.tiers : []
+  const deletedTierIds: string[] = Array.isArray(body?.deleted_tier_ids) ? body.deleted_tier_ids : []
 
   if (tiersInput.length === 0) {
-    return NextResponse.json({ error: '수정할 티어 정보가 없습니다' }, { status: 400 })
+    return NextResponse.json({ error: '경품 티어는 최소 1개 이상 있어야 합니다' }, { status: 400 })
   }
 
   const supabase = createServerClient()
@@ -72,9 +79,19 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const existingMap = new Map(existingTiers.map((t) => [t.id, t]))
 
-  // ── 입력값 검증 ──────────────────────────────────────────────
+  // ── 삭제 대상 검증 ───────────────────────────────────────────
+  for (const delId of deletedTierIds) {
+    if (!existingMap.has(delId)) {
+      return NextResponse.json({ error: '알 수 없는 삭제 대상 티어가 포함되어 있습니다' }, { status: 400 })
+    }
+    if (tiersInput.some((t) => t.id === delId)) {
+      return NextResponse.json({ error: '같은 티어를 수정과 삭제로 동시에 요청할 수 없습니다' }, { status: 400 })
+    }
+  }
+
+  // ── 입력값 검증 (수정 대상 + 신규 등록 공통) ────────────────
   for (const t of tiersInput) {
-    if (!existingMap.has(t.id)) {
+    if (t.id && !existingMap.has(t.id)) {
       return NextResponse.json({ error: '알 수 없는 티어가 포함되어 있습니다' }, { status: 400 })
     }
     if (!t.label?.trim()) {
@@ -88,8 +105,9 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
-  // 이미 지급된 수량보다 적게 설정하지 못하도록 방지
+  // 기존 티어는 이미 지급된 수량보다 적게 설정하지 못하도록 방지
   for (const t of tiersInput) {
+    if (!t.id) continue
     const existing = existingMap.get(t.id)!
     const issued = existing.total_quantity - existing.remaining_quantity
     if (Number(t.total_quantity) < issued) {
@@ -100,7 +118,7 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
-  // ── 확률 재계산 (전체 티어 기준) ──────────────────────────────
+  // ── 확률 재계산 (삭제 후 남는 전체 티어 기준) ─────────────────
   let totalParticipants = 0
   if (event.expected_daily_participants && event.display_start_date && event.display_end_date) {
     const start = new Date(event.display_start_date)
@@ -110,56 +128,97 @@ export async function PATCH(req: Request, { params }: Params) {
   }
   const probabilities = calcProbabilities(tiersInput.map((t) => Number(t.total_quantity)), totalParticipants)
 
-  // ── 업데이트 + 이력 기록 ──────────────────────────────────────
+  // ── 수정 / 신규 등록 처리 ─────────────────────────────────────
   const updated: Array<{
-    id: string; total_quantity: number; remaining_quantity: number; computed_probability: number
+    id: string; total_quantity: number; remaining_quantity: number; computed_probability: number; is_new: boolean
   }> = []
 
   for (let i = 0; i < tiersInput.length; i++) {
     const t = tiersInput[i]
-    const existing = existingMap.get(t.id)!
-    const issued = existing.total_quantity - existing.remaining_quantity
-    const newTotal = Number(t.total_quantity)
-    const newRemaining = newTotal - issued
 
-    const { error: updateError } = await supabase
-      .from('prize_tiers')
-      .update({
-        label: t.label.trim(),
-        amount: Number(t.amount),
-        total_quantity: newTotal,
-        remaining_quantity: newRemaining,
-        computed_probability: probabilities[i],
-        ...(t.requires_verification !== undefined ? { requires_verification: t.requires_verification } : {}),
-      })
-      .eq('id', t.id)
+    if (t.id) {
+      // 기존 티어 수정
+      const existing = existingMap.get(t.id)!
+      const issued = existing.total_quantity - existing.remaining_quantity
+      const newTotal = Number(t.total_quantity)
+      const newRemaining = newTotal - issued
 
-    if (updateError) {
-      return NextResponse.json({ error: `"${t.label}" 저장 실패: ${updateError.message}` }, { status: 500 })
-    }
+      const { error: updateError } = await supabase
+        .from('prize_tiers')
+        .update({
+          label: t.label.trim(),
+          amount: Number(t.amount),
+          total_quantity: newTotal,
+          remaining_quantity: newRemaining,
+          computed_probability: probabilities[i],
+          ...(t.requires_verification !== undefined ? { requires_verification: t.requires_verification } : {}),
+        })
+        .eq('id', t.id)
 
-    if (newTotal !== existing.total_quantity) {
+      if (updateError) {
+        return NextResponse.json({ error: `"${t.label}" 저장 실패: ${updateError.message}` }, { status: 500 })
+      }
+
+      if (newTotal !== existing.total_quantity) {
+        const { error: logError } = await supabase.from('tier_quantity_changes').insert({
+          prize_tier_id: t.id,
+          event_id: eventId,
+          store_id: event.store_id,
+          changed_by: session.account.id,
+          previous_quantity: existing.total_quantity,
+          new_quantity: newTotal,
+        })
+        if (logError) console.warn('tier_quantity_changes 기록 실패:', logError.message)
+      }
+
+      updated.push({ id: t.id, total_quantity: newTotal, remaining_quantity: newRemaining, computed_probability: probabilities[i], is_new: false })
+    } else {
+      // 신규 티어 등록
+      const newTotal = Number(t.total_quantity)
+      const { data: inserted, error: insertError } = await supabase
+        .from('prize_tiers')
+        .insert({
+          event_id: eventId,
+          label: t.label.trim(),
+          amount: Number(t.amount),
+          total_quantity: newTotal,
+          remaining_quantity: newTotal,
+          computed_probability: probabilities[i],
+          requires_verification: t.requires_verification ?? false,
+        })
+        .select('id')
+        .single()
+
+      if (insertError || !inserted) {
+        return NextResponse.json({ error: `"${t.label}" 신규 등록 실패: ${insertError?.message ?? '알 수 없는 오류'}` }, { status: 500 })
+      }
+
       const { error: logError } = await supabase.from('tier_quantity_changes').insert({
-        prize_tier_id: t.id,
+        prize_tier_id: inserted.id,
         event_id: eventId,
         store_id: event.store_id,
         changed_by: session.account.id,
-        previous_quantity: existing.total_quantity,
+        previous_quantity: 0,
         new_quantity: newTotal,
       })
-      if (logError) {
-        // 이력 기록 실패는 치명적이지 않으므로 경고만 (롤백 안 함)
-        console.warn('tier_quantity_changes 기록 실패:', logError.message)
-      }
-    }
+      if (logError) console.warn('tier_quantity_changes 기록 실패:', logError.message)
 
-    updated.push({
-      id: t.id,
-      total_quantity: newTotal,
-      remaining_quantity: newRemaining,
-      computed_probability: probabilities[i],
-    })
+      updated.push({ id: inserted.id, total_quantity: newTotal, remaining_quantity: newTotal, computed_probability: probabilities[i], is_new: true })
+    }
   }
 
-  return NextResponse.json({ ok: true, tiers: updated })
+  // ── 삭제 처리 (쿠폰은 티어를 참조하지 않으므로 안전) ───────────
+  if (deletedTierIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('prize_tiers')
+      .delete()
+      .eq('event_id', eventId)
+      .in('id', deletedTierIds)
+
+    if (deleteError) {
+      return NextResponse.json({ error: '티어 삭제 실패: ' + deleteError.message }, { status: 500 })
+    }
+  }
+
+  return NextResponse.json({ ok: true, tiers: updated, deleted_tier_ids: deletedTierIds })
 }

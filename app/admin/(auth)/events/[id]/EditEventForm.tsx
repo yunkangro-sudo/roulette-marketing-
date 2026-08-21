@@ -14,6 +14,13 @@ interface PrizeTier {
   requires_verification: boolean
 }
 
+/** 편집용 티어 상태. id가 null이면 아직 서버에 저장되지 않은 신규 티어 */
+interface EditableTier extends Omit<PrizeTier, 'id'> {
+  id: string | null
+  /** React key + 로컬 상태 식별용. 기존 티어는 서버 id, 신규 티어는 임시 문자열 */
+  tempKey: string
+}
+
 interface HistoryEntry {
   id: string
   previous_quantity: number
@@ -68,8 +75,11 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [loading, setLoading] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
 
-  // 경품 티어 편집 상태 (등급명 · 금액 · 총수량 자유 수정)
-  const [tiers, setTiers] = useState<PrizeTier[]>(event.prize_tiers ?? [])
+  // 경품 티어 편집 상태 (등급명 · 금액 · 총수량 수정 + 티어 추가/삭제)
+  const [tiers, setTiers] = useState<EditableTier[]>(
+    (event.prize_tiers ?? []).map((t) => ({ ...t, tempKey: t.id }))
+  )
+  const [deletedTierIds, setDeletedTierIds] = useState<string[]>([])
   const [tiersError, setTiersError] = useState('')
   const [tiersSuccess, setTiersSuccess] = useState('')
   const [tiersLoading, setTiersLoading] = useState(false)
@@ -80,11 +90,57 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [historyLoading, setHistoryLoading] = useState<Record<string, boolean>>({})
 
   function updateTierField(
-    tierId: string,
+    tempKey: string,
     field: 'label' | 'amount' | 'total_quantity' | 'requires_verification',
     value: string | number | boolean
   ) {
-    setTiers((prev) => prev.map((t) => (t.id === tierId ? { ...t, [field]: value } : t)))
+    setTiers((prev) => prev.map((t) => {
+      if (t.tempKey !== tempKey) return t
+      const next = { ...t, [field]: value }
+      // 신규(미저장) 티어는 총수량을 바꾸면 잔여수량도 같이 맞춰서 "지급됨 0개" 상태를 유지
+      if (field === 'total_quantity' && t.id === null) {
+        next.remaining_quantity = Number(value) || 0
+      }
+      return next
+    }))
+  }
+
+  function addTier() {
+    setTiers((prev) => [
+      ...prev,
+      {
+        tempKey: `new-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: null,
+        label: '',
+        amount: 0,
+        total_quantity: 0,
+        remaining_quantity: 0,
+        computed_probability: 0,
+        requires_verification: false,
+      },
+    ])
+    setTiersError('')
+    setTiersSuccess('')
+  }
+
+  function removeTier(tempKey: string) {
+    const tier = tiers.find((t) => t.tempKey === tempKey)
+    if (!tier) return
+    if (tiers.length <= 1) {
+      setTiersError('경품 티어는 최소 1개 이상 있어야 합니다')
+      return
+    }
+    if (tier.id) {
+      const issued = tier.total_quantity - tier.remaining_quantity
+      const msg = issued > 0
+        ? `"${tier.label}" 티어는 이미 ${issued}개가 지급되었습니다.\n삭제해도 이미 지급된 쿠폰에는 영향이 없지만, 이 티어 설정과 수량 변경 이력은 함께 삭제됩니다.\n계속하시겠습니까?`
+        : `"${tier.label}" 티어를 삭제하시겠습니까?`
+      if (!confirm(msg)) return
+      setDeletedTierIds((prev) => [...prev, tier.id as string])
+    }
+    setTiers((prev) => prev.filter((t) => t.tempKey !== tempKey))
+    setTiersError('')
+    setTiersSuccess('')
   }
 
   // 저장 전 확률 미리보기 (새 이벤트 등록과 동일한 공식: 하루 예상 참여자 수 × 노출 기간)
@@ -117,23 +173,26 @@ export default function EditEventForm({ event }: { event: Event }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tiers: tiers.map((t) => ({
-            id: t.id,
+            id: t.id ?? undefined,
             label: t.label,
             amount: Number(t.amount),
             total_quantity: Number(t.total_quantity),
             requires_verification: t.requires_verification,
           })),
+          deleted_tier_ids: deletedTierIds,
         }),
       })
       const data = await res.json()
       if (!res.ok) { setTiersError(data.error ?? '티어 저장 실패'); return }
 
-      setTiers((prev) => prev.map((t) => {
-        const upd = data.tiers?.find((u: { id: string; total_quantity: number; remaining_quantity: number; computed_probability: number }) => u.id === t.id)
+      const results: Array<{ id: string; total_quantity: number; remaining_quantity: number; computed_probability: number }> = data.tiers ?? []
+      setTiers((prev) => prev.map((t, i) => {
+        const upd = results[i]
         return upd
-          ? { ...t, total_quantity: upd.total_quantity, remaining_quantity: upd.remaining_quantity, computed_probability: upd.computed_probability }
+          ? { ...t, id: upd.id, total_quantity: upd.total_quantity, remaining_quantity: upd.remaining_quantity, computed_probability: upd.computed_probability }
           : t
       }))
+      setDeletedTierIds([])
       setTiersSuccess('경품 티어가 저장되었습니다. 확률이 자동으로 재계산되었습니다.')
       router.refresh()
     } catch {
@@ -356,8 +415,9 @@ export default function EditEventForm({ event }: { event: Event }) {
 
         {/* 안내 */}
         <p className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-4">
-          등급명 · 금액 · 총 수량을 자유롭게 수정할 수 있습니다. 저장하면 위 &quot;하루 예상 참여자 수&quot;와 노출 기간을 기준으로 확률이 자동 재계산됩니다.
-          총 수량은 이미 지급된 개수보다 적게 설정할 수 없습니다. 티어 추가 · 삭제는 지원하지 않습니다 — 새 등급이 필요하면 이 이벤트를 종료하고 새로 등록해주세요.
+          등급명 · 금액 · 총 수량을 자유롭게 수정할 수 있고, 티어를 추가하거나 삭제할 수도 있습니다.
+          저장하면 위 &quot;하루 예상 참여자 수&quot;와 노출 기간을 기준으로 확률이 자동 재계산됩니다.
+          기존 티어의 총 수량은 이미 지급된 개수보다 적게 설정할 수 없습니다.
         </p>
 
         {tiersError && <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{tiersError}</div>}
@@ -366,20 +426,35 @@ export default function EditEventForm({ event }: { event: Event }) {
         <div className="space-y-3">
           {tiers.map((tier, i) => {
             const issued = tier.total_quantity - tier.remaining_quantity
+            const isNew = tier.id === null
             return (
-              <div key={tier.id} className="bg-white rounded-xl border border-gray-200 px-5 py-4">
+              <div key={tier.tempKey} className={`bg-white rounded-xl border px-5 py-4 ${isNew ? 'border-orange-300 border-dashed' : 'border-gray-200'}`}>
                 {/* 등급명 / 금액 */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {isNew && <span className="text-xs bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">신규</span>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeTier(tier.tempKey)}
+                    className="text-xs text-red-400 hover:text-red-600 font-medium"
+                  >
+                    이 티어 삭제
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">등급명</label>
-                    <input value={tier.label} onChange={(e) => updateTierField(tier.id, 'label', e.target.value)}
+                    <input value={tier.label} onChange={(e) => updateTierField(tier.tempKey, 'label', e.target.value)}
+                      placeholder="예: 꽝 / 1,000원 쿠폰"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">금액 (꽝=0)</label>
                     <div className="flex items-center gap-1">
                       <input type="number" min={0} value={tier.amount}
-                        onChange={(e) => updateTierField(tier.id, 'amount', e.target.value ? Number(e.target.value) : 0)}
+                        onChange={(e) => updateTierField(tier.tempKey, 'amount', e.target.value ? Number(e.target.value) : 0)}
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
                       <span className="text-xs text-gray-400">원</span>
                     </div>
@@ -391,68 +466,75 @@ export default function EditEventForm({ event }: { event: Event }) {
                   <div className="flex-1">
                     <label className="text-xs text-gray-500 mb-1 block">총 수량</label>
                     <div className="flex items-center gap-1">
-                      <input type="number" min={issued} value={tier.total_quantity}
-                        onChange={(e) => updateTierField(tier.id, 'total_quantity', e.target.value ? Number(e.target.value) : 0)}
+                      <input type="number" min={Math.max(1, issued)} value={tier.total_quantity}
+                        onChange={(e) => updateTierField(tier.tempKey, 'total_quantity', e.target.value ? Number(e.target.value) : 0)}
+                        placeholder="100"
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
                       <span className="text-xs text-gray-400">개</span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">지급됨 {issued}개 · 잔여 {tier.remaining_quantity}개</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {isNew ? '저장하면 등록됩니다' : `지급됨 ${issued}개 · 잔여 ${tier.remaining_quantity}개`}
+                    </p>
                   </div>
                   <div className="shrink-0 text-center">
                     <p className="text-xs text-gray-400 mb-1">저장 시 확률</p>
                     <p className={`text-lg font-black ${previewProbabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
                       {previewProbabilities[i].toFixed(1)}%
                     </p>
-                    <p className="text-xs text-gray-300">현재 {tier.computed_probability.toFixed(1)}%</p>
+                    {!isNew && <p className="text-xs text-gray-300">현재 {tier.computed_probability.toFixed(1)}%</p>}
                   </div>
                 </div>
 
                 {/* 직원 확인 필요 */}
                 <label className="flex items-center gap-2 cursor-pointer mb-2">
                   <input type="checkbox" checked={tier.requires_verification}
-                    onChange={(e) => updateTierField(tier.id, 'requires_verification', e.target.checked)}
+                    onChange={(e) => updateTierField(tier.tempKey, 'requires_verification', e.target.checked)}
                     className="h-4 w-4 accent-orange-500 cursor-pointer" />
                   <span className="text-xs text-gray-600">고액 경품 — 직원 확인 필요</span>
                 </label>
 
-                {/* 변경 이력 */}
-                <div className="border-t border-gray-100 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleHistory(tier.id)}
-                    className="text-xs text-gray-400 hover:text-gray-600"
-                  >
-                    변경 이력 {historyOpen[tier.id] ? '▲' : '▼'}
-                  </button>
-                </div>
+                {/* 변경 이력 (저장된 티어만) */}
+                {!isNew && (
+                  <>
+                    <div className="border-t border-gray-100 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleHistory(tier.id as string)}
+                        className="text-xs text-gray-400 hover:text-gray-600"
+                      >
+                        변경 이력 {historyOpen[tier.id as string] ? '▲' : '▼'}
+                      </button>
+                    </div>
 
-                {historyOpen[tier.id] && (
-                  <div className="mt-3 border-t border-gray-100 pt-3">
-                    {historyLoading[tier.id] ? (
-                      <p className="text-xs text-gray-400">로딩 중...</p>
-                    ) : (historyMap[tier.id]?.length ?? 0) === 0 ? (
-                      <p className="text-xs text-gray-400">변경 이력이 없습니다</p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {historyMap[tier.id].map((h) => {
-                          const delta = h.new_quantity - h.previous_quantity
-                          return (
-                            <div key={h.id} className="flex items-center justify-between text-xs">
-                              <div className="text-gray-500">
-                                <span className="font-medium text-gray-700">{h.store_accounts?.email ?? '알 수 없음'}</span>
-                                <span className="ml-2">{new Date(h.changed_at).toLocaleString('ko-KR')}</span>
-                              </div>
-                              <div className="text-gray-700 font-medium">
-                                {h.previous_quantity}개 →{' '}
-                                <span className={delta >= 0 ? 'text-green-600' : 'text-red-500'}>{h.new_quantity}개</span>
-                                <span className="text-gray-400 ml-1">({delta >= 0 ? '+' : ''}{delta})</span>
-                              </div>
-                            </div>
-                          )
-                        })}
+                    {historyOpen[tier.id as string] && (
+                      <div className="mt-3 border-t border-gray-100 pt-3">
+                        {historyLoading[tier.id as string] ? (
+                          <p className="text-xs text-gray-400">로딩 중...</p>
+                        ) : (historyMap[tier.id as string]?.length ?? 0) === 0 ? (
+                          <p className="text-xs text-gray-400">변경 이력이 없습니다</p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {historyMap[tier.id as string].map((h) => {
+                              const delta = h.new_quantity - h.previous_quantity
+                              return (
+                                <div key={h.id} className="flex items-center justify-between text-xs">
+                                  <div className="text-gray-500">
+                                    <span className="font-medium text-gray-700">{h.store_accounts?.email ?? '알 수 없음'}</span>
+                                    <span className="ml-2">{new Date(h.changed_at).toLocaleString('ko-KR')}</span>
+                                  </div>
+                                  <div className="text-gray-700 font-medium">
+                                    {h.previous_quantity}개 →{' '}
+                                    <span className={delta >= 0 ? 'text-green-600' : 'text-red-500'}>{h.new_quantity}개</span>
+                                    <span className="text-gray-400 ml-1">({delta >= 0 ? '+' : ''}{delta})</span>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )
@@ -461,9 +543,17 @@ export default function EditEventForm({ event }: { event: Event }) {
 
         <button
           type="button"
+          onClick={addTier}
+          className="mt-3 w-full border-2 border-dashed border-gray-300 hover:border-orange-400 text-gray-400 hover:text-orange-500 rounded-lg py-2.5 text-sm font-medium transition-colors"
+        >
+          + 티어 추가
+        </button>
+
+        <button
+          type="button"
           onClick={handleSaveTiers}
           disabled={tiersLoading}
-          className="mt-4 w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 rounded-lg text-sm transition-colors disabled:opacity-40"
+          className="mt-3 w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-3 rounded-lg text-sm transition-colors disabled:opacity-40"
         >
           {tiersLoading ? '저장 중...' : '경품 티어 저장'}
         </button>
