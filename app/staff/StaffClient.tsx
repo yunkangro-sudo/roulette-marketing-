@@ -171,11 +171,13 @@ export default function StaffClient({ storeId, role }: Props) {
       }
       if (codeKind === 'coupon') {
         const c = data.coupon
+        // label(실제 품목명)이 있으면 우선 사용 — 없으면(예전에 발급된 쿠폰) 금액 표시로 대체
+        const couponLabel = c.label || `${Number(c.amount).toLocaleString()}원 쿠폰`
         setWorking({
           item_type: 'coupon',
           item_id: c.id,
           display_code: c.short_code ?? '',
-          label: `${Number(c.amount).toLocaleString()}원 쿠폰`,
+          label: couponLabel,
           amount: c.amount,
           status: c.status,
           short_code: c.short_code,
@@ -185,7 +187,7 @@ export default function StaffClient({ storeId, role }: Props) {
             item_type: 'coupon',
             item_id: c.id,
             display_code: c.short_code ?? '—',
-            label: `${Number(c.amount).toLocaleString()}원 쿠폰`,
+            label: couponLabel,
             amount: c.amount,
             status: 'pending_apply',
           })

@@ -180,6 +180,7 @@ export async function persistPendingPlay(params: {
       kakao_user_id: kakaoUserId,
       store_id: pending.storeId,
       amount: pending.amount,
+      label: pending.label,
       source_type: 'game_win',
       requires_verification: true,
       status: 'pending_verify',

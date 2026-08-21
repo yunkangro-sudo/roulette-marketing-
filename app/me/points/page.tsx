@@ -44,6 +44,7 @@ interface Mission {
 interface MyCoupon {
   id: string
   amount: number
+  label: string | null
   shortCode: string | null
   validUntil: string
   storeName: string
@@ -231,7 +232,7 @@ function PointsContent() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-lg font-bold text-[#222222]">{c.amount.toLocaleString()}원</p>
+                      <p className="text-lg font-bold text-[#222222]">{c.label || `${c.amount.toLocaleString()}원`}</p>
                       <p className="mt-0.5 text-xs text-[#222222]/50">{c.storeName}</p>
                       <p className="mt-1 text-xs text-[#222222]/40">
                         사용기한 ~{new Date(c.validUntil).toLocaleDateString('ko-KR')}

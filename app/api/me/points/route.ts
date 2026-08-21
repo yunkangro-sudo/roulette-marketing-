@@ -69,7 +69,7 @@ export async function GET(req: Request) {
       .eq('kakao_user_id', kakaoUserId),
     supabase
       .from('coupons')
-      .select('id, amount, status, short_code, valid_until, issued_at')
+      .select('id, amount, label, status, short_code, valid_until, issued_at')
       .eq('store_id', storeId)
       .eq('kakao_user_id', kakaoUserId)
       .order('issued_at', { ascending: false })
@@ -112,6 +112,7 @@ export async function GET(req: Request) {
     return {
       id: c.id,
       amount: c.amount,
+      label: c.label,
       shortCode: c.short_code,
       validUntil: c.valid_until,
       storeName,

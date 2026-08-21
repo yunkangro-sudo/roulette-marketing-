@@ -23,7 +23,7 @@ export async function GET(
   const supabase = createServerClient()
   const { data: coupon, error } = await supabase
     .from('coupons')
-    .select('id, store_id, kakao_user_id, amount, status, short_code, issued_at, valid_until, used_at')
+    .select('id, store_id, kakao_user_id, amount, label, status, short_code, issued_at, valid_until, used_at')
     .eq('id', couponId)
     .maybeSingle()
 
@@ -46,6 +46,7 @@ export async function GET(
       storeId: coupon.store_id,
       storeName: store?.store_name ?? coupon.store_id,
       amount: coupon.amount,
+      label: coupon.label,
       shortCode: coupon.short_code,
       issuedAt: coupon.issued_at,
       validUntil: coupon.valid_until,

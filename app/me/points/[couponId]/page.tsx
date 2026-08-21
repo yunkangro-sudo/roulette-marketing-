@@ -9,6 +9,7 @@ interface CouponDetail {
   storeId: string
   storeName: string
   amount: number
+  label: string | null
   shortCode: string | null
   validUntil: string
   usedAt: string | null
@@ -148,7 +149,7 @@ function CouponDetailContent() {
 
         <CouponTicket
           className="mt-5"
-          amountLabel={`${coupon.amount.toLocaleString()}원 쿠폰`}
+          amountLabel={coupon.label || `${coupon.amount.toLocaleString()}원 쿠폰`}
           code={coupon.shortCode ?? coupon.id.slice(0, 6).toUpperCase()}
           validUntilLabel={`~${formatDate(coupon.validUntil)}`}
           noteText="계산대에서 이 쿠폰 화면을 보여주세요"

@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
   let query = supabase
     .from('coupons')
-    .select('id, short_code, store_id, kakao_user_id, amount, status, requires_verification, issued_at, valid_until, unverified_reason')
+    .select('id, short_code, store_id, kakao_user_id, amount, label, status, requires_verification, issued_at, valid_until, unverified_reason')
 
         // short_code(6자리) 또는 id(UUID) 모두 허용 (하위 호환)
          if (code.length <= 8) {
