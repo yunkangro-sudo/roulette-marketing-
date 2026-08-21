@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireAdminAuth } from '@/lib/admin/session'
+import { generateTempPassword } from '@/lib/admin/tempPassword'
 import bcrypt from 'bcryptjs'
 
 /**
@@ -41,12 +42,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '올바른 이메일 형식을 입력해주세요' }, { status: 400 })
   }
 
-  // 임시 비밀번호 생성 (12자리)
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  let tempPassword = ''
-  for (let i = 0; i < 12; i++) {
-    tempPassword += chars[Math.floor(Math.random() * chars.length)]
-  }
+  // 임시 비밀번호 생성 (이메일 아이디 + 1234)
+  const tempPassword = generateTempPassword(advertiser_email)
   const passwordHash = await bcrypt.hash(tempPassword, 12)
 
   const supabase = createServerClient()

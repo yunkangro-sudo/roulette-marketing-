@@ -158,7 +158,7 @@ export default function CompanyForm({ mode, initial }: Props) {
           <p className="text-green-700 text-sm mb-6">
             {mode === 'create'
               ? '광고주 계정이 생성되었습니다. 아래 임시 비밀번호를 광고주에게 직접 전달하세요.'
-              : '새 임시 비밀번호가 발급되었습니다. 광고주에게 직접 전달하세요.'}
+              : '비밀번호가 재발급되었습니다. 광고주에게 직접 전달하세요.'}
           </p>
 
           <div className="bg-white border border-green-200 rounded-xl p-5 mb-6 text-left space-y-2">
@@ -167,7 +167,7 @@ export default function CompanyForm({ mode, initial }: Props) {
               <span className="font-mono font-bold text-gray-900">{shownEmail}</span>
             </div>
             <div className="flex gap-2 text-sm items-center">
-              <span className="text-gray-500 w-28 shrink-0">임시 비밀번호</span>
+              <span className="text-gray-500 w-28 shrink-0">비밀번호</span>
               <span className="font-mono font-bold text-orange-600 text-lg tracking-widest">{tempPassword}</span>
             </div>
             <div className="flex gap-2 text-sm">
@@ -176,9 +176,9 @@ export default function CompanyForm({ mode, initial }: Props) {
             </div>
           </div>
 
-          <p className="text-xs text-red-500 mb-6">
-            ⚠️ 이 화면을 벗어나면 임시 비밀번호를 다시 확인할 수 없습니다.
-            광고주에게 전달 후 이동하세요.
+          <p className="text-xs text-gray-400 mb-6">
+            💡 비밀번호 규칙: <span className="font-mono">이메일 아이디 + 1234</span> (예: {shownEmail.split('@')[0] || 'abc'}1234)
+            — 나중에 잊어버려도 이 규칙으로 바로 알 수 있고, 다시 이 화면에 오려면 &quot;비밀번호 재발급&quot;을 누르면 됩니다.
           </p>
 
           <Link href="/admin/companies"
@@ -361,7 +361,8 @@ export default function CompanyForm({ mode, initial }: Props) {
               {resetError && <p className="text-xs text-red-500 mt-1">{resetError}</p>}
               {initial?.advertiserEmail && (
                 <p className="text-xs text-gray-400 mt-1">
-                  이메일은 변경할 수 없습니다. 새 비밀번호 발급 후 광고주에게 직접 전달하세요.
+                  이메일은 변경할 수 없습니다. 비밀번호 규칙은 <span className="font-mono">이메일 아이디 + 1234</span>입니다
+                  (예: {initial.advertiserEmail.split('@')[0]}1234). &quot;비밀번호 재발급&quot;을 누르면 이 규칙으로 다시 설정됩니다.
                 </p>
               )}
             </div>
