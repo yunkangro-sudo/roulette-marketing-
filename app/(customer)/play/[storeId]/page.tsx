@@ -3,6 +3,7 @@ import PlayFlow from './PlayFlow'
 import ResultPreview from '@/components/game/ResultPreview'
 import ResultLockedScreen from '@/components/play/ResultLockedScreen'
 import FlowPreview from '@/components/play/FlowPreview'
+import DeviceFrame from '@/components/play/DeviceFrame'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 interface Props {
@@ -19,17 +20,17 @@ export default async function PlayPage({ params, searchParams }: Props) {
   const { storeId } = await params
   const { claim, preview_result } = await searchParams
   if (preview_result === 'big' || preview_result === 'small' || preview_result === 'miss') {
-    return <ResultPreview tier={preview_result} />
+    return <DeviceFrame><ResultPreview tier={preview_result} /></DeviceFrame>
   }
   if (preview_result === 'locked') {
-    return <ResultLockedScreen storeId={storeId} />
+    return <DeviceFrame><ResultLockedScreen storeId={storeId} /></DeviceFrame>
   }
   if (
     preview_result === 'already_participated' ||
     preview_result === 'channel_cta' ||
     preview_result === 'verification'
   ) {
-    return <FlowPreview screen={preview_result} storeId={storeId} />
+    return <DeviceFrame><FlowPreview screen={preview_result} storeId={storeId} /></DeviceFrame>
   }
   const supabase = createServerClient()
 
@@ -57,13 +58,15 @@ export default async function PlayPage({ params, searchParams }: Props) {
   console.log('[play] error:', error)
 
   return (
-    <PlayFlow
-      storeId={storeId}
-      event={event}
-      storeName={store?.store_name ?? null}
-      daangnUrl={safeHttpUrl(contract?.daangn_url)}
-      kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
-      resumeClaim={claim === '1'}
-    />
+    <DeviceFrame>
+      <PlayFlow
+        storeId={storeId}
+        event={event}
+        storeName={store?.store_name ?? null}
+        daangnUrl={safeHttpUrl(contract?.daangn_url)}
+        kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
+        resumeClaim={claim === '1'}
+      />
+    </DeviceFrame>
   )
 }

@@ -260,7 +260,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (!event) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-6 bg-[#FFF3DE] px-8 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-6 bg-[#FFF3DE] px-8 text-center">
         <img
           src="/characters/char_result_miss.png"
           alt=""
@@ -280,7 +280,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'loading' || step === 'claiming') {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#FFF3DE]">
+      <div className="flex h-full items-center justify-center bg-[#FFF3DE]">
         <div className="flex flex-col items-center">
           <motion.img
             src="/characters/char_result_jackpot.png"
@@ -299,7 +299,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'landing') {
     return (
-      <div className="relative flex h-screen flex-col overflow-hidden bg-[#EFE6D6]">
+      <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
         {/* 캐비닛 이미지 — 상단 안내 헤더를 없애고 세이프 영역만 최소로 확보(화면 길이 축소) */}
         <div
           ref={landingImgRef}
@@ -453,7 +453,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'result' && result) {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-[#EFE6D6]">
+      <div className="relative w-full h-full overflow-hidden bg-[#EFE6D6]">
         <ResultScreen
           result={result}
           onReplay={handleSwitchAccount}
@@ -478,7 +478,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'verification_cta' && result) {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-gray-900">
+      <div className="relative w-full h-full overflow-hidden bg-gray-900">
         <VerificationCtaScreen
           result={result}
           onDone={handleSwitchAccount}

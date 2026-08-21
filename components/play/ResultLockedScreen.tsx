@@ -14,7 +14,7 @@ const KAKAO_REVIEW_PENDING = process.env.NEXT_PUBLIC_KAKAO_REVIEW_PENDING === 't
 
 export default function ResultLockedScreen({ storeId, onMockLogin, loading }: Props) {
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-[#EFE6D6]">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
         src="/characters/bg_result_spotlight.png"
         alt=""

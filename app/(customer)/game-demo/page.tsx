@@ -1,4 +1,5 @@
 import GameContainer from '@/components/game/claw_machine/GameContainer'
+import DeviceFrame from '@/components/play/DeviceFrame'
 
 export const metadata = {
   title: '당근 인형뽑기 — 게임 데모',
@@ -15,5 +16,9 @@ interface Props {
  */
 export default async function GameDemoPage({ searchParams }: Props) {
   const { locked } = await searchParams
-  return <GameContainer forceLocked={locked === '1'} initialPhase="play" />
+  return (
+    <DeviceFrame>
+      <GameContainer forceLocked={locked === '1'} initialPhase="play" />
+    </DeviceFrame>
+  )
 }

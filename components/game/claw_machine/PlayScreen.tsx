@@ -235,7 +235,7 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
   }, [isAnimating, clawX, clawY, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
 
   return (
-    <div className="relative h-screen w-full select-none overflow-hidden bg-[#EFE6D6]">
+    <div className="relative h-full w-full select-none overflow-hidden bg-[#EFE6D6]">
       {/* 캐비닛 스테이지 — 화면 전체를 채우고, 매장명/버튼은 이미지 위 오버레이로 얹는다 */}
       <div ref={stageRef} className="absolute inset-0 overflow-hidden">
         {/* object-fit: cover 대신 layout(x/y/scale)으로 직접 배치 — 오버레이(명판/조명/집게/버튼 등)와

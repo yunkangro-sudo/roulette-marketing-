@@ -40,7 +40,7 @@ const PREVIEWS: Record<'big' | 'small' | 'miss', PrizeResult> = {
 
 export default function ResultPreview({ tier }: { tier: 'big' | 'small' | 'miss' }) {
   return (
-    <div className="h-screen">
+    <div className="h-full">
       <ResultScreen
         result={PREVIEWS[tier]}
         onReplay={() => {}}

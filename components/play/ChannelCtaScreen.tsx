@@ -14,7 +14,7 @@ interface Props {
 
 export default function ChannelCtaScreen({ kakaoChannelUrl, onContinue }: Props) {
   return (
-    <div className="flex h-screen flex-col items-center justify-center gap-6 bg-[#EFE6D6] px-8 text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-6 bg-[#EFE6D6] px-8 text-center">
       <motion.div
         initial={{ scale: 0, rotate: -15 }}
         animate={{ scale: 1, rotate: 0 }}

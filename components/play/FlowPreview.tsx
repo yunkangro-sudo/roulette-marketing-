@@ -21,7 +21,7 @@ interface Props {
 export default function FlowPreview({ screen, storeId }: Props) {
   if (screen === 'already_participated') {
     return (
-      <div className="h-screen">
+      <div className="h-full">
         <AlreadyParticipatedScreen onSwitchAccount={() => {}} />
       </div>
     )
@@ -32,7 +32,7 @@ export default function FlowPreview({ screen, storeId }: Props) {
   }
 
   return (
-    <div className="h-screen">
+    <div className="h-full">
       <VerificationCtaScreen
         result={{
           tier: 'big',

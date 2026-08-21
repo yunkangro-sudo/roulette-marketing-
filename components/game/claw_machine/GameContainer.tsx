@@ -56,7 +56,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#EFE6D6]">
+    <div className="relative w-full h-full overflow-hidden bg-[#EFE6D6]">
       {phase === 'start' && <StartScreen onStart={handleStart} />}
 
       {phase === 'play' && (
