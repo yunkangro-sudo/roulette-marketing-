@@ -19,9 +19,15 @@ interface Company {
   remarks?: string
   daangn_url?: string
   kakao_channel_url?: string
+  business_type?: string
   /** 서버에서 fetch한 광고주 이메일 (edit 모드 전용, 읽기전용) */
   advertiserEmail?: string
 }
+
+const BUSINESS_TYPES = [
+  '카페·베이커리', '음식점·식당', '주점·바', '미용실·네일',
+  '헬스·필라테스', '소매·편의점', '학원·교습소', '기타',
+]
 
 interface Props {
   mode: 'create' | 'edit'
@@ -45,6 +51,7 @@ export default function CompanyForm({ mode, initial }: Props) {
     remarks:             initial?.remarks             ?? '',
     daangn_url:          initial?.daangn_url          ?? '',
     kakao_channel_url:   initial?.kakao_channel_url   ?? '',
+    business_type:       initial?.business_type       ?? '',
   })
 
   // 생성 모드 전용: 광고주 이메일 입력
@@ -130,6 +137,7 @@ export default function CompanyForm({ mode, initial }: Props) {
             website:             form.website || null,
             address:             form.address || null,
             remarks:             form.remarks || null,
+            business_type:       form.business_type || null,
             daangn_url:          form.daangn_url || null,
             kakao_channel_url:   form.kakao_channel_url || null,
           }),
@@ -307,6 +315,17 @@ export default function CompanyForm({ mode, initial }: Props) {
             <input value={form.address ?? ''} onChange={(e) => set('address', e.target.value)}
               placeholder="서울시 강남구 테헤란로 123"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">업종</label>
+            <select value={form.business_type ?? ''} onChange={(e) => set('business_type', e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500">
+              <option value="">업종 선택</option>
+              {BUSINESS_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </div>
 
           <div>

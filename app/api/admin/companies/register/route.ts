@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     contract_start_date, contract_end_date,
     ad_amount, contractor_name, manager_name,
     advertiser_email,
-    phone, website, address, remarks,
+    phone, website, address, remarks, business_type,
     daangn_url, kakao_channel_url,
   } = body ?? {}
 
@@ -83,6 +83,7 @@ export async function POST(req: Request) {
     website: website || null,
     address: address || null,
     remarks: remarks || null,
+    business_type: business_type || null,
     daangn_url: daangn_url || null,
     kakao_channel_url: kakao_channel_url || null,
   })
