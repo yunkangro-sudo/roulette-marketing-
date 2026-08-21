@@ -87,18 +87,24 @@ export default function EventCard({ event }: { event: Event }) {
       <div className="flex items-center gap-2 shrink-0">
         {/* 온/오프 토글 */}
         {canToggle && (
-          <button
-            onClick={handleToggle}
-            disabled={toggling}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
-              isActive ? 'bg-green-500' : 'bg-gray-300'
-            }`}
-            title={isActive ? '클릭하면 일시중지' : '클릭하면 진행 중으로 변경'}
-          >
-            <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-              isActive ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-xs font-bold ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
+              광고 {isActive ? '켜짐' : '꺼짐'}
+            </span>
+            <button
+              onClick={handleToggle}
+              disabled={toggling}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+                isActive ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+              title={isActive ? '클릭하면 광고를 끕니다 (이벤트 일시중지)' : '클릭하면 광고를 켭니다 (이벤트 진행 시작)'}
+              aria-label={isActive ? '광고 끄기' : '광고 켜기'}
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                isActive ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
         )}
 
         {/* 복사 버튼 */}

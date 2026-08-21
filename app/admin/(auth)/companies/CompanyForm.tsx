@@ -266,7 +266,9 @@ export default function CompanyForm({ mode, initial }: Props) {
           <div>
             <label className="text-xs text-gray-500 mb-1 block">월 광고비 (원)</label>
             <div className="flex items-center gap-2">
-              <input type="number" min={0} value={form.ad_amount} onChange={(e) => set('ad_amount', Number(e.target.value))} placeholder="300000"
+              <input type="number" min={0} value={form.ad_amount === 0 ? '' : form.ad_amount}
+                onChange={(e) => set('ad_amount', e.target.value === '' ? 0 : Number(e.target.value))}
+                placeholder="300000"
                 className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
               <span className="text-sm text-gray-500">원 / 월</span>
             </div>
