@@ -253,24 +253,58 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
           }}
         />
 
-        {/* 진열장 상단 명판 — baked-in 예시 문구를 가리고 실제 매장명을 표시 */}
+        {/* 진열장 상단 명판 — baked-in 예시 문구를 가리고 실제 매장명을 금속 프레임 명판 스타일로 표시 */}
         {layout.w > 0 && storeName && (
           <div
-            className="pointer-events-none absolute z-[5] flex items-center justify-center overflow-hidden"
+            className="pointer-events-none absolute z-[5]"
             style={{
               left: layout.x + SIGN_LEFT * layout.scale,
               top: layout.y + SIGN_TOP * layout.scale,
               width: (SIGN_RIGHT - SIGN_LEFT) * layout.scale,
               height: (SIGN_BOTTOM - SIGN_TOP) * layout.scale,
-              background: 'linear-gradient(180deg, #EFDDC2 0%, #E7CB9C 55%, #D6AC72 100%)',
+              padding: Math.max(2, 6 * layout.scale),
+              borderRadius: 8 * layout.scale,
+              background: 'linear-gradient(180deg, #E8C384 0%, #C99A4F 45%, #8A5D25 100%)',
+              boxShadow: `0 ${3 * layout.scale}px ${8 * layout.scale}px rgba(0,0,0,0.28), inset 0 1px 1px rgba(255,255,255,0.5)`,
             }}
           >
-            <span
-              className="truncate px-4 text-center font-extrabold tracking-tight text-[#3A2A18]"
-              style={{ fontSize: 30 * layout.scale, letterSpacing: 1 * layout.scale }}
+            <div
+              className="relative flex h-full w-full items-center justify-center overflow-hidden"
+              style={{
+                borderRadius: 5 * layout.scale,
+                background: 'linear-gradient(180deg, #F7E9CC 0%, #EFDDC2 45%, #D6AC72 100%)',
+                boxShadow: `inset 0 ${2 * layout.scale}px ${4 * layout.scale}px rgba(0,0,0,0.18), inset 0 -1px 2px rgba(255,255,255,0.4)`,
+              }}
             >
-              {storeName}
-            </span>
+              <span
+                className="truncate px-4 text-center font-extrabold tracking-tight text-[#3A2A18]"
+                style={{ fontSize: 52 * layout.scale, letterSpacing: 1 * layout.scale }}
+              >
+                {storeName}
+              </span>
+              {/* 명판 네 귀퉁이 리벳(나사못) 장식 */}
+              {[
+                { top: true, left: true },
+                { top: true, left: false },
+                { top: false, left: true },
+                { top: false, left: false },
+              ].map((pos, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full"
+                  style={{
+                    top: pos.top ? 8 * layout.scale : undefined,
+                    bottom: pos.top ? undefined : 8 * layout.scale,
+                    left: pos.left ? 8 * layout.scale : undefined,
+                    right: pos.left ? undefined : 8 * layout.scale,
+                    width: 9 * layout.scale,
+                    height: 9 * layout.scale,
+                    background: 'radial-gradient(circle at 35% 30%, #FCE8B8, #B8863B 65%, #6E4A1D 100%)',
+                    boxShadow: '0 1px 1px rgba(0,0,0,0.45)',
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
 
@@ -416,24 +450,28 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
           type="button"
           disabled={isAnimating}
           onClick={triggerDrop}
-          className="absolute z-30 flex items-center justify-center rounded-full bg-[#00C7A7] text-lg font-bold tracking-tight text-white transition-colors hover:bg-[#00B399] disabled:opacity-60"
+          className="absolute z-30 flex items-center justify-center rounded-full border-2 border-[#00916F] bg-gradient-to-b from-[#22E0BC] via-[#00C7A7] to-[#00A88C] text-lg font-bold tracking-tight text-white transition-colors hover:from-[#2CEAC6] hover:to-[#00B399] disabled:opacity-60"
           style={{
             left: layout.x + BTN_LEFT * layout.scale,
             top: layout.y + BTN_TOP * layout.scale,
             width: (BTN_RIGHT - BTN_LEFT) * layout.scale,
             height: BTN_HEIGHT * layout.scale,
             fontSize: BTN_HEIGHT * layout.scale * 0.33,
+            borderWidth: Math.max(1.5, 2 * layout.scale),
+            textShadow: '0 1px 2px rgba(0,0,0,0.25)',
           }}
           animate={
             !isAnimating
               ? {
                   boxShadow: [
-                    '0 0 0px 0px rgba(0,199,167,0)',
-                    '0 0 22px 7px rgba(0,199,167,0.4)',
-                    '0 0 0px 0px rgba(0,199,167,0)',
+                    `inset 0 ${2 * layout.scale}px ${3 * layout.scale}px rgba(255,255,255,0.55), inset 0 -${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.28), 0 ${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.25), 0 0 0px 0px rgba(0,199,167,0)`,
+                    `inset 0 ${2 * layout.scale}px ${3 * layout.scale}px rgba(255,255,255,0.55), inset 0 -${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.28), 0 ${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.25), 0 0 22px 7px rgba(0,199,167,0.45)`,
+                    `inset 0 ${2 * layout.scale}px ${3 * layout.scale}px rgba(255,255,255,0.55), inset 0 -${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.28), 0 ${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.25), 0 0 0px 0px rgba(0,199,167,0)`,
                   ],
                 }
-              : { boxShadow: '0 0 0px 0px rgba(0,199,167,0)' }
+              : {
+                  boxShadow: `inset 0 ${2 * layout.scale}px ${3 * layout.scale}px rgba(255,255,255,0.55), inset 0 -${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.28), 0 ${3 * layout.scale}px ${6 * layout.scale}px rgba(0,0,0,0.25), 0 0 0px 0px rgba(0,199,167,0)`,
+                }
           }
           transition={
             !isAnimating
