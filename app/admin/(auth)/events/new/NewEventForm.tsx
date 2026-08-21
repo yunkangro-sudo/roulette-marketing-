@@ -194,12 +194,12 @@ export default function NewEventForm({ role, storeId }: Props) {
         {/* 노출 기간 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <label className="block text-sm font-bold text-gray-900 mb-3">이벤트 노출 기간</label>
-          <div className="flex gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
-            <span className="text-gray-400 shrink-0">~</span>
+              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
+            <span className="text-gray-400 shrink-0 text-center sm:text-left">~</span>
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} min={startDate}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
+              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
           </div>
           {durationDays > 0 && <p className="text-xs text-gray-400 mt-2">총 {durationDays}일 진행</p>}
         </div>
@@ -238,13 +238,13 @@ export default function NewEventForm({ role, storeId }: Props) {
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 mb-1 block">쿠폰 사용 시작일</label>
                   <input type="date" value={fixedValidityStart} onChange={(e) => setFixedValidityStart(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500" />
                 </div>
-                <span className="text-gray-400 mt-5 shrink-0">~</span>
+                <span className="text-gray-400 shrink-0 hidden sm:block sm:mt-5">~</span>
                 <div className="flex-1">
                   <label className="text-xs text-gray-500 mb-1 block">쿠폰 사용 종료일</label>
                   <input type="date" value={fixedValidityEnd} min={fixedValidityStart} onChange={(e) => setFixedValidityEnd(e.target.value)}
@@ -270,7 +270,7 @@ export default function NewEventForm({ role, storeId }: Props) {
           <div className="space-y-3">
             {tiers.map((tier, i) => (
               <div key={i} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">등급명</label>
                     <input value={tier.label} onChange={(e) => updateTier(i, 'label', e.target.value)}

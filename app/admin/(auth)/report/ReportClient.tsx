@@ -132,7 +132,7 @@ export default function ReportClient({ role, storeId }: ReportClientProps) {
             <h1 className="text-lg font-bold text-gray-900">성과 리포트</h1>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-colors shrink-0"
             >
               📄 PDF 저장
             </button>
@@ -152,7 +152,7 @@ export default function ReportClient({ role, storeId }: ReportClientProps) {
             <select
               value={selectedStore}
               onChange={(e) => setSelectedStore(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-orange-500"
+              className="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-500"
             >
               {filteredStores.map((s) => (
                 <option key={s.store_id} value={s.store_id}>{s.store_name || s.store_id}</option>
@@ -165,7 +165,7 @@ export default function ReportClient({ role, storeId }: ReportClientProps) {
                 const [y, m] = e.target.value.split('-').map(Number)
                 setYear(y); setMonth(m)
               }}
-              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-orange-500"
+              className="shrink-0 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-orange-500"
             >
               {Array.from({ length: 12 }, (_, i) => {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1)

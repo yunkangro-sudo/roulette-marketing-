@@ -77,7 +77,7 @@ export default function DashboardClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-5 py-4 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-lg font-bold text-gray-900">에이전시 대시보드</h1>
             <p className="text-xs text-gray-400">전체 매장 비교</p>
@@ -106,7 +106,7 @@ export default function DashboardClient() {
           <>
             <div className="bg-gray-900 rounded-2xl px-6 py-5 text-center">
               <p className="text-gray-400 text-sm mb-1">전체 매장 평균 ROI</p>
-              <p className="text-6xl font-black text-white leading-none">
+              <p className="text-5xl sm:text-6xl font-black text-white leading-none">
                 {data.averageRoi !== null ? `${data.averageRoi}×` : '–'}
               </p>
               <p className="text-gray-500 text-xs mt-2">
@@ -121,7 +121,7 @@ export default function DashboardClient() {
                   <h2 className="text-base font-bold text-gray-900">고객 세그먼트 분포</h2>
                   <span className="text-xs text-gray-400">전체 {segments.total.toLocaleString()}명</span>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {(
                     [
                       { key: 'NEW',      label: '신규',      color: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -166,7 +166,7 @@ export default function DashboardClient() {
                 <p className="text-xs text-gray-400 mb-4">
                   이탈 위험 수준별로 방문이 끊겼다가 다시 돌아온 손님 비율입니다 (총 {churnRisk.total}건 이력)
                 </p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {(
                     [
                       { key: 'interested' as const, label: '초기 이탈',    desc: '기준의 1.0~1.5배 공백 후 복귀',  color: 'bg-blue-50 border-blue-200 text-blue-700' },

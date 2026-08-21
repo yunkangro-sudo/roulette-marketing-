@@ -21,14 +21,14 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">이벤트 관리</h1>
           {filterStoreId && <p className="text-sm text-gray-500 mt-0.5">매장: {filterStoreId}</p>}
         </div>
         <Link
           href="/admin/events/new"
-          className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
+          className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-5 py-2.5 rounded-lg text-sm text-center transition-colors"
         >
           + 새 이벤트 등록
         </Link>

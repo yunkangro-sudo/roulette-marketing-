@@ -37,7 +37,7 @@ export default function StoreSelector({ role, sessionStoreId, selectedStoreId, o
   if (role === 'advertiser') return null
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
       <span className="text-sm font-semibold text-gray-700 shrink-0">관리할 매장</span>
       {loading ? (
         <span className="text-sm text-gray-400">불러오는 중...</span>
@@ -45,7 +45,7 @@ export default function StoreSelector({ role, sessionStoreId, selectedStoreId, o
         <select
           value={selectedStoreId}
           onChange={(e) => onSelect(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500 bg-white"
+          className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500 bg-white"
         >
           <option value="">-- 매장을 선택하세요 --</option>
           {stores.map((s) => (

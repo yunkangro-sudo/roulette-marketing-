@@ -218,7 +218,7 @@ export default function CompanyForm({ mode, initial }: Props) {
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <h2 className="text-sm font-bold text-gray-700">기본 정보</h2>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">매장 ID *</label>
               <input value={form.store_id} onChange={(e) => set('store_id', e.target.value)}
@@ -234,7 +234,7 @@ export default function CompanyForm({ mode, initial }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-gray-500 mb-1 block">계약자 이름</label>
               <input value={form.contractor_name} onChange={(e) => set('contractor_name', e.target.value)} placeholder="김사장"
@@ -262,12 +262,12 @@ export default function CompanyForm({ mode, initial }: Props) {
 
           <div>
             <label className="text-xs text-gray-500 mb-1 block">계약 기간 *</label>
-            <div className="flex gap-3 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               <input type="date" value={form.contract_start_date} onChange={(e) => set('contract_start_date', e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-              <span className="text-gray-400 shrink-0">~</span>
+                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+              <span className="text-gray-400 shrink-0 text-center sm:text-left">~</span>
               <input type="date" value={form.contract_end_date} min={form.contract_start_date} onChange={(e) => set('contract_end_date', e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
             </div>
           </div>
 
@@ -360,18 +360,18 @@ export default function CompanyForm({ mode, initial }: Props) {
 
             <div>
               <label className="text-xs text-gray-500 mb-1 block">로그인 이메일 (읽기전용)</label>
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                 <input
                   value={initial?.advertiserEmail ?? '(계정 없음)'}
                   readOnly
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 bg-gray-100 cursor-not-allowed font-mono"
+                  className="w-full sm:flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 bg-gray-100 cursor-not-allowed font-mono truncate"
                 />
                 {initial?.advertiserEmail && (
                   <button
                     type="button"
                     onClick={handleResetPassword}
                     disabled={resetLoading}
-                    className="shrink-0 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold text-xs px-3 py-2 rounded-lg transition-colors disabled:opacity-40"
+                    className="w-full sm:w-auto shrink-0 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold text-xs px-3 py-2.5 rounded-lg transition-colors disabled:opacity-40"
                   >
                     {resetLoading ? '처리 중...' : '비밀번호 재발급'}
                   </button>

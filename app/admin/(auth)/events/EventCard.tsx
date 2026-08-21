@@ -72,11 +72,11 @@ export default function EventCard({ event }: { event: Event }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 flex items-center justify-between gap-4">
+    <div className="bg-white rounded-xl border border-gray-200 px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
       <div className="min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.color}`}>{s.label}</span>
-          <span className="text-xs text-gray-400">{event.store_id}</span>
+          <span className="text-xs text-gray-400 truncate">{event.store_id}</span>
         </div>
         <p className="font-semibold text-gray-900 truncate">{event.name}</p>
         <p className="text-xs text-gray-400 mt-0.5">
@@ -84,23 +84,23 @@ export default function EventCard({ event }: { event: Event }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center flex-wrap gap-2 shrink-0">
         {/* 온/오프 토글 */}
         {canToggle && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 py-1">
             <span className={`text-xs font-bold ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
               광고 {isActive ? '켜짐' : '꺼짐'}
             </span>
             <button
               onClick={handleToggle}
               disabled={toggling}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors disabled:opacity-50 ${
                 isActive ? 'bg-green-500' : 'bg-gray-300'
               }`}
               title={isActive ? '클릭하면 광고를 끕니다 (이벤트 일시중지)' : '클릭하면 광고를 켭니다 (이벤트 진행 시작)'}
               aria-label={isActive ? '광고 끄기' : '광고 켜기'}
             >
-              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+              <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
                 isActive ? 'translate-x-6' : 'translate-x-1'
               }`} />
             </button>
@@ -110,7 +110,7 @@ export default function EventCard({ event }: { event: Event }) {
         {/* 복사 버튼 */}
         <button
           onClick={handleCopy}
-          className="text-xs text-gray-500 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-2.5 py-1.5 rounded-lg transition-colors"
+          className="text-xs text-gray-500 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 px-2.5 py-2 rounded-lg transition-colors"
           title="이 이벤트를 복사해서 새로 등록"
         >
           복사
@@ -119,7 +119,7 @@ export default function EventCard({ event }: { event: Event }) {
         {/* 수정 */}
         <Link
           href={`/admin/events/${event.id}`}
-          className="text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+          className="text-xs font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 px-3 py-2 rounded-lg transition-colors"
         >
           수정
         </Link>
@@ -128,7 +128,7 @@ export default function EventCard({ event }: { event: Event }) {
         <Link
           href={`/play/${event.store_id}`}
           target="_blank"
-          className="text-xs text-orange-500 hover:underline"
+          className="text-xs text-orange-500 hover:underline px-1 py-2"
         >
           미리보기 →
         </Link>

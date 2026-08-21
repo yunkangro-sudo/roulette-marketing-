@@ -292,7 +292,7 @@ export default function EditEventForm({ event }: { event: Event }) {
 
       {/* 상태 + 매장 정보 */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <span className={`text-sm font-bold px-3 py-1 rounded-full ${s.color}`}>{s.label}</span>
             <span className="text-sm text-gray-500 font-mono">{event.store_id}</span>
@@ -310,19 +310,19 @@ export default function EditEventForm({ event }: { event: Event }) {
         <div className="flex gap-2 mt-4 flex-wrap">
           {event.status !== 'active' && (
             <button onClick={() => handleStatusChange('active')} disabled={statusLoading}
-              className="text-xs bg-green-50 hover:bg-green-100 text-green-700 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+              className="text-xs bg-green-50 hover:bg-green-100 text-green-700 font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-40">
               진행 중으로 변경
             </button>
           )}
           {event.status !== 'paused' && event.status !== 'ended' && (
             <button onClick={() => handleStatusChange('paused')} disabled={statusLoading}
-              className="text-xs bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+              className="text-xs bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-40">
               일시 중지
             </button>
           )}
           {event.status !== 'ended' && (
             <button onClick={() => handleStatusChange('ended')} disabled={statusLoading}
-              className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+              className="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-40">
               이벤트 종료
             </button>
           )}
@@ -346,12 +346,12 @@ export default function EditEventForm({ event }: { event: Event }) {
         {/* 노출 기간 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <label className="block text-sm font-bold text-gray-900 mb-3">이벤트 노출 기간</label>
-          <div className="flex gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
-            <span className="text-gray-400 shrink-0">~</span>
+              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
+            <span className="text-gray-400 shrink-0 text-center sm:text-left">~</span>
             <input type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
+              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
           </div>
         </div>
 
@@ -386,13 +386,13 @@ export default function EditEventForm({ event }: { event: Event }) {
               <span className="text-gray-500 text-sm">일 이내 사용 가능</span>
             </div>
           ) : (
-            <div className="flex gap-3 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               <div className="flex-1">
                 <label className="text-xs text-gray-500 mb-1 block">시작일</label>
                 <input type="date" value={fixedStart} onChange={(e) => setFixedStart(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500" />
               </div>
-              <span className="text-gray-400 mt-5 shrink-0">~</span>
+              <span className="text-gray-400 shrink-0 hidden sm:block sm:mt-5">~</span>
               <div className="flex-1">
                 <label className="text-xs text-gray-500 mb-1 block">종료일</label>
                 <input type="date" value={fixedEnd} min={fixedStart} onChange={(e) => setFixedEnd(e.target.value)}
@@ -443,7 +443,7 @@ export default function EditEventForm({ event }: { event: Event }) {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">등급명</label>
                     <input value={tier.label} onChange={(e) => updateTierField(tier.tempKey, 'label', e.target.value)}
@@ -517,12 +517,12 @@ export default function EditEventForm({ event }: { event: Event }) {
                             {historyMap[tier.id as string].map((h) => {
                               const delta = h.new_quantity - h.previous_quantity
                               return (
-                                <div key={h.id} className="flex items-center justify-between text-xs">
-                                  <div className="text-gray-500">
-                                    <span className="font-medium text-gray-700">{h.store_accounts?.email ?? '알 수 없음'}</span>
+                                <div key={h.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 text-xs">
+                                  <div className="text-gray-500 min-w-0">
+                                    <span className="font-medium text-gray-700 break-all">{h.store_accounts?.email ?? '알 수 없음'}</span>
                                     <span className="ml-2">{new Date(h.changed_at).toLocaleString('ko-KR')}</span>
                                   </div>
-                                  <div className="text-gray-700 font-medium">
+                                  <div className="text-gray-700 font-medium shrink-0">
                                     {h.previous_quantity}개 →{' '}
                                     <span className={delta >= 0 ? 'text-green-600' : 'text-red-500'}>{h.new_quantity}개</span>
                                     <span className="text-gray-400 ml-1">({delta >= 0 ? '+' : ''}{delta})</span>

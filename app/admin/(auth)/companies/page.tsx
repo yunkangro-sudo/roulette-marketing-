@@ -20,14 +20,14 @@ export default async function CompaniesPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">업체 리스트</h1>
           <p className="text-sm text-gray-500 mt-0.5">계약 현황 및 담당자 관리</p>
         </div>
         <Link
           href="/admin/companies/new"
-          className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
+          className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-5 py-2.5 rounded-lg text-sm text-center transition-colors"
         >
           + 업체 등록
         </Link>
@@ -57,9 +57,9 @@ export default async function CompaniesPage() {
                     : 'border-gray-200'
                 }`}
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center flex-wrap gap-2 mb-1">
                       <span className="font-bold text-gray-900">{c.store_name}</span>
                       <span className="text-xs text-gray-400 font-mono">{c.store_id}</span>
                       {isExpired && (
@@ -80,7 +80,7 @@ export default async function CompaniesPage() {
                       담당자: {c.manager_name || '-'} · 계약자: {c.contractor_name || '-'}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-left sm:text-right shrink-0">
                     <p className="text-lg font-black text-gray-900">
                       {c.ad_amount.toLocaleString()}원
                     </p>
