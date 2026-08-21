@@ -41,7 +41,7 @@ export default function PrizeListSheet({ storeId, onClose }: Props) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+        className="absolute inset-0 z-50 flex items-end justify-center bg-black/40"
         onClick={onClose}
       >
         <motion.div
@@ -49,9 +49,18 @@ export default function PrizeListSheet({ storeId, onClose }: Props) {
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-          className="w-full max-w-sm rounded-t-3xl bg-[#EFE6D6] px-6 pb-8 pt-5"
+          className="w-full max-w-sm touch-none rounded-t-3xl bg-[#EFE6D6] px-6 pb-8 pt-5"
           onClick={(e) => e.stopPropagation()}
+          drag="y"
+          dragDirectionLock
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={{ top: 0, bottom: 0.6 }}
+          onDragEnd={(_, info) => {
+            // 아래로 충분히 빠르게/멀리 스와이프하면 닫는다(위로는 잠기게 해 실수로 안 열리게)
+            if (info.offset.y > 90 || info.velocity.y > 500) onClose()
+          }}
         >
+          {/* 드래그 핸들 — 스와이프 시작점을 시각적으로 알려준다 */}
           <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#222222]/15" />
 
           <h2 className="text-center text-lg font-extrabold text-[#222222]">

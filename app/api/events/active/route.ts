@@ -33,11 +33,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: '진행 중인 이벤트가 없습니다' }, { status: 404 })
   }
 
+  // "꽝" 라벨만 제외하고 나머지는 전부 보여준다.
+  // 주의: 여기서 amount > 0만 필터링하면 안 된다 — 커피/과자 같은 실물 경품은
+  // 쿠폰 금액이 없어 amount=0으로 등록되지만, "꽝"이 아닌 실제 경품이므로 목록에 표시돼야 한다.
   const { data: tiers, error: tiersError } = await supabase
     .from('prize_tiers')
     .select('label, amount')
     .eq('event_id', event.id)
-    .gt('amount', 0)
+    .neq('label', '꽝')
     .order('amount', { ascending: true })
 
   if (tiersError) {
