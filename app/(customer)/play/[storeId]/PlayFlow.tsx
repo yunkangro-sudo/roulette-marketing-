@@ -43,6 +43,61 @@ interface Props {
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
 const ADVERTISER_KAKAO_URL = process.env.NEXT_PUBLIC_ADVERTISER_KAKAO_URL
 
+/** 랜딩(대기) 화면의 캐비닛 이미지(bg_default_blank_sign.png) 원본 크기와,
+ *  이미지에 이미 그려져 있는 상단 빈 명판(금테+리벳)의 실측 좌표 —
+ *  object-contain으로 이미지가 배치되므로 컨테이너 크기에 맞춰 이 좌표를 스케일한다 */
+const LANDING_IMG_W = 1024
+const LANDING_IMG_H = 1536
+const LANDING_SIGN_LEFT = 132
+const LANDING_SIGN_RIGHT = 884
+const LANDING_SIGN_TOP = 112
+const LANDING_SIGN_BOTTOM = 244
+
+interface ContainLayout {
+  scale: number
+  x: number
+  y: number
+}
+
+/** object-contain으로 배치된 이미지 위에 좌표를 겹치기 위한 스케일/오프셋 계산.
+ *  콜백 ref를 쓰는 이유 — 이 컨테이너는 'landing' 단계에서만 렌더되는데,
+ *  일반 useRef+useEffect([]) 조합은 컴포넌트 최초 마운트(로딩 화면 단계) 시점에
+ *  한 번만 실행되어 그때는 ref.current가 아직 null이라 관찰이 걸리지 않는다.
+ *  콜백 ref는 노드가 실제로 DOM에 붙는 순간(=landing 단계 진입 시) 호출되므로
+ *  그 타이밍에 정확히 관찰을 시작할 수 있다 */
+function useContainLayout(imgW: number, imgH: number) {
+  const [layout, setLayout] = useState<ContainLayout>({ scale: 0, x: 0, y: 0 })
+  const roRef = useRef<ResizeObserver | null>(null)
+
+  const ref = useCallback(
+    (el: HTMLDivElement | null) => {
+      roRef.current?.disconnect()
+      roRef.current = null
+      if (!el) return
+
+      const update = () => {
+        const w = el.clientWidth
+        const h = el.clientHeight
+        if (!w || !h) return
+        const scale = Math.min(w / imgW, h / imgH)
+        setLayout({
+          scale,
+          x: (w - imgW * scale) / 2,
+          y: (h - imgH * scale) / 2,
+        })
+      }
+
+      update()
+      const ro = new ResizeObserver(update)
+      ro.observe(el)
+      roRef.current = ro
+    },
+    [imgW, imgH]
+  )
+
+  return { ref, layout }
+}
+
 function toPrizeResult(revealed: {
   label: string
   amount: number
@@ -74,6 +129,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   const [result, setResult] = useState<PrizeResult | null>(null)
   const [showPrizeList, setShowPrizeList] = useState(false)
   const claimingRef = useRef(false)
+  const { ref: landingImgRef, layout: landingLayout } = useContainLayout(LANDING_IMG_W, LANDING_IMG_H)
 
   const claimResult = useCallback(async () => {
     if (claimingRef.current) return
@@ -233,29 +289,42 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   if (step === 'landing') {
     return (
       <div className="relative flex h-screen flex-col overflow-hidden bg-[#EFE6D6]">
-        {/* 상단 헤더 — 문서 흐름(static)으로 쌓아서 겹침 원천 차단 */}
+        {/* 상단 헤더 — 매장/상호명은 아래 캐비닛 명판으로 옮기고, 여기는 짧은 안내 문구만 둔다 */}
         <div
           className="shrink-0 px-6 pb-2 text-center"
           style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}
         >
-          <h1 className="text-[20px] font-bold leading-snug tracking-tight text-[#222222]">
-            {event.name}
-          </h1>
-          <p className="mt-2 text-sm text-[#222222]/55">로그인 없이 바로 도전해 보세요!</p>
-          {storeName && (
-            <p className="mt-3 text-[26px] font-extrabold leading-tight tracking-tight text-[#222222]">
-              {storeName}
-            </p>
-          )}
+          <p className="text-base font-bold tracking-tight text-[#222222]">푸짐한 경품을 단 3초만에 받아가세요</p>
         </div>
 
         {/* 캐비닛 이미지 — 좌우/상하 세이프 여백 확보(object-contain) */}
-        <div className="relative min-h-0 flex-1 px-5 py-2">
+        <div ref={landingImgRef} className="relative min-h-0 flex-1 px-5 py-2">
           <img
             src="/characters/bg_default_blank_sign.png"
             alt=""
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-center"
           />
+
+          {/* 매장명(상호명) — 화면 맨 위가 아니라, 이미지에 이미 그려진 상단 빈 명판(금테+리벳) 안에 표시.
+              광고주가 매장명을 따로 입력하지 않은 경우엔 이벤트명으로 대체해 명판이 비어 보이지 않게 한다 */}
+          {landingLayout.scale > 0 && (storeName || event.name) && (
+            <div
+              className="pointer-events-none absolute z-[1] flex items-center justify-center overflow-hidden"
+              style={{
+                left: landingLayout.x + LANDING_SIGN_LEFT * landingLayout.scale,
+                top: landingLayout.y + LANDING_SIGN_TOP * landingLayout.scale,
+                width: (LANDING_SIGN_RIGHT - LANDING_SIGN_LEFT) * landingLayout.scale,
+                height: (LANDING_SIGN_BOTTOM - LANDING_SIGN_TOP) * landingLayout.scale,
+              }}
+            >
+              <span
+                className="truncate px-2 text-center font-extrabold tracking-tight text-[#3A2A18]"
+                style={{ fontSize: 40 * landingLayout.scale, letterSpacing: 0.5 * landingLayout.scale }}
+              >
+                {storeName || event.name}
+              </span>
+            </div>
+          )}
         </div>
 
         {showPrizeList && (
