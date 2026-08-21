@@ -1,0 +1,39 @@
+---
+description: 새 UI를 만들거나 기존 UI를 수정할 때 모바일(375~430px)에서 깨지지 않도록 지키는 체크리스트
+globs: app/**/*.tsx,components/**/*.tsx
+alwaysApply: false
+---
+
+# 모바일 우선 UI 규칙
+
+Tailwind는 접두사 없는 클래스가 **모든 화면(모바일 포함)에 그대로 적용**된다.
+`sm:`/`md:` 를 안 붙이면 "반응형이 되는 게 아니라 모바일에도 그 값이 고정"된다는 뜻이다.
+2026-08-21 관리자 모드 전체가 이 착각으로 깨져있었던 적이 있다 (AdminNav 모바일 메뉴 없음, grid-cols 고정 등).
+
+## 새 화면/컴포넌트를 만들 때 반드시 확인
+
+1. **그리드**: `grid-cols-2/3/4/5`를 접두사 없이 쓰지 않는다.
+   나쁨: `grid grid-cols-2 gap-4`
+   좋음: `grid grid-cols-1 sm:grid-cols-2 gap-4`
+
+2. **가로 배치(flex)**: 텍스트·입력칸·버튼 2개 이상을 한 줄에 나열할 때, 내용이 길어지면
+   (긴 이메일, 여러 버튼 등) 넘칠 수 있으니 모바일에서 세로로 쌓는다.
+   나쁨: `flex gap-3 items-center` (날짜 2개, 이메일+버튼 등)
+   좋음: `flex flex-col sm:flex-row gap-3 sm:items-center`
+
+3. **네비게이션/메뉴**: `hidden sm:flex`로 데스크톱 메뉴를 숨겼다면, 반드시 모바일용
+   대체 메뉴(햄버거 드로어 등)를 같이 만든다. 메뉴만 숨기고 대체 UI가 없으면 모바일에서
+   해당 화면으로 진입할 방법이 사라진다. 참고: `app/admin/(auth)/AdminNav.tsx`
+
+4. **터치 타겟**: 버튼/토글은 최소 `py-2` 이상 (28px 미만 높이는 피한다).
+
+5. **표(table)**: 컬럼이 4개 이상이면 부모에 `overflow-x-auto`를 꼭 감싼다.
+
+6. **헤더 줄(제목 + CTA 버튼)**: `flex items-center justify-between` 대신
+   `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`로 모바일에서 줄바꿈되게 한다.
+
+## 커밋 전 자가 점검
+
+새 관리자/폼 화면을 추가했다면, 코드 리뷰 시 "이 클래스가 `sm:` 없이 375px에서도
+그대로 적용되는데 괜찮은가?"를 한 번 스스로 물어본다. 애매하면 모바일 우선(1열/세로)을
+기본값으로 하고 넓은 화면에서 `sm:`으로 확장하는 방향으로 짠다.
