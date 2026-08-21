@@ -46,12 +46,23 @@ const ADVERTISER_KAKAO_URL = process.env.NEXT_PUBLIC_ADVERTISER_KAKAO_URL
 /** 랜딩(대기) 화면의 캐비닛 이미지(bg_default_blank_sign.png) 원본 크기와,
  *  이미지에 이미 그려져 있는 상단 빈 명판(금테+리벳)의 실측 좌표 —
  *  object-contain으로 이미지가 배치되므로 컨테이너 크기에 맞춰 이 좌표를 스케일한다 */
+// 원본 이미지 상단의 순수 여백 60px을 잘라낸 트리밍 버전을 사용(화면 길이 축소).
+// 아래 좌표들은 트리밍 이후 기준으로 미리 보정해둔 값이다.
 const LANDING_IMG_W = 1024
-const LANDING_IMG_H = 1536
+const LANDING_IMG_H = 1476
+const LANDING_TOP_TRIM = 60
 const LANDING_SIGN_LEFT = 132
 const LANDING_SIGN_RIGHT = 884
-const LANDING_SIGN_TOP = 112
-const LANDING_SIGN_BOTTOM = 244
+const LANDING_SIGN_TOP = 112 - LANDING_TOP_TRIM
+const LANDING_SIGN_BOTTOM = 244 - LANDING_TOP_TRIM
+
+/** 캐비닛 받침대(글라스 프레임 밑 ~ 하단 금색 트림 사이)의 빈 크림색 배경 —
+ *  안내 문구를 화면 상단이 아니라 여기에 배치한다 */
+const LANDING_FOOTER_LEFT = 160
+const LANDING_FOOTER_RIGHT = 864
+const LANDING_FOOTER_TOP = 1195 - LANDING_TOP_TRIM
+const LANDING_FOOTER_BOTTOM = 1400 - LANDING_TOP_TRIM
+const LANDING_FOOTER_FONT_SIZE = 34
 
 interface ContainLayout {
   scale: number
@@ -289,18 +300,14 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   if (step === 'landing') {
     return (
       <div className="relative flex h-screen flex-col overflow-hidden bg-[#EFE6D6]">
-        {/* 상단 헤더 — 매장/상호명은 아래 캐비닛 명판으로 옮기고, 여기는 짧은 안내 문구만 둔다 */}
+        {/* 캐비닛 이미지 — 상단 안내 헤더를 없애고 세이프 영역만 최소로 확보(화면 길이 축소) */}
         <div
-          className="shrink-0 px-6 pb-2 text-center"
-          style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}
+          ref={landingImgRef}
+          className="relative min-h-0 flex-1 px-5"
+          style={{ paddingTop: 'max(6px, env(safe-area-inset-top))', paddingBottom: 4 }}
         >
-          <p className="text-base font-bold tracking-tight text-[#222222]">푸짐한 경품을 단 3초만에 받아가세요</p>
-        </div>
-
-        {/* 캐비닛 이미지 — 좌우/상하 세이프 여백 확보(object-contain) */}
-        <div ref={landingImgRef} className="relative min-h-0 flex-1 px-5 py-2">
           <img
-            src="/characters/bg_default_blank_sign.png"
+            src="/characters/bg_default_blank_sign_trimmed.png"
             alt=""
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-center"
           />
@@ -325,6 +332,26 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
               </span>
             </div>
           )}
+
+          {/* 안내 문구 — 화면 상단이 아니라 캐비닛 받침대의 빈 배경 중앙에 작게 표시 */}
+          {landingLayout.scale > 0 && (
+            <div
+              className="pointer-events-none absolute z-[1] flex items-center justify-center overflow-hidden"
+              style={{
+                left: landingLayout.x + LANDING_FOOTER_LEFT * landingLayout.scale,
+                top: landingLayout.y + LANDING_FOOTER_TOP * landingLayout.scale,
+                width: (LANDING_FOOTER_RIGHT - LANDING_FOOTER_LEFT) * landingLayout.scale,
+                height: (LANDING_FOOTER_BOTTOM - LANDING_FOOTER_TOP) * landingLayout.scale,
+              }}
+            >
+              <span
+                className="truncate px-2 text-center font-bold tracking-tight text-[#3A2A18]"
+                style={{ fontSize: LANDING_FOOTER_FONT_SIZE * landingLayout.scale }}
+              >
+                푸짐한 경품을 단 3초만에 받아가세요
+              </span>
+            </div>
+          )}
         </div>
 
         {showPrizeList && (
@@ -344,13 +371,32 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
               >
                 내 쿠폰함
               </a>
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setShowPrizeList(true)}
-                className="flex flex-1 items-center justify-center rounded-full border border-[#222222]/15 bg-white/70 px-4 py-3.5 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/90"
+                className="relative flex flex-1 items-center justify-center overflow-hidden rounded-full border border-[#222222]/15 bg-white/70 px-4 py-3.5 text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/90"
+                animate={{
+                  boxShadow: [
+                    '0 0 0px 0px rgba(0,199,167,0)',
+                    '0 0 10px 2px rgba(0,199,167,0.35)',
+                    '0 0 0px 0px rgba(0,199,167,0)',
+                  ],
+                }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
               >
-                🎁 경품 보기
-              </button>
+                {/* 은은한 반짝임 — 시선을 끌되 요란하지 않게, 몇 초에 한 번씩만 훑고 지나간다 */}
+                <motion.span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 left-0 w-1/3"
+                  style={{
+                    background:
+                      'linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%)',
+                  }}
+                  animate={{ x: ['-140%', '280%'] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2.3, ease: 'easeInOut' }}
+                />
+                <span className="relative z-[1]">경품 보기</span>
+              </motion.button>
             </div>
             <button
               onClick={() => setStep('playing')}
