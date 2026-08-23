@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 /** 실제 배포 게임 화면(데모용 매장) — 무료 데모 체험하기 버튼들이 공통으로 여는 팝업에 사용 */
-const DEMO_GAME_URL = '/play/test-store-001'
+const DEMO_GAME_URL = '/play/test'
 const OPEN_DEMO_EVENT = 'open-demo-modal'
 
 /** 페이지 곳곳의 데모 버튼에서 호출 — 컴포넌트 트리를 관통하는 props 없이
