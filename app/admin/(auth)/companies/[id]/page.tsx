@@ -1,7 +1,8 @@
 import { requireAdminAuth } from '@/lib/admin/session'
 import { createServerClient } from '@/lib/supabase/server'
+import { getSubscriptionStatus } from '@/lib/admin/subscription'
 import { redirect, notFound } from 'next/navigation'
-import CompanyForm from '../CompanyForm'
+import CompanyDetailTabsClient from '../CompanyDetailTabsClient'
 
 export default async function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -27,10 +28,20 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
     .eq('role', 'advertiser')
     .maybeSingle()
 
+  const [{ data: subscriptions }, subscriptionStatus] = await Promise.all([
+    supabase
+      .from('subscriptions')
+      .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at')
+      .eq('store_id', company.store_id)
+      .order('end_date', { ascending: false }),
+    getSubscriptionStatus(company.store_id),
+  ])
+
   return (
-    <CompanyForm
-      mode="edit"
-      initial={{ ...company, advertiserEmail: advertiserAccount?.email ?? '' }}
+    <CompanyDetailTabsClient
+      company={{ ...company, advertiserEmail: advertiserAccount?.email ?? '' }}
+      subscriptions={subscriptions ?? []}
+      subscriptionStatus={subscriptionStatus}
     />
   )
 }

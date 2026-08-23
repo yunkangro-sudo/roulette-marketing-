@@ -32,6 +32,8 @@ function LoginForm() {
         router.push(redirectTo)
       } else if (role === 'staff') {
         router.push('/staff')
+      } else if (role === 'advertiser') {
+        router.push('/admin/dashboard')
       } else {
         router.push('/admin/events')
       }

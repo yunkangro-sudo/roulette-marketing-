@@ -13,6 +13,8 @@ export interface PendingPlay {
   label:      string
   amount:     number
   tierId:     string
+  /** 이벤트에 설정된 도전횟수 (미설정 시 'daily'로 취급) */
+  challengeFrequency?: 'daily' | 'weekly' | 'monthly' | 'unlimited'
 }
 
 export interface RevealedPlay {

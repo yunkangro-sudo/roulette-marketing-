@@ -14,35 +14,87 @@ import { isPointsEnabled } from '@/lib/game/guestPlayPolicy'
 
 export { isPointsEnabled }
 export class AlreadyParticipatedError extends Error {
-  constructor() {
+  nextAvailableAt: string | null
+  constructor(nextAvailableAt: string | null = null) {
     super('ALREADY_PARTICIPATED')
     this.name = 'AlreadyParticipatedError'
+    this.nextAvailableAt = nextAvailableAt
   }
 }
+
+export type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
 
 function kstToday(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
+/** 어떤 시각의 "KST 기준 다음날 00:00"을 UTC 인스턴트로 반환 (daily 재도전 가능 시점 계산용) */
+function nextKstMidnightAfter(d: Date): Date {
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000)
+  const nextDayKst = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1, 0, 0, 0)
+  return new Date(nextDayKst - 9 * 60 * 60 * 1000)
+}
+
 /**
- * 데모 버전 전용 — 하루 1회 참여 제한을 끄고 무제한 테스트를 허용한다.
+ * 데모 버전 전용 — 참여 제한을 끄고 무제한 테스트를 허용한다.
  * 실제 서비스(진짜 매장 운영) 전환 시에는 반드시 false(미설정)로 되돌려야 한다.
  * .env.local / Vercel 환경변수에 DEMO_UNLIMITED_PLAY=true 로 설정해 켠다.
  */
 const DEMO_UNLIMITED_PLAY = process.env.DEMO_UNLIMITED_PLAY === 'true'
 
-export async function hasPlayedToday(storeId: string, kakaoUserId: string): Promise<boolean> {
-  if (DEMO_UNLIMITED_PLAY) return false
+export interface ParticipationCheckResult {
+  allowed: boolean
+  /** 다음 도전 가능 시점 (ISO). allowed=true 또는 unlimited면 null */
+  nextAvailableAt: string | null
+}
+
+/**
+ * 이벤트별 도전횟수(challenge_frequency) 설정에 따라 참여 가능 여부를 판정한다.
+ * - daily:   마지막 참여가 오늘(KST) 이전이면 허용
+ * - weekly:  마지막 참여로부터 롤링 7일 지났으면 허용 (캘린더 주 아님)
+ * - monthly: 마지막 참여로부터 롤링 30일 지났으면 허용 (캘린더 월 아님)
+ * - unlimited: 항상 허용, 단 참여 기록은 통계용으로 계속 남긴다
+ */
+export async function checkParticipationAllowed(
+  storeId: string,
+  kakaoUserId: string,
+  eventId: string,
+  frequency: ChallengeFrequency,
+): Promise<ParticipationCheckResult> {
+  if (DEMO_UNLIMITED_PLAY || frequency === 'unlimited') {
+    return { allowed: true, nextAvailableAt: null }
+  }
 
   const supabase = createServerClient()
   const { data } = await supabase
     .from('daily_participation_log')
-    .select('id')
+    .select('last_played_at')
     .eq('store_id', storeId)
     .eq('kakao_user_id', kakaoUserId)
-    .eq('date', kstToday())
+    .eq('event_id', eventId)
     .maybeSingle()
-  return data !== null
+
+  if (!data?.last_played_at) return { allowed: true, nextAvailableAt: null }
+
+  const lastPlayedAt = new Date(data.last_played_at)
+  const now = new Date()
+
+  if (frequency === 'daily') {
+    const nextAvailable = nextKstMidnightAfter(lastPlayedAt)
+    if (now.getTime() >= nextAvailable.getTime()) return { allowed: true, nextAvailableAt: null }
+    return { allowed: false, nextAvailableAt: nextAvailable.toISOString() }
+  }
+
+  const rollingDays = frequency === 'weekly' ? 7 : 30
+  const nextAvailable = new Date(lastPlayedAt.getTime() + rollingDays * 86400000)
+  if (now.getTime() >= nextAvailable.getTime()) return { allowed: true, nextAvailableAt: null }
+  return { allowed: false, nextAvailableAt: nextAvailable.toISOString() }
+}
+
+/** @deprecated checkParticipationAllowed(…, 'daily')로 대체. 기존 호출부 정리 전까지만 유지 */
+export async function hasPlayedToday(storeId: string, kakaoUserId: string, eventId: string): Promise<boolean> {
+  const result = await checkParticipationAllowed(storeId, kakaoUserId, eventId, 'daily')
+  return !result.allowed
 }
 
 export async function persistPendingPlay(params: {
@@ -52,15 +104,23 @@ export async function persistPendingPlay(params: {
   const { pending, kakaoUserId } = params
   const supabase = createServerClient()
 
-  const { error: logError } = await supabase.from('daily_participation_log').insert({
+  if (!DEMO_UNLIMITED_PLAY) {
+    const check = await checkParticipationAllowed(
+      pending.storeId, kakaoUserId, pending.eventId, pending.challengeFrequency ?? 'daily',
+    )
+    if (!check.allowed) {
+      throw new AlreadyParticipatedError(check.nextAvailableAt)
+    }
+  }
+
+  const { error: logError } = await supabase.from('daily_participation_log').upsert({
     store_id: pending.storeId,
     kakao_user_id: kakaoUserId,
+    event_id: pending.eventId,
     date: kstToday(),
-  })
-  if (logError?.code === '23505' && !DEMO_UNLIMITED_PLAY) {
-    throw new AlreadyParticipatedError()
-  }
-  if (logError && logError.code !== '23505') {
+    last_played_at: new Date().toISOString(),
+  }, { onConflict: 'store_id,kakao_user_id,event_id' })
+  if (logError) {
     throw new Error(`참여 기록 저장 실패: ${logError.message}`)
   }
 
@@ -96,38 +156,42 @@ export async function persistPendingPlay(params: {
 
     const pointsOn = isPointsEnabled(storeSettings?.points_enabled)
 
+    let pointsToAdd = 0
     if (pointsOn) {
       const { data: loyaltySettings } = await supabase
         .from('loyalty_settings')
         .select('point_per_visit')
         .eq('store_id', pending.storeId)
         .maybeSingle()
+      pointsToAdd = loyaltySettings?.point_per_visit ?? 0
+    }
 
-      const pointsToAdd = loyaltySettings?.point_per_visit ?? 0
-      if (pointsToAdd > 0) {
-        await supabase.rpc('upsert_customer_loyalty', {
-          p_store_id: pending.storeId,
-          p_kakao_user_id: kakaoUserId,
-          p_points: pointsToAdd,
-        })
-        const { data: ledgerRow } = await supabase.from('point_ledger').insert({
-          store_id: pending.storeId,
-          kakao_user_id: kakaoUserId,
-          type: 'earn',
-          amount: pointsToAdd,
-        }).select('id').single()
-        pointsAwarded = pointsToAdd
-        logActivity({
-          storeId: pending.storeId,
-          kakaoUserId,
-          eventType: 'point_earned',
-          refId: ledgerRow?.id,
-          refType: 'point_ledger',
-        }).catch(() => {})
-      }
+    // 포인트 기능이 꺼져 있거나 적립액이 0이어도, 회원 관리(방문횟수/최근방문일 집계)를
+    // 위해 항상 customer_loyalty를 갱신한다 (p_points=0이면 point_balance는 변화 없음).
+    await supabase.rpc('upsert_customer_loyalty', {
+      p_store_id: pending.storeId,
+      p_kakao_user_id: kakaoUserId,
+      p_points: pointsToAdd,
+    })
+
+    if (pointsToAdd > 0) {
+      const { data: ledgerRow } = await supabase.from('point_ledger').insert({
+        store_id: pending.storeId,
+        kakao_user_id: kakaoUserId,
+        type: 'earn',
+        amount: pointsToAdd,
+      }).select('id').single()
+      pointsAwarded = pointsToAdd
+      logActivity({
+        storeId: pending.storeId,
+        kakaoUserId,
+        eventType: 'point_earned',
+        refId: ledgerRow?.id,
+        refType: 'point_ledger',
+      }).catch(() => {})
     }
   } catch (err) {
-    console.error('[persistPendingPlay] 포인트 적립 실패:', err)
+    console.error('[persistPendingPlay] 방문 집계/포인트 적립 실패:', err)
   }
 
   const revealed: RevealedPlay = {

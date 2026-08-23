@@ -47,5 +47,9 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 | 030 | [`030_store_profile_urls.sql`](./030_store_profile_urls.sql) | `store_contracts.daangn_url`, `kakao_channel_url` |
 | 031 | [`031_signup_self_registration.sql`](./031_signup_self_registration.sql) | `signup_inquiries`에 누락된 `service_role` GRANT 추가(가입 저장 실패 버그 수정) + `store_contracts.business_type` 컬럼 추가 |
 | 032 | [`032_coupon_label.sql`](./032_coupon_label.sql) | `coupons.label` 컬럼 추가 — 실물 경품 당첨 시 직원 계산대/손님 쿠폰함에 품목명이 아닌 금액만 표시되던 문제 수정 |
+| 033 | [`033_subscriptions.sql`](./033_subscriptions.sql) | `subscriptions` (이용기간/결제 이력) 테이블 추가 — 광고주 관리자 모드 v2 |
+| 034 | [`034_member_tracking_extended.sql`](./034_member_tracking_extended.sql) | `customer_loyalty.first_seen_at`/`kakao_first_login_at` 추가, `activity_log`에 `kakao_login`/`daangn_click` 이벤트 타입 추가 |
+| 035 | [`035_challenge_frequency.sql`](./035_challenge_frequency.sql) | `events.challenge_frequency` 추가, `daily_participation_log`에 `event_id`/`last_played_at` 추가 (하루 1회 하드코딩 → 매일/주간/월간/무제한 일반화) |
+| 036 | [`036_impersonation_log.sql`](./036_impersonation_log.sql) | `impersonation_log` (슈퍼관리자 대리접속 감사 로그) 테이블 추가 — 슈퍼관리자 모드 개편 v1 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.

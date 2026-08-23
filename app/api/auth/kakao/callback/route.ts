@@ -13,6 +13,7 @@ import { exchangeCodeForToken, getKakaoUserProfile } from '@/lib/auth/kakao'
 import { getCustomerSession } from '@/lib/auth/session'
 import { encryptPhone, hashPhone } from '@/lib/crypto/phoneEncryption'
 import { createServerClient } from '@/lib/supabase/server'
+import { logActivity } from '@/lib/activity/log'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -60,6 +61,11 @@ export async function GET(req: NextRequest) {
       await savePhoneNumber(profile.id, storeId, profile.phone_number)
     }
 
+    // ── 3-1. 로그인 이력 기록 (회원 관리 화면의 "카카오 로그인" 집계용) ──
+    if (storeId) {
+      trackKakaoLogin(profile.id, storeId).catch(() => {})
+    }
+
     // ── 4. 세션 저장 ──────────────────────────────────────────
     const session = await getCustomerSession()
     session.user = {
@@ -88,6 +94,42 @@ export async function GET(req: NextRequest) {
     console.error('[kakao callback] 처리 오류:', err)
     const dest = storeId ? `${appUrl}/play/${storeId}?auth_error=1` : `${appUrl}/`
     return NextResponse.redirect(dest)
+  }
+}
+
+/**
+ * 카카오 로그인 성공 시마다 activity_log에 kakao_login 기록을 남기고,
+ * customer_loyalty.kakao_first_login_at을 "최초 로그인 시점에만" 채운다.
+ * 아직 한 번도 게임을 플레이하지 않은 손님(row 없음)이어도, 로그인 자체는
+ * "가입" 이벤트이므로 빈 row를 미리 만들어 first_seen_at/kakao_first_login_at을 기록한다
+ * (이후 실제 플레이 시 upsert_customer_loyalty가 visit_count만 이어서 증가시킴).
+ */
+async function trackKakaoLogin(kakaoUserId: string, storeId: string) {
+  const supabase = createServerClient()
+  const now = new Date().toISOString()
+
+  logActivity({ storeId, kakaoUserId, eventType: 'kakao_login' }).catch(() => {})
+
+  const { data: existing } = await supabase
+    .from('customer_loyalty')
+    .select('kakao_first_login_at')
+    .eq('store_id', storeId)
+    .eq('kakao_user_id', kakaoUserId)
+    .maybeSingle()
+
+  if (!existing) {
+    await supabase.from('customer_loyalty').insert({
+      store_id: storeId,
+      kakao_user_id: kakaoUserId,
+      first_seen_at: now,
+      kakao_first_login_at: now,
+    })
+  } else if (!existing.kakao_first_login_at) {
+    await supabase
+      .from('customer_loyalty')
+      .update({ kakao_first_login_at: now })
+      .eq('store_id', storeId)
+      .eq('kakao_user_id', kakaoUserId)
   }
 }
 

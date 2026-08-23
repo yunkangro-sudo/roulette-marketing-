@@ -32,9 +32,11 @@ const BUSINESS_TYPES = [
 interface Props {
   mode: 'create' | 'edit'
   initial?: Company
+  /** 탭 구조(CompanyDetailTabsClient) 안에 "기본정보" 탭으로 끼워넣을 때 바깥 제목/뒤로가기 chrome을 숨긴다 */
+  hideChrome?: boolean
 }
 
-export default function CompanyForm({ mode, initial }: Props) {
+export default function CompanyForm({ mode, initial, hideChrome }: Props) {
   const router = useRouter()
 
   const [form, setForm] = useState<Company>({
@@ -200,14 +202,16 @@ export default function CompanyForm({ mode, initial }: Props) {
 
   // ── 폼 ───────────────────────────────────────────────────────
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/companies" className="text-gray-400 hover:text-gray-600 text-sm">← 목록으로</Link>
-        <span className="text-gray-300">/</span>
-        <h1 className="text-xl font-bold text-gray-900">
-          {mode === 'create' ? '신규 업체 등록' : '업체 정보 수정'}
-        </h1>
-      </div>
+    <div className={hideChrome ? '' : 'max-w-2xl mx-auto px-4 py-8'}>
+      {!hideChrome && (
+        <div className="flex items-center gap-3 mb-6">
+          <Link href="/admin/companies" className="text-gray-400 hover:text-gray-600 text-sm">← 목록으로</Link>
+          <span className="text-gray-300">/</span>
+          <h1 className="text-xl font-bold text-gray-900">
+            {mode === 'create' ? '신규 업체 등록' : '업체 정보 수정'}
+          </h1>
+        </div>
+      )}
 
       {error   && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
       {success && <div className="mb-4 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm">{success}</div>}

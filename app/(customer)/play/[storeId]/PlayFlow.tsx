@@ -138,6 +138,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
+  const [nextAvailableAt, setNextAvailableAt] = useState<string | null>(null)
   const [showPrizeList, setShowPrizeList] = useState(false)
   const claimingRef = useRef(false)
   const { ref: landingImgRef, layout: landingLayout } = useContainLayout(LANDING_IMG_W, LANDING_IMG_H)
@@ -151,6 +152,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
       const data = await res.json()
       if (data.alreadyParticipated) {
         setResult(null)
+        setNextAvailableAt(data.nextAvailableAt ?? null)
         setStep('already_participated')
         return
       }
@@ -448,7 +450,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   }
 
   if (step === 'already_participated') {
-    return <AlreadyParticipatedScreen onSwitchAccount={handleSwitchAccount} />
+    return <AlreadyParticipatedScreen onSwitchAccount={handleSwitchAccount} nextAvailableAt={nextAvailableAt} />
   }
 
   if (step === 'result' && result) {

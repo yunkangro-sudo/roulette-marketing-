@@ -91,6 +91,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '업체 등록 실패: ' + contractError.message }, { status: 500 })
   }
 
+  // 최초 구독(이용기간) row 생성 — subscriptions가 이용기간의 진실의 원천이므로
+  // 신규 등록 시점에도 첫 row를 남겨둔다 (없어도 무제한 체험으로 처리되지만, 계약서상
+  // 실제 계약기간이 있는 경우는 처음부터 반영해두는 게 맞다)
+  await supabase.from('subscriptions').insert({
+    store_id,
+    plan_name: 'Basic',
+    amount_paid: Number(ad_amount) || 0,
+    start_date: contract_start_date,
+    end_date: contract_end_date,
+    memo: '최초 등록',
+    created_by: account.id,
+  })
+
   // store_accounts (광고주) 생성
   const { error: accountError } = await supabase.from('store_accounts').insert({
     store_id,

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       .eq('event_id', eventId),
     supabase
       .from('events')
-      .select('id, store_id, status')
+      .select('id, store_id, status, challenge_frequency')
       .eq('id', eventId)
       .maybeSingle(),
   ])
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
     label: finalTier.label,
     amount: finalTier.amount,
     tierId: finalTier.id,
+    challengeFrequency: (event.challenge_frequency ?? 'daily') as 'daily' | 'weekly' | 'monthly' | 'unlimited',
   }
   session.revealedPlay = undefined
   await session.save()

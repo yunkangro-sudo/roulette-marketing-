@@ -21,24 +21,24 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
 
   const isAgencyOrSuper = role === 'super_admin' || role === 'agency'
   const isAdvertiser    = role === 'advertiser'
+  const impersonation   = account.impersonation
+  const cornerLabel     = impersonation ? '대리접속 중' : (ROLE_LABEL[role] ?? role)
+  const cornerName      = impersonation ? impersonation.storeName : account.email
 
   const links: NavLink[] = isAgencyOrSuper
     ? [
-        { href: '/admin/dashboard',        label: '전체 대시보드' },
+        { href: '/admin/super/dashboard',   label: '전체 대시보드' },
         { href: '/admin/companies',         label: '업체 리스트' },
-        { href: '/admin/events',            label: '이벤트 관리' },
-        { href: '/admin/report',            label: '성과 리포트' },
-        { href: '/admin/loyalty-settings',  label: '포인트 정책' },
-        { href: '/admin/reward-catalog',    label: '리워드 관리' },
-        { href: '/admin/coupons/issue',     label: '쿠폰 발급' },
       ]
     : isAdvertiser
     ? [
+        { href: '/admin/dashboard',         label: '대시보드' },
         { href: '/admin/events',            label: '이벤트 관리' },
+        { href: '/admin/members',           label: '회원 관리' },
         { href: '/admin/report',            label: '성과 리포트' },
         { href: '/admin/loyalty-settings',  label: '포인트 정책' },
         { href: '/admin/reward-catalog',    label: '리워드 관리' },
-        { href: '/admin/coupons/issue',     label: '쿠폰 발급' },
+        { href: '/admin/coupons',           label: '쿠폰 관리' },
         { href: '/staff',                   label: '계산대 →', highlight: true },
       ]
     : []
@@ -77,8 +77,8 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-gray-500">{ROLE_LABEL[role] ?? role}</p>
-            <p className="text-sm font-semibold text-gray-900 truncate max-w-[160px]">{account.email}</p>
+            <p className="text-xs text-gray-500">{cornerLabel}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate max-w-[160px]">{cornerName}</p>
           </div>
           <button
             onClick={handleLogout}
@@ -111,8 +111,8 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
       {menuOpen && (
         <div className="sm:hidden border-t border-gray-200 bg-white px-4 py-3 space-y-1 max-h-[80vh] overflow-y-auto">
           <div className="px-1 pb-2 mb-1 border-b border-gray-100">
-            <p className="text-xs text-gray-500">{ROLE_LABEL[role] ?? role}</p>
-            <p className="text-sm font-semibold text-gray-900 truncate">{account.email}</p>
+            <p className="text-xs text-gray-500">{cornerLabel}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{cornerName}</p>
           </div>
 
           {links.map((link) => (

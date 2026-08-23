@@ -11,6 +11,15 @@ interface Tier {
   total_quantity: number | ''
 }
 
+type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
+
+const CHALLENGE_FREQUENCY_OPTIONS: { value: ChallengeFrequency; label: string; desc: string }[] = [
+  { value: 'daily',     label: '매일',   desc: '하루에 1번 도전 가능 (기본값)' },
+  { value: 'weekly',    label: '주간',   desc: '마지막 도전 후 7일이 지나면 재도전 가능' },
+  { value: 'monthly',   label: '월간',   desc: '마지막 도전 후 30일이 지나면 재도전 가능' },
+  { value: 'unlimited', label: '무제한', desc: '횟수 제한 없이 매번 도전 가능' },
+]
+
 interface Props {
   role: AdminRole
   storeId: string | null  // advertiser: 고정값, super_admin/agency: null → 직접 입력
@@ -56,6 +65,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [dailyParticipants, setDailyParticipants] = useState<number | ''>('')
+  const [challengeFrequency, setChallengeFrequency] = useState<ChallengeFrequency>('daily')
   const [validityType, setValidityType] = useState<'relative_days' | 'fixed_date'>('relative_days')
   const [validityValue, setValidityValue] = useState('14')
   const [fixedValidityStart, setFixedValidityStart] = useState('')
@@ -123,6 +133,7 @@ export default function NewEventForm({ role, storeId }: Props) {
           display_start_date: startDate,
           display_end_date: endDate,
           expected_daily_participants: Number(dailyParticipants),
+          challenge_frequency: challengeFrequency,
           coupon_validity_type: validityType,
           coupon_validity_value: validityType === 'fixed_date'
             ? `${fixedValidityStart}~${fixedValidityEnd}`
@@ -202,6 +213,31 @@ export default function NewEventForm({ role, storeId }: Props) {
               className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:border-orange-500" />
           </div>
           {durationDays > 0 && <p className="text-xs text-gray-400 mt-2">총 {durationDays}일 진행</p>}
+        </div>
+
+        {/* 도전 횟수 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <label className="block text-sm font-bold text-gray-900 mb-1">도전 횟수</label>
+          <p className="text-xs text-gray-400 mb-3">한 손님이 얼마나 자주 다시 도전할 수 있는지 설정합니다.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {CHALLENGE_FREQUENCY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setChallengeFrequency(opt.value)}
+                className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  challengeFrequency === opt.value
+                    ? 'border-orange-500 bg-orange-50 text-orange-600'
+                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {CHALLENGE_FREQUENCY_OPTIONS.find((o) => o.value === challengeFrequency)?.desc}
+          </p>
         </div>
 
         {/* 예상 참여자 수 */}

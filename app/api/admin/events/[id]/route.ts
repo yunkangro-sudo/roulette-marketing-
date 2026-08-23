@@ -60,16 +60,23 @@ export async function PATCH(req: Request, { params }: Params) {
     display_start_date,
     display_end_date,
     expected_daily_participants,
+    challenge_frequency,
     coupon_validity_type,
     coupon_validity_value,
     status,
   } = body
+
+  const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
+  if (challenge_frequency !== undefined && !VALID_FREQUENCIES.includes(challenge_frequency)) {
+    return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
+  }
 
   const updateData: Record<string, unknown> = {}
   if (name !== undefined) updateData.name = name
   if (display_start_date !== undefined) updateData.display_start_date = display_start_date
   if (display_end_date !== undefined) updateData.display_end_date = display_end_date
   if (expected_daily_participants !== undefined) updateData.expected_daily_participants = expected_daily_participants
+  if (challenge_frequency !== undefined) updateData.challenge_frequency = challenge_frequency
   if (coupon_validity_type !== undefined) updateData.coupon_validity_type = coupon_validity_type
   if (coupon_validity_value !== undefined) updateData.coupon_validity_value = String(coupon_validity_value)
   if (status !== undefined) updateData.status = status

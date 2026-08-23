@@ -18,6 +18,10 @@ function formatDate(iso: string) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
 }
 
+function trackDaangnClick() {
+  fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {})
+}
+
 export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId, storeName }: Props) {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
@@ -102,6 +106,7 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
               href={daangnUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={trackDaangnClick}
               className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
             >
               당근에서 단골 추가하기

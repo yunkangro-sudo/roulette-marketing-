@@ -48,10 +48,16 @@ export async function POST(request: Request) {
     display_start_date,
     display_end_date,
     expected_daily_participants,
+    challenge_frequency,
     coupon_validity_type,
     coupon_validity_value,
     tiers,
   } = body
+
+  const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
+  if (challenge_frequency && !VALID_FREQUENCIES.includes(challenge_frequency)) {
+    return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
+  }
 
   if (!name || !display_start_date || !display_end_date || !expected_daily_participants || !tiers?.length) {
     return NextResponse.json({ error: '필수 항목이 누락됐습니다' }, { status: 400 })
@@ -102,6 +108,7 @@ export async function POST(request: Request) {
       display_start_date,
       display_end_date,
       expected_daily_participants,
+      challenge_frequency: challenge_frequency ?? 'daily',
       coupon_validity_type: coupon_validity_type ?? 'relative_days',
       coupon_validity_value: String(coupon_validity_value ?? '14'),
     })
