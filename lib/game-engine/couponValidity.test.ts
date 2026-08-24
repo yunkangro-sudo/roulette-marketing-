@@ -35,3 +35,18 @@ test('fixed_date: 지정한 날짜의 23:59:59로 고정된다', () => {
   assert.equal(result.getMonth(), 11)
   assert.equal(result.getDate(), 31)
 })
+
+test('fixed_date: "시작일~종료일" 범위 문자열이면 종료일만 사용한다 (이벤트 등록 폼 저장 형식)', () => {
+  const result = computeValidUntil(new Date('2026-08-24'), 'fixed_date', '2026-08-18~2026-10-30')
+  assert.equal(result.getFullYear(), 2026)
+  assert.equal(result.getMonth(), 9)
+  assert.equal(result.getDate(), 30)
+  assert.equal(result.getHours(), 23)
+  assert.equal(result.getMinutes(), 59)
+})
+
+test('fixed_date: 범위 문자열 앞뒤 공백이 있어도 정상 파싱된다', () => {
+  const result = computeValidUntil(new Date('2026-08-24'), 'fixed_date', '2026-08-18 ~ 2026-10-30')
+  assert.equal(result.getMonth(), 9)
+  assert.equal(result.getDate(), 30)
+})
