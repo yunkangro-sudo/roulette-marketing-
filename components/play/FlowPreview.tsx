@@ -22,7 +22,7 @@ export default function FlowPreview({ screen, storeId }: Props) {
   if (screen === 'already_participated') {
     return (
       <div className="h-full">
-        <AlreadyParticipatedScreen onSwitchAccount={() => {}} />
+        <AlreadyParticipatedScreen />
       </div>
     )
   }

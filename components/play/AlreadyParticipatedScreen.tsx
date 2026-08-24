@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 
 interface Props {
-  onSwitchAccount: () => void
   /** 다음 도전 가능 시각(ISO). 없으면 "매일 자정" 기본 문구 표시 */
   nextAvailableAt?: string | null
 }
@@ -14,7 +13,7 @@ function formatNextAvailable(iso: string): string {
   return `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일`
 }
 
-export default function AlreadyParticipatedScreen({ onSwitchAccount, nextAvailableAt }: Props) {
+export default function AlreadyParticipatedScreen({ nextAvailableAt }: Props) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 bg-[#EFE6D6] px-8 text-center">
       <motion.div
@@ -37,15 +36,6 @@ export default function AlreadyParticipatedScreen({ onSwitchAccount, nextAvailab
             : (<>매일 1번 참여할 수 있어요.<br />내일 자정이 지나면 다시 도전해주세요!</>)}
         </p>
       </motion.div>
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        onClick={onSwitchAccount}
-        className="rounded-full border border-[#222222]/15 px-5 py-2.5 text-xs text-[#222222]/50 transition-colors hover:border-[#222222]/30"
-      >
-        다른 계정으로 테스트
-      </motion.button>
     </div>
   )
 }

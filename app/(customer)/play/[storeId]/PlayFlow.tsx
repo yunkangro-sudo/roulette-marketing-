@@ -148,7 +148,11 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     claimingRef.current = true
     setStep('claiming')
     try {
-      const res = await fetch('/api/games/claim', { method: 'POST' })
+      const res = await fetch('/api/games/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ store_id: storeId }),
+      })
       const data = await res.json()
       if (data.alreadyParticipated) {
         setResult(null)
@@ -176,7 +180,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     } finally {
       claimingRef.current = false
     }
-  }, [])
+  }, [storeId])
 
   useEffect(() => {
     if (!event) {
@@ -202,7 +206,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
       }
 
       try {
-        const pending = await fetch('/api/games/pending').then((r) => r.json())
+        const pending = await fetch(`/api/games/pending?store_id=${encodeURIComponent(storeId)}`).then((r) => r.json())
         if (pending.hasRevealed && pending.revealed) {
           setResult(toPrizeResult(pending.revealed))
           setStep('result')
@@ -450,7 +454,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   }
 
   if (step === 'already_participated') {
-    return <AlreadyParticipatedScreen onSwitchAccount={handleSwitchAccount} nextAvailableAt={nextAvailableAt} />
+    return <AlreadyParticipatedScreen nextAvailableAt={nextAvailableAt} />
   }
 
   if (step === 'result' && result) {
