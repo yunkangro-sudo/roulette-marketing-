@@ -188,6 +188,9 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `scripts/backup-db.mjs` 신설 — `pg_dump` 미설치 환경(Windows 포함)에서도 동작하는 Node 기반 DB 데이터 백업 스크립트, `backups/`를 `.gitignore`에 추가
 - [x] `docs/migrations/README.md`에 "왜 Supabase 대시보드에 No migrations로 뜨는가" 설명 추가 — CLI를 쓴 적이 없어 대시보드 마이그레이션 추적 테이블이 비어있는 것이 원인(정상 상태)임을 문서화
 - [x] **문서 정비**: 8/13~8/24(013~038번 마이그레이션) 작업이 이 진행 로그에 누락되어 있던 것을 발견 — 이 구간을 소급 정리해 기록 (재발 방지: 세션 종료 체크리스트의 "진행 로그 기록" 항목을 앞으로 다시 챙길 것)
+- [x] `NEXT_PUBLIC_KAKAO_REVIEW_PENDING`/`DEMO_UNLIMITED_PLAY` Vercel Production 환경변수 점검 — 둘 다 Production에 `true`로 남아있던 것을 발견, `false`로 변경 + Production 스코프 제거(Preview만 유지) 후 재배포
+- [x] **버그 발견/수정**: 위 재배포로 실제 카카오 로그인이 프로덕션에서 처음 실행되면서 `KOE006`(리다이렉트 URI 미등록) 에러 발생 — 원인은 `lib/auth/kakao.ts`가 `client_id`로 JavaScript 키를 사용하고 있었는데 리다이렉트 URI는 REST API 키 쪽에 등록되어 있어 불일치했던 것. `KAKAO_REST_API_KEY`를 client_id로 사용하도록 수정
+- [x] Supabase `db.*.supabase.co` 직접 연결이 IPv6 전용으로 바뀌어 있어 `scripts/backup-db.mjs` 실행이 안 되던 문제 발견 — Session Pooler(IPv4) 연결 문자열로 `DATABASE_URL` 교체하여 해결, 비밀번호에 남아있던 불필요한 대괄호 표기도 정리
 
 ### 다음 예정
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신 — 현재는 조회 시점 판정으로 안전하게 대체 중)
