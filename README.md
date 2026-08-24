@@ -191,6 +191,9 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `NEXT_PUBLIC_KAKAO_REVIEW_PENDING`/`DEMO_UNLIMITED_PLAY` Vercel Production 환경변수 점검 — 둘 다 Production에 `true`로 남아있던 것을 발견, `false`로 변경 + Production 스코프 제거(Preview만 유지) 후 재배포
 - [x] **버그 발견/수정**: 위 재배포로 실제 카카오 로그인이 프로덕션에서 처음 실행되면서 `KOE006`(리다이렉트 URI 미등록) 에러 발생 — 원인은 `lib/auth/kakao.ts`가 `client_id`로 JavaScript 키를 사용하고 있었는데 리다이렉트 URI는 REST API 키 쪽에 등록되어 있어 불일치했던 것. `KAKAO_REST_API_KEY`를 client_id로 사용하도록 수정
 - [x] Supabase `db.*.supabase.co` 직접 연결이 IPv6 전용으로 바뀌어 있어 `scripts/backup-db.mjs` 실행이 안 되던 문제 발견 — Session Pooler(IPv4) 연결 문자열로 `DATABASE_URL` 교체하여 해결, 비밀번호에 남아있던 불필요한 대괄호 표기도 정리
+- [x] `KAKAO_CLIENT_SECRET` 미설정으로 발생하던 `KOE010`(invalid_client) 수정 — 카카오 개발자센터에서 발급 후 `.env.local`/Vercel에 등록, 재배포 후 실제 카카오 계정으로 로그인·당첨 결과 확인·쿠폰 알림톡(나에게 보내기) 자동 발송까지 정상 동작 최초 확인
+- [x] **버그 발견/수정**: 손님 세션(`pendingPlay`/`revealedPlay`)이 브라우저 쿠키 단위 전역 슬롯이라, 로그인 완료 전에 서로 다른 매장의 게임 페이지를 넘나들면 나중 매장의 결과로 앞 매장의 대기 결과가 덮어써지는 문제 발견 — 실제로 `aschip`(촌놈칩스)에서 플레이 직후 `chj-001`(판타스틱필름) 결과가 대신 확정되어, `aschip` 기준 "내 쿠폰함"에 쿠폰이 안 보이는 현상으로 나타남. `/api/games/pending`, `/api/games/claim`에 `store_id` 일치 검증을 추가해 다른 매장 결과가 섞이면 "대기 결과 없음"으로 안전하게 처리하도록 수정
+- [x] `AlreadyParticipatedScreen`(이미 참여하셨어요 화면)에 남아있던 QA용 "다른 계정으로 테스트" 버튼 제거 — 실제 손님 화면에는 노출하지 않음
 
 ### 다음 예정
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신 — 현재는 조회 시점 판정으로 안전하게 대체 중)
