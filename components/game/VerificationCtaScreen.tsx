@@ -41,7 +41,11 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
         </a>
       ) : null}
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center gap-6 px-8 pb-[10%] text-center">
+      {/* 상단 조명(캐비닛 배경 이미지) 자리를 비켜서 매장명이 조명을 가리지 않도록
+          justify-center 대신 명시적인 상단 여백(pt)으로 출력 위치를 고정한다.
+          뷰포트 높이 기준(dvh)으로 잡아야 배경 이미지가 화면 전체를 덮는
+          상황(모바일 실기기 포함)에서도 항상 조명 아래쪽에 위치한다 */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center gap-6 px-8 pb-[6%] pt-[15dvh] text-center">
         {storeName ? (
           <motion.div
             initial={{ scale: 0 }}
@@ -73,11 +77,6 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
             <br />
             쿠폰 사용하세요
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#222222]/55">
-            모든 경품은 당근 단골 확인 후에
-            <br />
-            매장에서 사용하실 수 있어요
-          </p>
         </motion.div>
 
         {result.coupon && (
