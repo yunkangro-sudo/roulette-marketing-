@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
   const next    = req.nextUrl.searchParams.get('next') ?? ''
 
   // 카카오 키 미설정 시 → 개발 환경 폴백 안내
-  if (!process.env.NEXT_PUBLIC_KAKAO_JS_KEY) {
+  if (!process.env.KAKAO_REST_API_KEY) {
     return NextResponse.json(
-      { error: 'NEXT_PUBLIC_KAKAO_JS_KEY가 설정되지 않았습니다. Mock 로그인을 사용해주세요.' },
+      { error: 'KAKAO_REST_API_KEY가 설정되지 않았습니다. Mock 로그인을 사용해주세요.' },
       { status: 503 },
     )
   }

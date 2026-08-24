@@ -38,8 +38,10 @@ export function getKakaoAuthUrl(params: {
   requestTalkMsg?: boolean
   requestFriends?: boolean
 }): string {
-  const clientId = process.env.NEXT_PUBLIC_KAKAO_JS_KEY
-  if (!clientId) throw new Error('NEXT_PUBLIC_KAKAO_JS_KEY가 설정되지 않았습니다')
+  // 서버사이드(REST API 방식) 인가코드 요청은 REST API 키를 client_id로 써야 한다.
+  // JavaScript 키를 쓰면 "REST API 키에 등록된 리다이렉트 URI"와 불일치해 KOE006이 발생한다.
+  const clientId = process.env.KAKAO_REST_API_KEY
+  if (!clientId) throw new Error('KAKAO_REST_API_KEY가 설정되지 않았습니다')
 
   const scopes = ['profile_nickname']
   if (params.requestPhone)   scopes.push('phone_number')
@@ -59,7 +61,8 @@ export function getKakaoAuthUrl(params: {
 
 /** Authorization Code → Access Token 교환 */
 export async function exchangeCodeForToken(code: string, redirectUri: string): Promise<{ access_token: string; scope?: string }> {
-  const clientId     = process.env.NEXT_PUBLIC_KAKAO_JS_KEY!
+  // 토큰 교환도 인가코드 요청과 동일한 REST API 키를 client_id로 써야 한다 (KOE114 방지).
+  const clientId     = process.env.KAKAO_REST_API_KEY!
   const clientSecret = process.env.KAKAO_CLIENT_SECRET ?? ''
 
   const body = new URLSearchParams({
