@@ -51,5 +51,7 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 | 034 | [`034_member_tracking_extended.sql`](./034_member_tracking_extended.sql) | `customer_loyalty.first_seen_at`/`kakao_first_login_at` 추가, `activity_log`에 `kakao_login`/`daangn_click` 이벤트 타입 추가 |
 | 035 | [`035_challenge_frequency.sql`](./035_challenge_frequency.sql) | `events.challenge_frequency` 추가, `daily_participation_log`에 `event_id`/`last_played_at` 추가 (하루 1회 하드코딩 → 매일/주간/월간/무제한 일반화) |
 | 036 | [`036_impersonation_log.sql`](./036_impersonation_log.sql) | `impersonation_log` (슈퍼관리자 대리접속 감사 로그) 테이블 추가 — 슈퍼관리자 모드 개편 v1 |
+| 037 | [`037_reward_catalog_discount_and_verification.sql`](./037_reward_catalog_discount_and_verification.sql) | `reward_catalog.discount_amount` 추가, `redeem_points_atomic`이 `requires_verification=false`면 확인 단계 없이 바로 `pending_apply`로 발급하도록 수정, `assign_checkout_queue`에 초기 대기열 상태 인자 추가 |
+| 038 | [`038_cleanup_reward_catalog_test_data.sql`](./038_cleanup_reward_catalog_test_data.sql) | (일회성) `chj-001` 매장의 `[TEST-*]`/`[테스트]`/`[A]~[D]` 리워드 테스트 더미데이터 삭제 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.

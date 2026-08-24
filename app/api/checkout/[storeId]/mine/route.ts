@@ -92,6 +92,8 @@ export async function GET(
     const cat = Array.isArray(catalog) ? catalog[0] : catalog
     const label = cat?.name ?? '리워드'
     const amount = cat?.point_cost ?? 0
+    // 본인확인 불필요 리워드는 발급 시점에 이미 'pending_apply'로 시작한다.
+    // 대기열도 처음부터 '확인 완료' 상태로 만들어야 화면 표시가 실제 상태와 어긋나지 않는다.
     const { data: q } = await supabase.rpc('assign_checkout_queue', {
       p_store_id: storeId,
       p_kakao_user_id: kakaoUserId,
@@ -99,6 +101,7 @@ export async function GET(
       p_item_id: r.id,
       p_label: label,
       p_amount: amount,
+      p_initial_status: r.status === 'pending_apply' ? 'confirmed' : 'waiting',
     })
     items.push({
       item_type: 'reward',

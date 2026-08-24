@@ -21,6 +21,8 @@ interface Reward {
   stock: number | null
   reward_type?: RewardType
   image_url?: string | null
+  requires_verification?: boolean
+  discount_amount?: number | null
 }
 
 interface LedgerEntry {
@@ -308,7 +310,7 @@ function PointsContent() {
           </div>
         )}
 
-        {/* 리워드 교환 */}
+        {/* 리워드 교환 — 이미지가 먼저 눈에 들어오는 카드형 */}
         <div>
           <h2 className="mb-3 text-sm font-bold text-[#222222]/70">리워드 교환</h2>
           {catalog.length === 0 ? (
@@ -316,43 +318,72 @@ function PointsContent() {
               현재 교환 가능한 리워드가 없습니다
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               {catalog.map((reward) => {
-                const canRedeem = canUsePoints && balance >= reward.point_cost
                 const outOfStock = reward.stock !== null && reward.stock <= 0
+                const pointsShort = Math.max(0, reward.point_cost - balance)
+                const canRedeem = canUsePoints && pointsShort === 0
+                const progressPct = Math.max(4, Math.min(100, Math.round((balance / reward.point_cost) * 100)))
+
                 return (
-                  <div key={reward.id} className={`flex items-center gap-4 rounded-xl bg-white/70 px-4 py-4 shadow-sm backdrop-blur-sm ${
+                  <div key={reward.id} className={`overflow-hidden rounded-2xl bg-white/70 shadow-sm backdrop-blur-sm ${
                     outOfStock ? 'opacity-50' : ''
                   }`}>
-                    {/* 이미지 또는 아이콘 */}
-                    {reward.image_url ? (
-                      <img src={reward.image_url} alt={reward.name}
-                        className="h-14 w-14 shrink-0 rounded-xl bg-[#222222]/5 object-cover" />
-                    ) : (
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#00C7A7]/10 text-2xl">
-                        {REWARD_TYPE_ICONS[reward.reward_type ?? 'free_item']}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-[#222222]">{reward.name}</p>
-                      <p className="mt-0.5 text-sm font-bold text-[#00947A]">{reward.point_cost.toLocaleString()}P</p>
-                      {reward.stock !== null && (
-                        <p className="mt-0.5 text-xs text-[#222222]/40">
-                          {outOfStock ? '품절' : `잔여 ${reward.stock}개`}
-                        </p>
+                    {/* 이미지 우선 노출 */}
+                    <div className="relative flex aspect-square w-full items-center justify-center bg-[#00C7A7]/10">
+                      {reward.image_url ? (
+                        <img src={reward.image_url} alt={reward.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-5xl">{REWARD_TYPE_ICONS[reward.reward_type ?? 'free_item']}</span>
+                      )}
+                      {reward.requires_verification && (
+                        <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                          매장에서 확인 후 지급
+                        </span>
+                      )}
+                      {outOfStock && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-bold text-white">
+                          품절
+                        </span>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleRedeem(reward)}
-                      disabled={!canRedeem || outOfStock || redeeming === reward.id}
-                      className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${
-                        canRedeem && !outOfStock
-                          ? 'bg-[#00C7A7] text-white hover:bg-[#00B399]'
-                          : 'cursor-not-allowed bg-[#222222]/8 text-[#222222]/35'
-                      } disabled:opacity-50`}
-                    >
-                      {redeeming === reward.id ? '처리 중...' : '교환하기'}
-                    </button>
+
+                    <div className="p-3">
+                      <p className="truncate text-sm font-semibold text-[#222222]">{reward.name}</p>
+                      <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <p className="text-sm font-bold text-[#00947A]">{reward.point_cost.toLocaleString()}P</p>
+                        {reward.reward_type === 'discount' && reward.discount_amount ? (
+                          <span className="text-[11px] font-bold text-orange-500">{reward.discount_amount.toLocaleString()}원 할인</span>
+                        ) : null}
+                      </div>
+                      {reward.stock !== null && !outOfStock && (
+                        <p className="mt-0.5 text-[11px] text-[#222222]/40">잔여 {reward.stock}개</p>
+                      )}
+
+                      {/* 포인트가 부족하면 숫자 대신 진행 상황을 막대바로 보여준다 */}
+                      {!outOfStock && pointsShort > 0 && (
+                        <div className="mt-2">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#222222]/8">
+                            <div className="h-1.5 rounded-full bg-[#00C7A7] transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                          </div>
+                          <p className="mt-1 text-[11px] text-[#222222]/45">
+                            {pointsShort.toLocaleString()}P 더 모으면 받을 수 있어요
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => handleRedeem(reward)}
+                        disabled={!canRedeem || outOfStock || redeeming === reward.id}
+                        className={`mt-2.5 w-full rounded-lg py-2 text-xs font-bold transition-colors ${
+                          canRedeem && !outOfStock
+                            ? 'bg-[#00C7A7] text-white hover:bg-[#00B399]'
+                            : 'cursor-not-allowed bg-[#222222]/8 text-[#222222]/35'
+                        } disabled:opacity-50`}
+                      >
+                        {redeeming === reward.id ? '처리 중...' : '교환하기'}
+                      </button>
+                    </div>
                   </div>
                 )
               })}
