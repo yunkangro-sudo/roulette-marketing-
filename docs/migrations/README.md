@@ -11,6 +11,14 @@ Supabase 대시보드 SQL Editor에서 실행한 모든 DB 변경사항은 **반
 3. SQL 실행이 끝나면 이 파일을 커밋한다.
 4. 새 세션을 시작하는 AI/사람은 이 폴더의 파일들을 최신 번호까지 전부 읽고 시작한다 (실제로 DB에 적용됐다고 간주하고 작업한다).
 
+## 왜 Supabase 대시보드에 "No migrations"로 뜨는가
+
+Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`supabase migration new`, `supabase db push` 등)로 적용한 이력만 추적한다. CLI는 마이그레이션을 적용할 때마다 `supabase_migrations.schema_migrations` 라는 내부 테이블에 기록을 남기고, 대시보드는 그 테이블을 읽어서 보여준다.
+
+이 프로젝트는 지금까지 **CLI를 한 번도 쓰지 않고** Supabase 대시보드의 SQL Editor에서 이 폴더의 `.sql` 파일 내용을 직접 붙여넣어 실행하는 방식으로만 스키마를 변경해왔다 (`supabase/` 폴더 자체가 프로젝트에 없음 = CLI 초기화조차 안 된 상태). SQL Editor에서 실행한 내용은 스키마에는 정상 반영되지만 `schema_migrations` 테이블에는 아무 기록도 남기지 않으므로, 실제로 38번까지 변경을 했어도 대시보드에는 "No migrations"로 보이는 것이 정상이다. **데이터 유실이나 실행 실패를 의미하는 게 아니다.**
+
+이 폴더(`docs/migrations/001~038*.sql` + 이 README)가 사실상 이 프로젝트의 유일한 마이그레이션 이력이며, CLI의 대체 역할을 하고 있다. 앞으로도 계속 이 방식(SQL Editor + 이 폴더에 기록)을 쓸지, 아니면 `supabase link` + `supabase db push`로 전환할지는 별도 결정 사항이다.
+
 ## 파일 목록
 
 | 번호 | 파일 | 요약 |

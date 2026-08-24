@@ -136,11 +136,64 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `GET /api/rewards/lookup`, `POST /api/rewards/use` — 계산대 리워드 조회/사용처리 API
 - [x] `/staff` 화면 — 쿠폰/리워드 탭 전환 UI 추가
 
+### 2026-08-12 (카카오 로그인 실연동 + 전화번호 암호화 + 알림톡 stub)
+- [x] `/api/auth/kakao`, `/api/auth/kakao/callback` — 카카오 OAuth 서버사이드 흐름 구현, `mockLogin`을 실제 카카오 로그인으로 교체 (심사 대기 중엔 `NEXT_PUBLIC_KAKAO_REVIEW_PENDING=true`로 mock 폴백 유지)
+- [x] `docs/migrations/017_phone_alimtalk.sql` — 전화번호 AES-256-CBC 암호화 저장 + 알림톡 발송 로그 테이블 추가 (`lib/crypto/phoneEncryption.ts`)
+- [x] `lib/alimtalk/send.ts` — 알림톡 발송 stub 신설 (발송대행사 계약 전까지 `message_log`에 기록만)
+- [x] `NEXT_PUBLIC_APP_URL` Vercel 환경변수 등록 + trim() 처리 버그 수정 (값에 개행 섞여 리다이렉트 깨지던 문제)
+
+### 2026-08-13 (재방문 확장 8-1~8-7 전 단계 + 리워드 카탈로그 1차 확장)
+- [x] `docs/migrations/018_message_consent.sql` — 메시지 발송 동의/빈도 규칙 5단계 체크
+- [x] `docs/migrations/019_activity_log.sql` — `activity_log` 행동 이력(게임시작/완료/포인트적립/쿠폰사용/리워드교환) 기록 시스템
+- [x] `docs/migrations/020_missions.sql` — `missions`/`mission_progress` 방문 미션 시스템
+- [x] `docs/migrations/021_customer_segments.sql` — 고객 세그먼트 자동 분류 + 대시보드 분포 카드
+- [x] `docs/migrations/022_churn_risk_alerts.sql` — `churn_risk_alerts` Win-back 3단계(이탈 위험 감지·알림) + 대시보드 섹션
+- [x] `docs/migrations/023_reward_verification.sql`, `024_reward_catalog_extended.sql` — 리워드에 `requires_verification`(본인확인), `reward_type`/기간한정/이미지 등 확장 (계산대 본인확인 절차 추가)
+- [x] `docs/migrations/025_signup_inquiries.sql` — 랜딩 → `/signup` 광고주 신청 페이지, 문의 접수 테이블
+- [x] `docs/migrations/026_message_log_extended.sql`, `027_grant_delete_permissions.sql` — 쿠폰 만료 알림 중복방지 + `service_role` DELETE 권한 정비
+- [x] `GET /api/cron/expiry-reminder` — 쿠폰 만료 D-7/D-3/D-1 Vercel Cron 알림
+- [x] 카카오 MESSAGE/FRIEND API 심사 대응 — "나에게 보내기" + 친구목록 연동 + 심사 가이드 문서
+
+### 2026-08-14~15 (손님 여정 개편: 게임 먼저 → 결과 잠금 → 로그인 순서로 전환)
+- [x] **설계 변경**: 로그인부터 요구하던 기존 흐름을, "게임을 먼저 하고 결과는 잠긴 채로 보여준 뒤 카카오 로그인해야 결과·쿠폰이 풀리는" 구조로 전환 (`docs/손님여정_프로세스_v2.md` 신설, SSOT로 등록)
+- [x] 카카오 로그인 권한 범위(scope)에서 반려된 `friends`를 제거해 로그인 실패 수정
+- [x] 대시보드/리포트 API에 역할 기반 접근 제어 추가, 관리자 메뉴를 역할별로 분리 표시
+- [x] 카카오 심사 대기 중에도 데모 시연 가능하도록 mock 결과 열람 경로 추가
+
+### 2026-08-18~21 (손님 화면 프리미엄 디자인 개편 + 데모모드 + 모바일 최적화)
+- [x] 손님 화면(게임 랜딩/진행/결과/쿠폰함) 전면 프리미엄 테마 개편 — 캐비닛 카드형 디자인, 매장명 명판(실측 좌표 오버레이), 쿠폰 티켓 디자인 통일, 버튼 애니메이션·컬러 정리 (다수 커밋, 8/18~8/21)
+- [x] `DEMO_UNLIMITED_PLAY` 플래그 추가 — 데모 버전 전용 1일 1회 참여 제한 해제 옵션
+- [x] `docs/migrations/028_universal_danggeun_verify.sql` — 전 경품 당근 확인 절차 통일 + 계산대 대기열 구조 도입
+- [x] `docs/migrations/029_points_enabled.sql`, `030_store_profile_urls.sql` — 매장별 포인트 적립 온/오프 스위치, 당근/카카오채널 URL 저장
+- [x] `docs/migrations/031_signup_self_registration.sql` — 회원가입 페이지를 문의 접수용에서 **실제 계정 생성**으로 전환
+- [x] `docs/migrations/032_coupon_label.sql` — 실물 경품 당첨 시 금액 대신 실제 품목명(`label`) 표시
+- [x] 손님용 게임 화면(`/play/[storeId]`)이 PC에서 열어도 모바일 해상도로 보이도록 반응형 고정 수정
+- [x] 관리자: 월광고비 입력창 "0" 고정 버그 수정, 이벤트 온/오프 토글 문구 추가, 경품 티어 상품명/금액/전체수량 자유 수정 + 티어 추가/삭제 기능
+- [x] 관리자: 광고주 임시 비밀번호를 "이메일 아이디+1234" 규칙으로 자동 생성하도록 변경, 비밀번호 재발급 500 에러 수정
+- [x] 관리자 모드 모바일 반응형 최적화 + "모바일 우선 UI 체크리스트" 규칙 추가
+
+### 2026-08-23 (광고주 관리자 모드 확장 v2 + 슈퍼관리자 모드 개편 v1)
+- [x] `docs/migrations/033_subscriptions.sql` — `subscriptions`(이용기간/결제 이력) 테이블, 구독 상태 판정(`classifySubscription`) 로직
+- [x] `docs/migrations/034_member_tracking_extended.sql` — 고객 최초방문/카카오최초로그인 시점 추적 컬럼 추가
+- [x] `docs/migrations/035_challenge_frequency.sql` — 참여 제한을 "하루 1회" 하드코딩에서 매일/주간/월간/무제한으로 일반화
+- [x] `docs/migrations/036_impersonation_log.sql` — 슈퍼관리자 **대리접속(Impersonation)** 메커니즘 + 감사 로그, `ImpersonationBanner`, 미들웨어 접근 제어
+- [x] 슈퍼관리자 전용 글로벌 대시보드(`/admin/super/dashboard`), 업체 리스트/상세 탭 구조, 회사 목록 검색·필터링 추가
+- [x] `docs/관리자_메뉴_구조_확정.md` 갱신 — 광고주/슈퍼관리자 메뉴 구조 최종 확정 (6개 고정 원칙 폐기, 기능 계속 추가 가능하도록 변경)
+
+### 2026-08-24 (리워드 카탈로그 2차 개편 + DB 백업 안전망)
+- [x] `docs/migrations/037_reward_catalog_discount_and_verification.sql` — `discount_amount`(할인금액) 컬럼 추가, `requires_verification=false`면 계산대 확인 단계 없이 즉시 지급되도록 `redeem_points_atomic`/`assign_checkout_queue` RPC 수정 (그동안 폼에 토글이 없어 사실상 항상 확인 필수였던 문제 해결)
+- [x] 관리자 리워드 등록/수정 폼 개편 — 본인확인 체크박스, 유형별 조건부 필드(할인금액), 자연어 설명문구, 저장 전 유효성 검사, 리워드 클릭 시 수정 모달 신설
+- [x] 손님용 리워드샵(`/me/points`) 이미지 카드형 개편 — 포인트 부족 시 프로그레스바, 본인확인 필요 리워드 배지 표시
+- [x] `docs/migrations/038_cleanup_reward_catalog_test_data.sql` — 테스트 더미 리워드 정리
+- [x] `scripts/backup-db.mjs` 신설 — `pg_dump` 미설치 환경(Windows 포함)에서도 동작하는 Node 기반 DB 데이터 백업 스크립트, `backups/`를 `.gitignore`에 추가
+- [x] `docs/migrations/README.md`에 "왜 Supabase 대시보드에 No migrations로 뜨는가" 설명 추가 — CLI를 쓴 적이 없어 대시보드 마이그레이션 추적 테이블이 비어있는 것이 원인(정상 상태)임을 문서화
+- [x] **문서 정비**: 8/13~8/24(013~038번 마이그레이션) 작업이 이 진행 로그에 누락되어 있던 것을 발견 — 이 구간을 소급 정리해 기록 (재발 방지: 세션 종료 체크리스트의 "진행 로그 기록" 항목을 앞으로 다시 챙길 것)
+
 ### 다음 예정
-- [ ] **Supabase SQL 실행 필요**: `012_points_system.sql` (Supabase Dashboard > SQL Editor)
-- [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신)
-- [ ] 9단계: 미션 시스템 (v2.1 6절 전제조건: 8단계 완료 후 진행)
-- [ ] 카카오 로그인 실제 연결 (mockLogin → Kakao SDK 교체)
+- [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신 — 현재는 조회 시점 판정으로 안전하게 대체 중)
+- [ ] 알림톡 발송대행사 실연동 (현재 stub 상태)
+- [ ] 당근 비즈프로필 실제 연동 (현재 화면 안내만, 클릭 로그 미구현)
+- [ ] Supabase Pro 업그레이드 + 자동 일일 백업(PITR) 전환
 
 ---
 
@@ -244,22 +297,19 @@ npm run dev
 
 ---
 
-## ⚠️ 카카오 연동 보류 — 건드리지 말 것
+## 카카오 연동 현황 (2026-08-12 실연동 완료)
 
-카카오 로그인 및 카카오 채널/알림톡 연동은 **의도적으로 미구현 상태**이다.
+카카오 로그인은 **실제 OAuth로 연동 완료**된 상태다 (`lib/auth/kakao.ts`, `/api/auth/kakao`, `/api/auth/kakao/callback`). 초창기엔 mockLogin으로 대체하던 보류 상태였으나 8단계에서 교체되었다.
 
 | 항목 | 상태 | 파일 |
 |---|---|---|
-| 카카오 로그인 | **보류** — mockLogin으로 대체 중 | `lib/auth/mockLogin.ts` |
-| 카카오 채널 친구추가 CTA | **보류** | 미구현 |
-| 카카오 알림톡 | **보류** | 미구현 |
+| 카카오 로그인 (OAuth) | **연동 완료** | `lib/auth/kakao.ts` |
+| 전화번호 수집(동의항목) | **비즈앱 전환 + 심사 대기** — 심사 전엔 `phone_number`가 null로 내려와 저장 생략 (로그인 자체는 정상) | `lib/auth/kakao.ts` |
+| 카카오 채널 친구추가 CTA | 연동 완료 (`NEXT_PUBLIC_ADVERTISER_KAKAO_URL`) | `PlayFlow.tsx` |
+| 카카오 알림톡 | **미연동** — `message_log`에 기록만 하는 stub 상태, 발송대행사 계약 필요 | `lib/alimtalk/send.ts` |
+| 카카오 심사 대기 우회 | `NEXT_PUBLIC_KAKAO_REVIEW_PENDING=true`면 실제 OAuth 대신 mock 세션으로 결과 열람 (데모/심사 대기 중 시연용) | `ResultLockedScreen.tsx` |
 
-**교체 방법 (준비되면):**
-1. `lib/auth/mockLogin.ts`의 `login()` 함수만 카카오 OAuth 호출로 교체
-2. `.env.local`에 `KAKAO_REST_API_KEY`, `NEXT_PUBLIC_KAKAO_JS_KEY`, `KAKAO_CLIENT_SECRET` 추가
-3. 나머지 화면 코드는 수정 불필요
-
-> 카카오 개발자센터 설정이 완료되기 전까지 카카오 관련 코드를 추가하거나 SDK를 호출하지 않는다.
+> 심사 승인 후: `NEXT_PUBLIC_KAKAO_REVIEW_PENDING` 플래그를 false/삭제하고 관련 `TEMP:` 주석 구간을 제거할 것 (아래 "배포 전 반드시 확인할 것" 참고).
 
 ---
 
