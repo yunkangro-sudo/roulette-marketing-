@@ -63,9 +63,9 @@ const LANDING_SIGN_BOTTOM = 244 - LANDING_TOP_TRIM
  *  안내 문구를 화면 상단이 아니라 여기에 배치한다 */
 const LANDING_FOOTER_LEFT = 160
 const LANDING_FOOTER_RIGHT = 864
-const LANDING_FOOTER_TOP = 1195 - LANDING_TOP_TRIM
-const LANDING_FOOTER_BOTTOM = 1400 - LANDING_TOP_TRIM
-const LANDING_FOOTER_FONT_SIZE = 34
+const LANDING_FOOTER_TOP = 1195 - LANDING_TOP_TRIM + 28
+const LANDING_FOOTER_BOTTOM = 1400 - LANDING_TOP_TRIM + 28
+const LANDING_FOOTER_FONT_SIZE = 40
 
 interface ContainLayout {
   scale: number
@@ -369,7 +369,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
               }}
             >
               <span
-                className="truncate px-2 text-center font-bold tracking-tight text-[#3A2A18]"
+                className="truncate px-2 text-center font-bold tracking-tight text-[#00A98C]"
                 style={{ fontSize: LANDING_FOOTER_FONT_SIZE * landingLayout.scale }}
               >
                 푸짐한 경품을 단 3초만에 받아가세요
@@ -419,19 +419,35 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
                   animate={{ x: ['-140%', '280%'] }}
                   transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2.3, ease: 'easeInOut' }}
                 />
-                <span className="relative z-[1]">경품 보기</span>
+                <span
+                  className="relative z-[1] bg-clip-text font-extrabold text-transparent [background-size:200%_100%] [animation:shimmerText_2.2s_linear_infinite]"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(100deg, #222222 30%, #00C7A7 45%, #ffffff 50%, #00C7A7 55%, #222222 70%)',
+                  }}
+                >
+                  경품 보기
+                </span>
               </motion.button>
             </div>
             <button
               onClick={() => setStep('playing')}
-              className="mt-2.5 w-full rounded-full bg-[#00C7A7] px-6 py-4 text-lg font-bold text-white transition-colors hover:bg-[#00b399]"
+              className="mt-2.5 w-full rounded-full bg-[#00C7A7] px-6 py-4 text-lg font-bold transition-colors hover:bg-[#00b399]"
             >
-              뽑기 시작
+              <motion.span
+                animate={{ color: ['#FFFFFF', '#FFF3B0', '#FFFFFF'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                뽑기 시작
+              </motion.span>
             </button>
             <p className="mt-3 text-center text-xs text-[#222222]/45">1일 1회 응모 가능</p>
-            <p className="mt-4 text-center text-[11px] text-[#222222]/35">
-              * 현재 이 게임은 데모 버전으로 테스트용입니다.
-            </p>
+            <style>{`
+              @keyframes shimmerText {
+                0% { background-position: 200% 0%; }
+                100% { background-position: -200% 0%; }
+              }
+            `}</style>
             {ADVERTISER_KAKAO_URL && (
               <a
                 href={ADVERTISER_KAKAO_URL}
