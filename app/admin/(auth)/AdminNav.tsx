@@ -33,6 +33,7 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
     : isAdvertiser
     ? [
         { href: '/admin/dashboard',         label: '대시보드' },
+        { href: '/admin/company',           label: '업체 정보' },
         { href: '/admin/events',            label: '이벤트 관리' },
         { href: '/admin/members',           label: '회원 관리' },
         { href: '/admin/report',            label: '성과 리포트' },

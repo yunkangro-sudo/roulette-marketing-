@@ -14,13 +14,15 @@ export interface Subscription {
 }
 
 interface Props {
-  /** store_contracts.id (uuid) — 구독 등록 API 경로에 쓰인다 */
-  companyId: string
+  /** store_contracts.id (uuid) — 구독 등록 API 경로에 쓰인다. readOnly일 땐 미사용 */
+  companyId?: string
   initialSubscriptions: Subscription[]
+  /** true면 광고주 화면 — 구독 이력은 수퍼관리자가 입력한 내용을 읽기전용으로만 보여주고, 갱신 등록 폼은 숨긴다 */
+  readOnly?: boolean
 }
 
-/** 업체 상세 "이용기간·결제" 탭 — 구독 이력 리스트 + 갱신 등록 폼 */
-export default function CompanySubscriptionsPanel({ companyId, initialSubscriptions }: Props) {
+/** 업체 상세 "이용기간·결제" 탭 — 구독 이력 리스트 + (수퍼관리자 전용) 갱신 등록 폼 */
+export default function CompanySubscriptionsPanel({ companyId, initialSubscriptions, readOnly }: Props) {
   const router = useRouter()
   const [subList, setSubList] = useState<Subscription[]>(initialSubscriptions)
   const [subForm, setSubForm] = useState({
@@ -35,6 +37,7 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
 
   async function handleAddSubscription(e: React.FormEvent) {
     e.preventDefault()
+    if (!companyId) return
     setSubError('')
     if (!subForm.start_date || !subForm.end_date) {
       setSubError('시작일과 종료일을 입력해주세요'); return
@@ -62,6 +65,10 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
     <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
       <h2 className="text-sm font-bold text-gray-700">구독(이용기간) 이력</h2>
 
+      {readOnly && (
+        <p className="text-xs text-gray-400 -mt-2">수퍼관리자가 등록한 이용기간·결제 내역입니다 (읽기 전용).</p>
+      )}
+
       {subList.length > 0 ? (
         <div className="space-y-1.5 max-h-64 overflow-y-auto">
           {subList.map((s) => (
@@ -75,6 +82,7 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
         <p className="text-xs text-gray-400">등록된 구독 이력이 없습니다 (무제한 체험으로 이용 중).</p>
       )}
 
+      {!readOnly && (
       <div className="border-t border-gray-100 pt-4 space-y-3">
         <p className="text-xs font-semibold text-gray-600">구독 갱신 등록</p>
         {subError && <p className="text-xs text-red-500">{subError}</p>}
@@ -111,6 +119,7 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
           {subLoading ? '등록 중...' : '+ 구독 갱신 등록'}
         </button>
       </div>
+      )}
     </div>
   )
 }

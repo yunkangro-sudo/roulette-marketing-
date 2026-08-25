@@ -34,10 +34,17 @@ interface Props {
   initial?: Company
   /** 탭 구조(CompanyDetailTabsClient) 안에 "기본정보" 탭으로 끼워넣을 때 바깥 제목/뒤로가기 chrome을 숨긴다 */
   hideChrome?: boolean
+  /**
+   * 'super_admin'(기본값): 계약 정보(계약기간/월 광고비) 수정 + 광고주 계정(재발급) 섹션 포함, PATCH는 /api/admin/companies/[id]
+   * 'advertiser': 업체 스스로 "기본정보"만 수정 — 계약 정보·광고주 계정 섹션은 숨기고(이용기간·결제 탭에서 읽기전용으로 별도 노출),
+   *               PATCH는 본인 매장으로 스코프된 /api/admin/company 로 전송
+   */
+  variant?: 'super_admin' | 'advertiser'
 }
 
-export default function CompanyForm({ mode, initial, hideChrome }: Props) {
+export default function CompanyForm({ mode, initial, hideChrome, variant = 'super_admin' }: Props) {
   const router = useRouter()
+  const isAdvertiser = variant === 'advertiser'
 
   const [form, setForm] = useState<Company>({
     store_id:            initial?.store_id            ?? '',
@@ -105,7 +112,7 @@ export default function CompanyForm({ mode, initial, hideChrome }: Props) {
     if (!form.store_id.trim() || !form.store_name.trim()) {
       setError('매장 ID와 업체명은 필수입니다'); return
     }
-    if (!form.contract_start_date || !form.contract_end_date) {
+    if (!isAdvertiser && (!form.contract_start_date || !form.contract_end_date)) {
       setError('계약 기간을 입력해주세요'); return
     }
     if (mode === 'create' && !newAdvertiserEmail.trim()) {
@@ -124,6 +131,28 @@ export default function CompanyForm({ mode, initial, hideChrome }: Props) {
         if (!res.ok) { setError(data.error ?? '저장 실패'); return }
         setShownEmail(newAdvertiserEmail)
         setTempPassword(data.temp_password)
+      } else if (isAdvertiser) {
+        // 업체 스스로 수정: 계약 정보(계약기간/월 광고비)는 절대 보내지 않는다 — 서버도 화이트리스트로 한 번 더 방어
+        const res = await fetch('/api/admin/company', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            store_name:        form.store_name,
+            contractor_name:   form.contractor_name,
+            manager_name:      form.manager_name,
+            phone:             form.phone   || null,
+            website:           form.website || null,
+            address:           form.address || null,
+            remarks:           form.remarks || null,
+            business_type:     form.business_type || null,
+            daangn_url:        form.daangn_url || null,
+            kakao_channel_url: form.kakao_channel_url || null,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) { setError(data.error ?? '저장 실패'); return }
+        setSuccess('저장되었습니다')
+        router.refresh()
       } else {
         const res = await fetch(`/api/admin/companies/${initial?.id}`, {
           method: 'PATCH',
@@ -260,32 +289,34 @@ export default function CompanyForm({ mode, initial, hideChrome }: Props) {
           </div>
         </div>
 
-        {/* ── 계약 정보 ── */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <h2 className="text-sm font-bold text-gray-700">계약 정보</h2>
+        {/* ── 계약 정보 (advertiser는 수정 불가 — "이용기간·결제" 탭에서 읽기전용으로 확인) ── */}
+        {!isAdvertiser && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 className="text-sm font-bold text-gray-700">계약 정보</h2>
 
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">계약 기간 *</label>
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-              <input type="date" value={form.contract_start_date} onChange={(e) => set('contract_start_date', e.target.value)}
-                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-              <span className="text-gray-400 shrink-0 text-center sm:text-left">~</span>
-              <input type="date" value={form.contract_end_date} min={form.contract_start_date} onChange={(e) => set('contract_end_date', e.target.value)}
-                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">계약 기간 *</label>
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <input type="date" value={form.contract_start_date} onChange={(e) => set('contract_start_date', e.target.value)}
+                  className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                <span className="text-gray-400 shrink-0 text-center sm:text-left">~</span>
+                <input type="date" value={form.contract_end_date} min={form.contract_start_date} onChange={(e) => set('contract_end_date', e.target.value)}
+                  className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">월 광고비 (원)</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={0} value={form.ad_amount === 0 ? '' : form.ad_amount}
+                  onChange={(e) => set('ad_amount', e.target.value === '' ? 0 : Number(e.target.value))}
+                  placeholder="300000"
+                  className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                <span className="text-sm text-gray-500">원 / 월</span>
+              </div>
             </div>
           </div>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">월 광고비 (원)</label>
-            <div className="flex items-center gap-2">
-              <input type="number" min={0} value={form.ad_amount === 0 ? '' : form.ad_amount}
-                onChange={(e) => set('ad_amount', e.target.value === '' ? 0 : Number(e.target.value))}
-                placeholder="300000"
-                className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-              <span className="text-sm text-gray-500">원 / 월</span>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* ── 매장 추가 정보 ── */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
@@ -357,8 +388,8 @@ export default function CompanyForm({ mode, initial, hideChrome }: Props) {
           </div>
         )}
 
-        {/* ── 광고주 계정 (수정 모드: 이메일 읽기전용 + 비밀번호 재발급) ── */}
-        {mode === 'edit' && (
+        {/* ── 광고주 계정 (수정 모드: 이메일 읽기전용 + 비밀번호 재발급, 수퍼관리자 전용) ── */}
+        {mode === 'edit' && !isAdvertiser && (
           <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 space-y-3">
             <h2 className="text-sm font-bold text-gray-700">광고주 로그인 계정</h2>
 
