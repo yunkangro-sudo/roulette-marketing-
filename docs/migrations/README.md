@@ -61,5 +61,18 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 036 | [`036_impersonation_log.sql`](./036_impersonation_log.sql) | `impersonation_log` (슈퍼관리자 대리접속 감사 로그) 테이블 추가 — 슈퍼관리자 모드 개편 v1 |
 | 037 | [`037_reward_catalog_discount_and_verification.sql`](./037_reward_catalog_discount_and_verification.sql) | `reward_catalog.discount_amount` 추가, `redeem_points_atomic`이 `requires_verification=false`면 확인 단계 없이 바로 `pending_apply`로 발급하도록 수정, `assign_checkout_queue`에 초기 대기열 상태 인자 추가 |
 | 038 | [`038_cleanup_reward_catalog_test_data.sql`](./038_cleanup_reward_catalog_test_data.sql) | (일회성) `chj-001` 매장의 `[TEST-*]`/`[테스트]`/`[A]~[D]` 리워드 테스트 더미데이터 삭제 |
+| 039 | [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql) | **[보안]** Supabase 보안 어드바이저 경고 대응 — `signup_inquiries` 제외 전체 24개 테이블 RLS 재활성화 (정책 없이 전체 차단, `service_role`은 영향 없음). 자세한 내용은 아래 "2026-08-25 보안 사고" 참고 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
+
+## 2026-08-25 보안 사고: 전체 테이블 RLS 비활성화 상태 발견 및 복구
+
+**발단**: Supabase가 "테이블의 RLS가 꺼져있어 프로젝트 URL만 알면 누구나 데이터를 읽고/수정하고/삭제할 수 있다"는 보안 경고 메일을 보냄.
+
+**조사 결과**: `docs/migrations/001~038` + `docs/sql-setup.sql` 전체를 조사한 결과, `signup_inquiries` 1개를 제외한 **24개 테이블**이 RLS OFF 상태였음 (일부는 처음부터 RLS를 켠 적이 없고, 일부는 개발 중 "permission denied" 에러가 날 때마다 정식 해결 대신 RLS를 꺼버리는 임시방편이 반복되어 발생함 — 001번 마이그레이션 주석에 "배포 전 반드시 재활성화" 경고가 있었으나 지켜지지 않았음). 원래 후보에 있던 `tier_usage_counters`는 004번 마이그레이션에서 이미 삭제된 테이블이라 실제로는 대상에서 제외됨 (실행 중 `relation does not exist` 에러로 발견 → `039` 파일을 `ALTER TABLE IF EXISTS` 방식으로 방어적으로 수정).
+
+**실제 위험도**: 서버 코드는 전부 `service_role` 키만 사용(RLS 우회 권한 있음)하고, 브라우저용 `anon` 키 클라이언트(`lib/supabase/client.ts`)는 실제로 어디서도 사용되지 않는 죽은 코드였기 때문에, 이 시점까지 외부에서 직접 데이터에 접근한 흔적은 없었던 것으로 판단됨. 다만 `anon` 키는 원래 공개되어도 되는 키라서, RLS가 꺼진 채로 두는 것 자체가 언제든 사고로 이어질 수 있는 상태였음.
+
+**조치**: [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql)로 25개 테이블 전체 RLS 활성화 (정책 미추가 = anon/authenticated 완전 차단, service_role만 기존대로 동작). 앱 코드 변경 없음.
+
+**향후 재발 방지 원칙**: "permission denied" 에러가 다시 발생해도 **RLS를 끄는 방식으로 해결하지 않는다.** 대신 (1) 정말 `service_role` GRANT가 누락된 것인지 먼저 확인하고, (2) 클라이언트에서 직접 접근이 필요한 경우에만 최소 권한 정책(policy)을 추가한다.
