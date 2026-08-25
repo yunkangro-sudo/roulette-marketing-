@@ -33,10 +33,14 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />
 
+      {/* z-20으로 아래 콘텐츠 영역(z-10)보다 위에 둬야 한다 — 콘텐츠 wrapper가
+          pt-[26dvh]로 상단 여백을 갖고 있어도 그 wrapper 자체는 화면 전체 높이를
+          차지하는 투명 박스라서, 같은 z-index(10)일 때 DOM 순서상 나중에 오는
+          콘텐츠 wrapper가 이 버튼의 클릭을 가로채고 있었다(실제 버그 원인) */}
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-5 top-5 z-10 text-sm font-semibold leading-none text-[#222222]/40 transition-colors hover:text-[#222222]"
+        className="absolute right-5 top-5 z-20 text-sm font-semibold leading-none text-[#222222] transition-colors hover:text-[#222222]/70"
       >
         닫기
       </button>
