@@ -62,6 +62,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 037 | [`037_reward_catalog_discount_and_verification.sql`](./037_reward_catalog_discount_and_verification.sql) | `reward_catalog.discount_amount` 추가, `redeem_points_atomic`이 `requires_verification=false`면 확인 단계 없이 바로 `pending_apply`로 발급하도록 수정, `assign_checkout_queue`에 초기 대기열 상태 인자 추가 |
 | 038 | [`038_cleanup_reward_catalog_test_data.sql`](./038_cleanup_reward_catalog_test_data.sql) | (일회성) `chj-001` 매장의 `[TEST-*]`/`[테스트]`/`[A]~[D]` 리워드 테스트 더미데이터 삭제 |
 | 039 | [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql) | **[보안]** Supabase 보안 어드바이저 경고 대응 — `signup_inquiries` 제외 전체 24개 테이블 RLS 재활성화 (정책 없이 전체 차단, `service_role`은 영향 없음). 자세한 내용은 아래 "2026-08-25 보안 사고" 참고 |
+| 040 | [`040_reward_images_storage_bucket.sql`](./040_reward_images_storage_bucket.sql) | 리워드 이미지 업로드용 Supabase Storage `reward-images` 버킷 생성 (public read, 5MB 제한, jpg/png/webp만 허용). `scripts/create-reward-images-bucket.mjs`(Storage Admin API)로 실행, raw SQL 아님 — 별도 쓰기 정책 없음(업로드는 항상 service_role 서버 API 경유) |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

@@ -59,6 +59,32 @@ const COUPON_STATUS_LABEL = {
   expired: '만료',
 } as const
 
+/** 리워드 카드 하단의 진행률 게이지 — 럭키박스 캐릭터 아이콘 + 브랜드그린 게이지바 + 상태 문구.
+ *  마운트 직후 0%에서 실제 값까지 부드럽게 차오르도록, 첫 렌더는 0으로 그리고 잠깐 뒤 목표값으로 전환한다. */
+function RewardGauge({ percent, sufficient, pointsShort }: { percent: number; sufficient: boolean; pointsShort: number }) {
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    const t = setTimeout(() => setDisplay(percent), 80)
+    return () => clearTimeout(t)
+  }, [percent])
+
+  return (
+    <div className="mt-2.5 flex flex-col items-center">
+      <img src="/characters/char_display_mint.webp" alt="" className="mb-1 h-7 w-7 object-contain" />
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#00C7A7]/15">
+        <div
+          className="h-2 rounded-full bg-[#00C7A7] transition-all duration-700 ease-out"
+          style={{ width: `${display}%` }}
+        />
+      </div>
+      <p className="mt-1.5 text-center text-[11px] font-medium text-[#222222]/50">
+        {sufficient ? '지금 바로 받을 수 있어요' : `${pointsShort.toLocaleString()}P 더 모으면 받을 수 있어요`}
+      </p>
+    </div>
+  )
+}
+
 function PointsContent() {
   const searchParams = useSearchParams()
   const storeId = searchParams.get('store_id') ?? ''
@@ -323,7 +349,7 @@ function PointsContent() {
                 const outOfStock = reward.stock !== null && reward.stock <= 0
                 const pointsShort = Math.max(0, reward.point_cost - balance)
                 const canRedeem = canUsePoints && pointsShort === 0
-                const progressPct = Math.max(4, Math.min(100, Math.round((balance / reward.point_cost) * 100)))
+                const progressPct = Math.min(100, Math.round((balance / reward.point_cost) * 100))
 
                 return (
                   <div key={reward.id} className={`overflow-hidden rounded-2xl bg-white/70 shadow-sm backdrop-blur-sm ${
@@ -360,16 +386,9 @@ function PointsContent() {
                         <p className="mt-0.5 text-[11px] text-[#222222]/40">잔여 {reward.stock}개</p>
                       )}
 
-                      {/* 포인트가 부족하면 숫자 대신 진행 상황을 막대바로 보여준다 */}
-                      {!outOfStock && pointsShort > 0 && (
-                        <div className="mt-2">
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#222222]/8">
-                            <div className="h-1.5 rounded-full bg-[#00C7A7] transition-all duration-500" style={{ width: `${progressPct}%` }} />
-                          </div>
-                          <p className="mt-1 text-[11px] text-[#222222]/45">
-                            {pointsShort.toLocaleString()}P 더 모으면 받을 수 있어요
-                          </p>
-                        </div>
+                      {/* 진행률 게이지 — 부족하면 남은 포인트, 충분하면 바로 받을 수 있다는 문구 */}
+                      {!outOfStock && (
+                        <RewardGauge percent={progressPct} sufficient={pointsShort === 0} pointsShort={pointsShort} />
                       )}
 
                       <button

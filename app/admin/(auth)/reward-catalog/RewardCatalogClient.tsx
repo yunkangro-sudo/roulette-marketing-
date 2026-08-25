@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import StoreSelector from '../components/StoreSelector'
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
 type ExtraFieldKey = 'discount_amount'
@@ -160,13 +163,56 @@ const EXPOSURE_TONE_CLASS: Record<'green' | 'amber' | 'gray', string> = {
 
 /** 등록 폼과 수정 모달이 공유하는 입력 필드 묶음 — 새 유형별 필드를 추가할 때도 이 컴포넌트만 고치면 된다 */
 function RewardFormFields({
-  values, onChange, errors,
+  values, onChange, errors, storeId, onUploadingChange,
 }: {
   values: RewardFormValues
   onChange: (patch: Partial<RewardFormValues>) => void
   errors: FormErrors
+  /** 이미지 업로드 API에 전달할 매장 ID — Storage 경로를 매장별로 스코프하는 데 쓰인다 */
+  storeId: string
+  /** 업로드 진행 중엔 부모(등록/저장) 버튼을 비활성화하기 위한 콜백 */
+  onUploadingChange?: (uploading: boolean) => void
 }) {
   const extraFields = REWARD_TYPE_EXTRA_FIELDS[values.rewardType]
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [imageError, setImageError] = useState('')
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일을 다시 선택해도 onChange가 또 발생하도록 초기화
+    if (!file) return
+
+    setImageError('')
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageError('jpg, png, webp 형식의 이미지만 업로드할 수 있어요'); return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError('이미지는 5MB 이하만 업로드할 수 있어요'); return
+    }
+    if (!storeId) {
+      setImageError('매장을 먼저 선택해주세요'); return
+    }
+
+    setUploading(true)
+    onUploadingChange?.(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('store_id', storeId)
+      const res = await fetch('/api/admin/reward-catalog/upload-image', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.url) {
+        setImageError(data?.error ?? '업로드에 실패했어요'); return
+      }
+      onChange({ imageUrl: data.url })
+    } catch {
+      setImageError('네트워크 오류로 업로드에 실패했어요')
+    } finally {
+      setUploading(false)
+      onUploadingChange?.(false)
+    }
+  }
 
   return (
     <>
@@ -220,12 +266,40 @@ function RewardFormFields({
         </div>
       )}
 
-      {/* 이미지 URL */}
+      {/* 이미지 업로드 */}
       <div className="mb-3">
-        <label className="block text-xs text-gray-500 mb-1">이미지 URL (선택)</label>
-        <input value={values.imageUrl} onChange={(e) => onChange({ imageUrl: e.target.value })}
-          placeholder="https://example.com/image.jpg"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+        <label className="block text-xs text-gray-500 mb-1">이미지 (선택, 5MB 이하 jpg·png·webp)</label>
+        <div className="flex items-center gap-3">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+            {values.imageUrl ? (
+              <img src={values.imageUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-2xl text-gray-300">🖼️</div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-400 border-t-transparent" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange} className="hidden" />
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                className="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors disabled:opacity-50">
+                {uploading ? '업로드 중...' : values.imageUrl ? '이미지 변경' : '이미지 선택'}
+              </button>
+              {values.imageUrl && !uploading && (
+                <button type="button" onClick={() => onChange({ imageUrl: '' })}
+                  className="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                  삭제
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        {imageError && <p className="text-xs text-red-600 font-medium mt-1.5">{imageError}</p>}
       </div>
 
       {/* 기간 한정 */}
@@ -273,6 +347,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
   // 새 리워드 등록 폼 상태
   const [newForm, setNewForm] = useState<RewardFormValues>(emptyForm())
   const [adding, setAdding] = useState(false)
+  const [newImageUploading, setNewImageUploading] = useState(false)
   const newErrors = validateRewardForm(newForm)
   const newHasError = Object.keys(newErrors).length > 0
 
@@ -280,6 +355,7 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
   const [editing, setEditing] = useState<Reward | null>(null)
   const [editForm, setEditForm] = useState<RewardFormValues>(emptyForm())
   const [saving, setSaving] = useState(false)
+  const [editImageUploading, setEditImageUploading] = useState(false)
   const [editMessage, setEditMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const editErrors = validateRewardForm(editForm)
   const editHasError = Object.keys(editErrors).length > 0
@@ -349,15 +425,26 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
     if (!editing || editHasError) return
     setSaving(true)
     setEditMessage(null)
+    const payload = buildRewardPayload(editForm)
     const res = await fetch(`/api/admin/reward-catalog/${editing.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildRewardPayload(editForm)),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
     if (!res.ok) {
       setEditMessage({ text: data.error ?? '저장 실패', ok: false })
     } else {
+      // 이미지가 교체되었거나 삭제되었으면, 저장이 "성공한 뒤"에만 이전 파일을 정리한다.
+      // 저장 전에 지우면 사용자가 수정을 취소했을 때 기존에 보이던 이미지가 사라지는 사고가 난다.
+      const oldUrl = editing.image_url
+      if (oldUrl && oldUrl !== payload.image_url) {
+        fetch('/api/admin/reward-catalog/upload-image', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: oldUrl, store_id: selectedStore }),
+        }).catch(() => {})
+      }
       await load(selectedStore)
       closeEdit()
     }
@@ -391,11 +478,13 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
               values={newForm}
               onChange={(patch) => setNewForm((prev) => ({ ...prev, ...patch }))}
               errors={newErrors}
+              storeId={selectedStore}
+              onUploadingChange={setNewImageUploading}
             />
 
-            <button onClick={handleAdd} disabled={adding || newHasError}
+            <button onClick={handleAdd} disabled={adding || newHasError || newImageUploading}
               className="mt-3 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold px-5 py-2 rounded-lg disabled:opacity-50 transition-colors">
-              {adding ? '등록 중...' : '+ 등록'}
+              {adding ? '등록 중...' : newImageUploading ? '이미지 업로드 중...' : '+ 등록'}
             </button>
           </div>
 
@@ -492,6 +581,8 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
               values={editForm}
               onChange={(patch) => setEditForm((prev) => ({ ...prev, ...patch }))}
               errors={editErrors}
+              storeId={selectedStore}
+              onUploadingChange={setEditImageUploading}
             />
 
             <div className="flex gap-2 mt-4">
@@ -499,9 +590,9 @@ export default function RewardCatalogClient({ role, storeId }: Props) {
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">
                 취소
               </button>
-              <button onClick={handleSaveEdit} disabled={saving || editHasError}
+              <button onClick={handleSaveEdit} disabled={saving || editHasError || editImageUploading}
                 className="flex-1 bg-orange-500 hover:bg-orange-400 text-white text-sm font-bold px-5 py-2.5 rounded-lg disabled:opacity-50 transition-colors">
-                {saving ? '저장 중...' : '저장'}
+                {saving ? '저장 중...' : editImageUploading ? '이미지 업로드 중...' : '저장'}
               </button>
             </div>
           </div>

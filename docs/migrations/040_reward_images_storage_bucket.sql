@@ -1,0 +1,40 @@
+-- ============================================================
+-- Migration 040: 리워드 이미지 업로드용 Supabase Storage 버킷 생성
+-- 실행 위치: scripts/create-reward-images-bucket.mjs (Supabase JS Storage Admin API)
+-- 날짜: 2026-08-25
+-- ============================================================
+--
+-- 배경:
+--   reward_catalog.image_url이 지금까지 "이미지 URL 텍스트 직접 입력"만
+--   지원했는데, 광고주가 파일을 직접 업로드해서 등록할 수 있게 바꾸는 작업의
+--   일부. 원본 사진을 그대로 저장하지 않고 서버(API Route)에서 sharp로
+--   리사이즈(최대 1200px) + WebP 변환한 뒤 이 버킷에 저장한다.
+--
+-- 이 파일은 실제로는 raw SQL이 아니라 아래 Node 스크립트로 실행되었다
+-- (storage.buckets를 직접 INSERT하는 대신 공식 Storage Admin API 사용):
+--   node scripts/create-reward-images-bucket.mjs
+--
+-- 버킷 설정:
+--   - id/name: reward-images
+--   - public: true  → 공개 읽기 (Storage의 /storage/v1/object/public/ 엔드포인트는
+--     public 버킷에 한해 RLS 정책 없이도 항상 조회 가능 — 손님 화면 <img src>가
+--     그대로 이 URL을 쓸 수 있어야 하므로 필요)
+--   - file_size_limit: 5MB (앱단 검증과 별개로 Storage 레벨에서도 이중 방어)
+--   - allowed_mime_types: image/jpeg, image/png, image/webp
+--
+-- 쓰기(업로드/삭제) 권한 정책을 별도로 추가하지 않은 이유:
+--   이 프로젝트는 Supabase Auth를 쓰지 않고 자체 iron-session 기반 관리자
+--   인증(lib/admin/session.ts)만 사용한다. 따라서 auth.uid() 기반 Storage RLS
+--   정책은애초에 이 프로젝트 구조와 맞지 않는다. 대신 다른 모든 admin API와
+--   동일한 패턴으로: 클라이언트가 Storage에 직접 업로드하지 않고, 반드시
+--   requireAdminAuth() 인증을 통과한 서버 API Route
+--   (app/api/admin/reward-catalog/upload-image/route.ts)가 service_role
+--   키로 업로드/삭제한다. service_role은 Storage RLS를 항상 우회하고,
+--   정책을 추가하지 않은 상태(RLS 기본 정책 없음)라서 anon/authenticated
+--   키로는 애초에 storage.objects에 쓰기 자체가 불가능하다.
+--   "광고주는 본인 매장(store_id) 이미지만" 제한도 Storage 정책이 아니라
+--   업로드 API 내부에서 resolveStoreId()로 강제한다 (파일 경로를
+--   `{store_id}/{uuid}.webp`로 스코프).
+--
+-- 확인용: Supabase Dashboard > Storage 에서 reward-images 버킷이
+-- Public으로 표시되는지 확인할 것.
