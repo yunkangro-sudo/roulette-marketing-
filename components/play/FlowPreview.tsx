@@ -42,6 +42,7 @@ export default function FlowPreview({ screen, storeId }: Props) {
           coupon: PREVIEW_COUPON,
         }}
         onDone={() => {}}
+        onClose={() => {}}
         daangnUrl="https://www.daangn.com/_preview"
         storeId={storeId}
         storeName="명동찜닭"

@@ -8,6 +8,8 @@ import CouponTicket from './CouponTicket'
 interface Props {
   result: PrizeResult
   onDone: () => void
+  /** 상단 "닫기" 클릭 시 실행 — 로그아웃 없이 최초(게임 시작) 화면으로 돌아간다 */
+  onClose: () => void
   daangnUrl?: string | null
   storeId?: string
   storeName?: string | null
@@ -22,7 +24,7 @@ function trackDaangnClick() {
   fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {})
 }
 
-export default function VerificationCtaScreen({ result, onDone, daangnUrl, storeId, storeName }: Props) {
+export default function VerificationCtaScreen({ result, onDone, onClose, daangnUrl, storeId, storeName }: Props) {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
@@ -31,15 +33,13 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />
 
-      {storeId ? (
-        <a
-          href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-          className="absolute right-5 top-5 z-10 text-xl leading-none text-[#222222]/40 transition-colors hover:text-[#222222]"
-          aria-label="닫기"
-        >
-          ✕
-        </a>
-      ) : null}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-5 top-5 z-10 text-sm font-semibold leading-none text-[#222222]/40 transition-colors hover:text-[#222222]"
+      >
+        닫기
+      </button>
 
       {/* 상단 조명(캐비닛 배경 이미지) 자리를 비켜서 매장명이 조명을 가리지 않도록
           justify-center 대신 명시적인 상단 여백(pt)으로 출력 위치를 고정한다.
@@ -90,6 +90,7 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
               amountLabel={result.label}
               code={result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
               validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
+              noteText="쿠폰함에서 쿠폰 사용가능"
             />
           </motion.div>
         )}

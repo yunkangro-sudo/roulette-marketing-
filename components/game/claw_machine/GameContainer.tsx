@@ -96,7 +96,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
       )}
 
       {phase === 'verification_cta' && result && (
-        <VerificationCtaScreen result={result} onDone={handleReplay} />
+        <VerificationCtaScreen result={result} onDone={handleReplay} onClose={handleReplay} />
       )}
     </div>
   )

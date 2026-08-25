@@ -276,6 +276,12 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     setStep('landing')
   }, [])
 
+  /** 로그인 상태는 유지한 채, 결과 화면만 닫고 최초(게임 시작) 화면으로 돌아간다 */
+  const handleCloseToLanding = useCallback(() => {
+    setResult(null)
+    setStep('landing')
+  }, [])
+
   if (!event) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-6 bg-[#FFF3DE] px-8 text-center">
@@ -475,7 +481,13 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         <ResultScreen
           result={result}
           onReplay={handleSwitchAccount}
-          onContinue={() => setStep('channel_cta')}
+          // 카카오 채널 추가 단계(channel_cta)는 2026-08-25부로 필요 없어져 건너뛴다.
+          // 코드/화면은 삭제하지 않고 그대로 남겨뒀으니, 나중에 다시 필요해지면
+          // 아래를 `setStep('channel_cta')`로만 되돌리면 바로 복원된다.
+          onContinue={() => {
+            if (result.amount > 0) setStep('verification_cta')
+            else setStep('landing')
+          }}
           continueLabel="다음"
         />
       </div>
@@ -500,6 +512,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         <VerificationCtaScreen
           result={result}
           onDone={handleSwitchAccount}
+          onClose={handleCloseToLanding}
           daangnUrl={daangnUrl}
           storeId={storeId}
           storeName={storeName || event.name}
