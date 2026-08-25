@@ -44,8 +44,10 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
       {/* 상단 조명(캐비닛 배경 이미지) 자리를 비켜서 매장명이 조명을 가리지 않도록
           justify-center 대신 명시적인 상단 여백(pt)으로 출력 위치를 고정한다.
           뷰포트 높이 기준(dvh)으로 잡아야 배경 이미지가 화면 전체를 덮는
-          상황(모바일 실기기 포함)에서도 항상 조명 아래쪽에 위치한다 */}
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center gap-6 px-8 pb-[6%] pt-[15dvh] text-center">
+          상황(모바일 실기기 포함)에서도 항상 조명 아래쪽에 위치한다.
+          2026-08-25: 여전히 조명과 겹치고 하단 여백이 남는다는 피드백으로 상단 여백을
+          더 크게, 하단 여백은 더 작게 조정해 전체 콘텐츠를 아래쪽으로 이동 */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center gap-6 px-8 pb-[3%] pt-[26dvh] text-center">
         {storeName ? (
           <motion.div
             initial={{ scale: 0 }}
@@ -72,10 +74,8 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.35 }}
         >
-          <h2 className="text-xl font-bold leading-relaxed text-[#222222]">
-            당근마켓 단골 추가하고
-            <br />
-            쿠폰 사용하세요
+          <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
+            당근마켓 단골 추가시 쿠폰 사용가능
           </h2>
         </motion.div>
 
