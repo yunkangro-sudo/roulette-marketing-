@@ -26,7 +26,7 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
-        src="/characters/bg_result_spotlight.png"
+        src="/characters/bg_result_spotlight.webp"
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />
@@ -58,7 +58,7 @@ export default function VerificationCtaScreen({ result, onDone, daangnUrl, store
           </motion.div>
         ) : (
           <motion.img
-            src="/characters/char_result_jackpot.png"
+            src="/characters/char_result_jackpot.webp"
             alt=""
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

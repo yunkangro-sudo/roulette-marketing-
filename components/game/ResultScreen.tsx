@@ -15,10 +15,15 @@ interface Props {
 }
 
 const RESULT_CHAR = {
-  big: '/characters/char_result_jackpot.png',
-  small: '/characters/char_result_small.png',
-  miss: '/characters/char_result_miss.png',
+  big: '/characters/char_result_jackpot.webp',
+  small: '/characters/char_result_small.webp',
+  miss: '/characters/char_result_miss.webp',
 } as const
+
+const RESULT_BG_SRC = '/characters/bg_result_spotlight.webp'
+
+/** PlayFlow가 랜딩화면 단계에서 미리 로드해둘 수 있도록 결과화면이 쓰는 이미지 목록을 내보낸다 */
+export const RESULT_SCREEN_IMAGES: readonly string[] = [RESULT_BG_SRC, ...Object.values(RESULT_CHAR)]
 
 const TINT = {
   big: 'bg-[#00C7A7]/20',
@@ -39,7 +44,7 @@ export default function ResultScreen({ result, onReplay, onVerificationCta, onCo
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
-        src="/characters/bg_result_spotlight.png"
+        src={RESULT_BG_SRC}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />

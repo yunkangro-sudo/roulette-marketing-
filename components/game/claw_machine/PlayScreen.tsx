@@ -5,15 +5,18 @@ import { motion, animate, useMotionValue, useTransform, AnimatePresence } from '
 import { rollPrize, resolveTier } from './gameUtils'
 import type { PrizeResult } from '../types'
 
-const BG_SRC = '/characters/bg_default_empty.png'
-const CRANE_SRC = '/characters/crane_claw_arm.png'
+const BG_SRC = '/characters/bg_default_empty.webp'
+const CRANE_SRC = '/characters/crane_claw_arm.webp'
 const DISPLAY_CHARS = [
-  '/characters/char_display_mint.png',
-  '/characters/char_display_lavender.png',
-  '/characters/char_display_peach.png',
-  '/characters/char_display_yellow.png',
-  '/characters/char_display_gold.png',
+  '/characters/char_display_mint.webp',
+  '/characters/char_display_lavender.webp',
+  '/characters/char_display_peach.webp',
+  '/characters/char_display_yellow.webp',
+  '/characters/char_display_gold.webp',
 ] as const
+
+/** PlayFlow가 랜딩화면 단계에서 미리 로드해둘 수 있도록 이 화면이 쓰는 이미지 목록을 내보낸다 */
+export const PLAY_SCREEN_IMAGES: readonly string[] = [BG_SRC, CRANE_SRC, ...DISPLAY_CHARS]
 
 const IMG_W = 941
 const IMG_H = 1672

@@ -12,6 +12,9 @@ import ChannelCtaScreen from '@/components/play/ChannelCtaScreen'
 import PrizeListSheet from '@/components/play/PrizeListSheet'
 import type { PrizeResult } from '@/components/game/types'
 import { resolveTier } from '@/components/game/claw_machine/gameUtils'
+import { PLAY_SCREEN_IMAGES } from '@/components/game/claw_machine/PlayScreen'
+import { RESULT_SCREEN_IMAGES } from '@/components/game/ResultScreen'
+import { preloadImages } from '@/lib/game/preloadImages'
 
 type Step =
   | 'loading'
@@ -182,6 +185,15 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     }
   }, [storeId])
 
+  // 랜딩화면("뽑기 시작" 버튼이 뜨는 시점)에 도착하자마자, 사용자가 버튼을 누르기 전에
+  // 다음 화면들(게임 화면 → 결과 화면)이 쓸 이미지를 미리 백그라운드로 받아둔다.
+  // 랜딩화면을 보고 있는 몇 초 동안 조용히 다운로드되므로, 실제로 뽑기를 시작하거나
+  // 결과가 나올 때는 이미 캐시에 있어 지연 없이 바로 표시된다.
+  useEffect(() => {
+    if (step !== 'landing') return
+    preloadImages([...PLAY_SCREEN_IMAGES, ...RESULT_SCREEN_IMAGES])
+  }, [step])
+
   useEffect(() => {
     if (!event) {
       setStep('landing')
@@ -268,7 +280,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     return (
       <div className="flex h-full flex-col items-center justify-center gap-6 bg-[#FFF3DE] px-8 text-center">
         <img
-          src="/characters/char_result_miss.png"
+          src="/characters/char_result_miss.webp"
           alt=""
           className="h-20 w-20 select-none object-contain"
         />
@@ -289,7 +301,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
       <div className="flex h-full items-center justify-center bg-[#FFF3DE]">
         <div className="flex flex-col items-center">
           <motion.img
-            src="/characters/char_result_jackpot.png"
+            src="/characters/char_result_jackpot.webp"
             alt=""
             className="h-16 w-16 select-none object-contain"
             animate={{ scale: [0.9, 1.05, 0.9] }}
@@ -313,7 +325,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
           style={{ paddingTop: 'max(6px, env(safe-area-inset-top))', paddingBottom: 4 }}
         >
           <img
-            src="/characters/bg_default_blank_sign_trimmed.png"
+            src="/characters/bg_default_blank_sign_trimmed.webp"
             alt=""
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain object-center"
           />

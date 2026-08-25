@@ -16,7 +16,7 @@ export default function ResultLockedScreen({ storeId, onMockLogin, loading }: Pr
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
-        src="/characters/bg_result_spotlight.png"
+        src="/characters/bg_result_spotlight.webp"
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
       />

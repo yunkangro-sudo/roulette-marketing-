@@ -140,7 +140,7 @@ function CouponDetailContent() {
 
         <div className="mt-6 flex flex-col items-center">
           <img
-            src="/characters/char_result_jackpot.png"
+            src="/characters/char_result_jackpot.webp"
             alt=""
             className="h-auto w-[38%] max-w-[160px] select-none"
           />

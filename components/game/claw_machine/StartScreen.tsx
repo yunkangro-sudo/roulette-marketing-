@@ -10,7 +10,7 @@ export default function StartScreen({ onStart }: Props) {
       {/* 이벤트 썸네일 플레이스홀더 */}
       <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 rounded-2xl border border-[#222222]/10 bg-white/60">
         <img
-          src="/characters/char_result_jackpot.png"
+          src="/characters/char_result_jackpot.webp"
           alt=""
           className="h-14 w-14 select-none object-contain"
         />
