@@ -173,8 +173,13 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         return
       }
       if (data.result) {
-        setResult(toPrizeResult(data.result))
-        setStep('result')
+        const prize = toPrizeResult(data.result)
+        setResult(prize)
+        // 당첨(경품 있음)인 경우, 민트색 결과화면(ResultScreen)과 파란색 단골추가
+        // 안내화면(VerificationCtaScreen)이 경품명·쿠폰코드를 중복해서 두 번 보여주는
+        // 문제가 있었다 — 당첨 시엔 ResultScreen을 건너뛰고 바로 단골추가 안내로 간다.
+        // "꽝"(amount 0)은 단골추가로 이어질 쿠폰이 없으므로 기존 결과화면을 그대로 보여준다.
+        setStep(prize.amount > 0 ? 'verification_cta' : 'result')
       } else {
         setStep('landing')
       }
@@ -220,8 +225,10 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
       try {
         const pending = await fetch(`/api/games/pending?store_id=${encodeURIComponent(storeId)}`).then((r) => r.json())
         if (pending.hasRevealed && pending.revealed) {
-          setResult(toPrizeResult(pending.revealed))
-          setStep('result')
+          const prize = toPrizeResult(pending.revealed)
+          setResult(prize)
+          // claimResult()와 동일한 규칙: 당첨은 단골추가 안내로 바로, 꽝만 결과화면 경유.
+          setStep(prize.amount > 0 ? 'verification_cta' : 'result')
           return
         }
         if (pending.hasPending) {
@@ -492,18 +499,15 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   }
 
   if (step === 'result' && result) {
+    // 당첨(amount > 0)은 claimResult()에서 이 단계를 건너뛰고 곧장 verification_cta로
+    // 가므로, 여기 도달하는 건 항상 "꽝"(경품 없음) 케이스뿐이다 — 그래서 계속 진행 시
+    // 단골추가 안내 없이 바로 랜딩으로 돌아간다.
     return (
       <div className="relative w-full h-full overflow-hidden bg-[#EFE6D6]">
         <ResultScreen
           result={result}
           onReplay={handleSwitchAccount}
-          // 카카오 채널 추가 단계(channel_cta)는 2026-08-25부로 필요 없어져 건너뛴다.
-          // 코드/화면은 삭제하지 않고 그대로 남겨뒀으니, 나중에 다시 필요해지면
-          // 아래를 `setStep('channel_cta')`로만 되돌리면 바로 복원된다.
-          onContinue={() => {
-            if (result.amount > 0) setStep('verification_cta')
-            else setStep('landing')
-          }}
+          onContinue={() => setStep('landing')}
           continueLabel="다음"
         />
       </div>
