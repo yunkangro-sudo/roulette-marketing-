@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   // 카카오에서 에러 반환 (사용자가 동의 거부 등)
   if (error || !code) {
     console.warn('[kakao callback] 카카오 에러 또는 code 없음:', error)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/`)
+    return NextResponse.redirect(`${req.nextUrl.origin}/`)
   }
 
   // state에서 storeId / next 파싱
@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
+  // /api/auth/kakao와 동일한 이유로 요청 origin을 그대로 쓴다 — 카카오 토큰 교환 시
+  // redirect_uri는 인가 요청 때 보낸 값과 정확히 일치해야 하는데, 그쪽도 origin 기준으로
+  // 바뀌었으므로 여기서도 origin 기준으로 맞춰야 한다.
+  const appUrl      = req.nextUrl.origin
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
 
   try {

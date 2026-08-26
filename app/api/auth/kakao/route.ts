@@ -20,8 +20,13 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // .trim()으로 Vercel 환경변수 복사 시 들어올 수 있는 공백/개행 제거
-  const appUrl      = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').trim()
+  // NEXT_PUBLIC_APP_URL(고정 환경변수) 대신 실제 접속한 요청의 origin을 그대로 쓴다.
+  // 커스텀 도메인을 새로 연결해도(예: roulette-marketing.vercel.app → dgting.co.kr)
+  // 환경변수를 갱신하지 않으면 로그인 후 옛 도메인으로 강제로 돌아가는 문제가 있었다.
+  // 요청 origin 기준으로 만들면 손님이 어느 도메인으로 들어왔든 그 도메인에 그대로 머문다.
+  // ⚠️ 이 URL(정확히는 {origin}/api/auth/kakao/callback)이 카카오 디벨로퍼스 콘솔의
+  // "Redirect URI" 목록에 등록되어 있어야 한다 — 새 도메인을 쓰려면 그쪽에도 추가 필요.
+  const appUrl      = req.nextUrl.origin
   const redirectUri = `${appUrl}/api/auth/kakao/callback`
 
   // state: "storeId:[매장ID]" 또는 "storeId:[매장ID]|next:checkout"
