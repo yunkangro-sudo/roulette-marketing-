@@ -64,6 +64,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 039 | [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql) | **[보안]** Supabase 보안 어드바이저 경고 대응 — `signup_inquiries` 제외 전체 24개 테이블 RLS 재활성화 (정책 없이 전체 차단, `service_role`은 영향 없음). 자세한 내용은 아래 "2026-08-25 보안 사고" 참고 |
 | 040 | [`040_reward_images_storage_bucket.sql`](./040_reward_images_storage_bucket.sql) | 리워드 이미지 업로드용 Supabase Storage `reward-images` 버킷 생성 (public read, 5MB 제한, jpg/png/webp만 허용). `scripts/create-reward-images-bucket.mjs`(Storage Admin API)로 실행, raw SQL 아님 — 별도 쓰기 정책 없음(업로드는 항상 service_role 서버 API 경유) |
 | 041 | [`041_reward_redemption_coupons_integration.sql`](./041_reward_redemption_coupons_integration.sql) | 포인트 리워드 교환을 `rewards_issued` 대신 `coupons` 테이블로 통합 — `coupons.source_type`에 `reward_redemption` 추가, `coupons.reward_catalog_id` 컬럼 추가, `redeem_points_atomic`이 `coupons`에 발급하도록 변경. 게임 당첨 쿠폰과 완전히 동일한 코드 확인 화면(`/me/points/[couponId]`)·계산대 흐름을 그대로 재사용 |
+| 042 | [`042_remove_usage_threshold_gate.sql`](./042_remove_usage_threshold_gate.sql) | `redeem_points_atomic`에서 `loyalty_settings.usage_threshold`("최소 사용 가능 잔액") 체크 제거 — 리워드 가격 위에 이 값이 추가로 얹혀져서, 리워드 가격만큼 모아도 여전히 교환이 막히는 버그가 있었음. 이제 리워드 교환 가능 여부는 오직 해당 리워드의 `point_cost`만으로 판단 (컬럼/관리자 화면 자체는 유지) |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

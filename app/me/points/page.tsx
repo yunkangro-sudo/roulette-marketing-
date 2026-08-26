@@ -94,7 +94,6 @@ function PointsContent() {
   const [storeName, setStoreName] = useState('')
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
-  const [threshold, setThreshold] = useState(100)
   const [pointPerVisit, setPointPerVisit] = useState(10)
   const [catalog, setCatalog] = useState<Reward[]>([])
   const [history, setHistory] = useState<LedgerEntry[]>([])
@@ -124,7 +123,6 @@ function PointsContent() {
       setStoreName(data.storeName ?? '')
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
-      setThreshold(data.settings?.usage_threshold ?? 100)
       setPointPerVisit(data.settings?.point_per_visit ?? 10)
       setCatalog(data.catalog ?? [])
       setHistory(data.history ?? [])
@@ -191,8 +189,6 @@ function PointsContent() {
     )
   }
 
-  const canUsePoints = balance >= threshold
-
   return (
     <div className="min-h-screen bg-[#EFE6D6]">
       <div className="mx-auto max-w-md space-y-5 px-4 py-8">
@@ -222,17 +218,6 @@ function PointsContent() {
           <div className="flex items-center justify-between text-sm">
             <span className="text-white/80">보유 쿠폰 {coupons.length}장</span>
             <span className="text-white/80">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
-          </div>
-
-          {/* 사용 가능 여부 */}
-          <div className={`mt-4 rounded-lg px-3 py-2 text-sm font-semibold ${
-            canUsePoints
-              ? 'bg-white/20 text-white'
-              : 'bg-white/10 text-white/80'
-          }`}>
-            {canUsePoints
-              ? `✅ 리워드 교환 가능 (${balance}P ≥ ${threshold}P)`
-              : `🔒 ${threshold}P 이상부터 교환 가능 (${threshold - balance}P 더 필요)`}
           </div>
         </div>
 
@@ -350,14 +335,12 @@ function PointsContent() {
             <div className="grid grid-cols-2 gap-3">
               {catalog.map((reward) => {
                 const outOfStock = reward.stock !== null && reward.stock <= 0
-                // 매장이 설정한 "리워드 사용 가능 최소 잔액"(threshold)이 리워드 가격보다 높을 수 있다.
-                // 예: 20P짜리 리워드인데 최소 잔액이 30P면, 20P를 모아도 아직 교환할 수 없다.
-                // 이 값을 무시하고 point_cost만 기준으로 안내하면 "10P만 더 모으면 받을 수 있어요"처럼
-                // 실제로는 불가능한 문구를 보여주는 버그가 생긴다 — 항상 둘 중 더 큰 값을 기준으로 삼는다.
-                const redeemTarget = Math.max(reward.point_cost, threshold)
-                const pointsShort = Math.max(0, redeemTarget - balance)
+                // 리워드 교환 가능 여부는 오직 해당 리워드의 point_cost만으로 판단한다.
+                // (예전엔 매장 전체의 "최소 사용 가능 잔액" 설정이 별도로 더 얹혀져서,
+                //  리워드 가격만큼 모아도 여전히 교환이 막히는 혼란스러운 버그가 있었다.)
+                const pointsShort = Math.max(0, reward.point_cost - balance)
                 const canRedeem = pointsShort === 0
-                const progressPct = Math.min(100, Math.round((balance / redeemTarget) * 100))
+                const progressPct = Math.min(100, Math.round((balance / reward.point_cost) * 100))
 
                 return (
                   <div key={reward.id} className={`overflow-hidden rounded-2xl bg-white/70 shadow-sm backdrop-blur-sm ${

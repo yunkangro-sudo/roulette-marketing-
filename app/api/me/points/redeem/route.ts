@@ -35,22 +35,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '유효하지 않은 리워드입니다' }, { status: 404 })
   }
 
-  // 정책 조회 (usage_threshold)
-  const { data: settings } = await supabase
-    .from('loyalty_settings')
-    .select('usage_threshold')
-    .eq('store_id', store_id)
-    .maybeSingle()
-
-  const threshold = settings?.usage_threshold ?? 0
-
-  // RPC 호출 (원자 처리)
+  // 리워드 교환 가능 여부는 해당 리워드의 point_cost만으로 판단한다 — 매장 전체의
+  // "최소 사용 가능 잔액"(loyalty_settings.usage_threshold) 설정은 더 이상 여기 관여하지
+  // 않는다 (예전엔 이 값이 리워드 가격 위에 추가로 얹혀져서, 가격만큼 모아도 여전히
+  // 교환이 막히는 혼란스러운 버그가 있었다). RPC 시그니처 호환을 위해 0을 넘긴다.
   const { data: result, error } = await supabase.rpc('redeem_points_atomic', {
     p_kakao_user_id: kakao_user_id,
     p_store_id: store_id,
     p_reward_id: reward_catalog_id,
     p_point_cost: reward.point_cost,
-    p_usage_threshold: threshold,
+    p_usage_threshold: 0,
   })
 
   if (error) {
