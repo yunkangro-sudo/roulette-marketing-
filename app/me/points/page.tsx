@@ -203,13 +203,14 @@ function PointsContent() {
           ← 게임으로 돌아가기
         </a>
 
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-extrabold text-[#222222]">내 쿠폰함</h1>
+        <div>
+          {/* 어느 매장인지 화면 열자마자 바로 인지되도록 업체명을 첫 줄에 꽉 차게, 가장 크게 배치 */}
           {storeName && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-[#222222]/60 shadow-sm backdrop-blur-sm">
-              🏪 {storeName}
-            </span>
+            <h1 className="truncate text-[28px] font-black leading-tight text-[#222222]">
+              {storeName}
+            </h1>
           )}
+          <p className="mt-1 text-sm font-semibold text-[#222222]/45">내 쿠폰함</p>
         </div>
 
         {/* 포인트 잔액 카드 — 매장별 집계 */}
@@ -349,9 +350,14 @@ function PointsContent() {
             <div className="grid grid-cols-2 gap-3">
               {catalog.map((reward) => {
                 const outOfStock = reward.stock !== null && reward.stock <= 0
-                const pointsShort = Math.max(0, reward.point_cost - balance)
-                const canRedeem = canUsePoints && pointsShort === 0
-                const progressPct = Math.min(100, Math.round((balance / reward.point_cost) * 100))
+                // 매장이 설정한 "리워드 사용 가능 최소 잔액"(threshold)이 리워드 가격보다 높을 수 있다.
+                // 예: 20P짜리 리워드인데 최소 잔액이 30P면, 20P를 모아도 아직 교환할 수 없다.
+                // 이 값을 무시하고 point_cost만 기준으로 안내하면 "10P만 더 모으면 받을 수 있어요"처럼
+                // 실제로는 불가능한 문구를 보여주는 버그가 생긴다 — 항상 둘 중 더 큰 값을 기준으로 삼는다.
+                const redeemTarget = Math.max(reward.point_cost, threshold)
+                const pointsShort = Math.max(0, redeemTarget - balance)
+                const canRedeem = pointsShort === 0
+                const progressPct = Math.min(100, Math.round((balance / redeemTarget) * 100))
 
                 return (
                   <div key={reward.id} className={`overflow-hidden rounded-2xl bg-white/70 shadow-sm backdrop-blur-sm ${
