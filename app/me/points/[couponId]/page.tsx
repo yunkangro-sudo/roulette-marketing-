@@ -174,6 +174,10 @@ function CouponDetailContent() {
             {errorMsg && (
               <p className="mt-2 text-center text-sm font-semibold text-red-500">{errorMsg}</p>
             )}
+            <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-center text-xs font-bold leading-relaxed text-red-600">
+              이 버튼은 매장 직원이 눌러야 해요.<br />
+              고객이 직접 누르면 사용 처리되어 다시 받을 수 없어요.
+            </p>
             <button
               onClick={handleConfirm}
               disabled={confirming}

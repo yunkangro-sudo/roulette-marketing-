@@ -73,8 +73,10 @@ export async function GET(req: Request) {
       .eq('kakao_user_id', kakaoUserId)
       .order('issued_at', { ascending: false })
       .limit(50),
+    // 업체명 정답 소스는 store_contracts(관리자 "업체 정보"에서 실제 입력·관리됨).
+    // store_settings.store_name은 대부분 비어있어 store_id 원본값이 그대로 노출되는 버그가 있었다.
     supabase
-      .from('store_settings')
+      .from('store_contracts')
       .select('store_name')
       .eq('store_id', storeId)
       .maybeSingle(),

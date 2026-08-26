@@ -301,7 +301,10 @@ export default function StaffClient({ storeId, role }: Props) {
             )}
             <p className="text-center font-bold text-xl text-gray-900 mb-1">{working.label}</p>
             <p className="text-center text-sm text-gray-500 mb-5">
-              {working.item_type === 'coupon' ? `${working.amount.toLocaleString()}원` : `${working.amount.toLocaleString()}P`}
+              {/* 리워드 교환 쿠폰(amount=0)은 금액 대신 코드만 보여준다 — "0원"으로 뜨는 것 방지 */}
+              {working.amount > 0
+                ? (working.item_type === 'coupon' ? `${working.amount.toLocaleString()}원` : `${working.amount.toLocaleString()}P`)
+                : null}
               {working.short_code ? ` · ${working.short_code}` : ''}
             </p>
 
@@ -347,7 +350,10 @@ export default function StaffClient({ storeId, role }: Props) {
           onClick={(e) => e.stopPropagation()}>
           <p className="text-orange-400 font-black text-7xl tracking-wide mb-6">{banner.display_code}</p>
           <p className="text-white font-black text-6xl sm:text-7xl mb-4 tabular-nums">
-            {banner.item_type === 'coupon'
+            {/* 리워드 교환으로 발급된 쿠폰은 amount가 0원일 수 있어(실물/포인트 리워드),
+                게임 당첨 쿠폰처럼 항상 금액을 보여주면 "0원"으로 잘못 표시된다.
+                amount가 0보다 클 때만 금액을, 아니면 품목명(label)을 보여준다. */}
+            {banner.item_type === 'coupon' && banner.amount > 0
               ? `${banner.amount.toLocaleString()}원`
               : banner.label}
           </p>

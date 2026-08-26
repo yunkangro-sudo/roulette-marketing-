@@ -21,18 +21,28 @@ export async function GET(
 
   const supabase = createServerClient()
 
-  const { data: settings } = await supabase
-    .from('store_settings')
-    .select('qr_checkout_enabled, store_name')
-    .eq('store_id', storeId)
-    .maybeSingle()
+  // qr_checkout_enabled(계산대 설정)는 store_settings, store_name(업체명)은 store_contracts가 정답 소스.
+  // store_settings.store_name은 대부분 비어있어 store_id 원본값이 그대로 노출되는 버그가 있었다.
+  const [{ data: settings }, { data: contract }] = await Promise.all([
+    supabase
+      .from('store_settings')
+      .select('qr_checkout_enabled')
+      .eq('store_id', storeId)
+      .maybeSingle(),
+    supabase
+      .from('store_contracts')
+      .select('store_name')
+      .eq('store_id', storeId)
+      .maybeSingle(),
+  ])
 
   const qrEnabled = settings?.qr_checkout_enabled !== false
+  const storeName = contract?.store_name ?? storeId
 
   if (!qrEnabled) {
     return NextResponse.json({
       qrEnabled: false,
-      storeName: settings?.store_name ?? storeId,
+      storeName,
       items: [],
       message: '이 매장은 코드 입력 방식만 사용합니다. 직원에게 쿠폰 코드를 보여주세요.',
     })
@@ -40,7 +50,7 @@ export async function GET(
 
   const { data: coupons } = await supabase
     .from('coupons')
-    .select('id, amount, status, valid_until, short_code')
+    .select('id, amount, label, status, valid_until, short_code')
     .eq('store_id', storeId)
     .eq('kakao_user_id', kakaoUserId)
     .in('status', ['pending_verify', 'pending_apply', 'unverified', 'issued'])
@@ -66,18 +76,22 @@ export async function GET(
   for (const c of coupons ?? []) {
     const st = getEffectiveStatus(c)
     if (st === 'expired' || st === 'used') continue
+    // 리워드 교환으로 발급된 쿠폰은 amount가 0원(실물/포인트 리워드)일 수 있어 금액 대신
+    // label(실제 품목명)을 우선 써야 한다 — 게임 당첨 쿠폰만 상정하고 항상 "N원 쿠폰"으로
+    // 고정했던 부분을 032 마이그레이션의 label 컬럼과 동일한 규칙으로 맞춘다.
+    const couponLabel = c.label || `${c.amount.toLocaleString()}원 쿠폰`
     const { data: q } = await supabase.rpc('assign_checkout_queue', {
       p_store_id: storeId,
       p_kakao_user_id: kakaoUserId,
       p_item_type: 'coupon',
       p_item_id: c.id,
-      p_label: `${c.amount.toLocaleString()}원 쿠폰`,
+      p_label: couponLabel,
       p_amount: c.amount,
     })
     items.push({
       item_type: 'coupon',
       item_id: c.id,
-      label: `${c.amount.toLocaleString()}원 쿠폰`,
+      label: couponLabel,
       amount: c.amount,
       status: st,
       short_code: c.short_code,
@@ -117,7 +131,7 @@ export async function GET(
 
   return NextResponse.json({
     qrEnabled: true,
-    storeName: settings?.store_name ?? storeId,
+    storeName,
     items,
   })
 }

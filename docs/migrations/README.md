@@ -63,6 +63,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 038 | [`038_cleanup_reward_catalog_test_data.sql`](./038_cleanup_reward_catalog_test_data.sql) | (일회성) `chj-001` 매장의 `[TEST-*]`/`[테스트]`/`[A]~[D]` 리워드 테스트 더미데이터 삭제 |
 | 039 | [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql) | **[보안]** Supabase 보안 어드바이저 경고 대응 — `signup_inquiries` 제외 전체 24개 테이블 RLS 재활성화 (정책 없이 전체 차단, `service_role`은 영향 없음). 자세한 내용은 아래 "2026-08-25 보안 사고" 참고 |
 | 040 | [`040_reward_images_storage_bucket.sql`](./040_reward_images_storage_bucket.sql) | 리워드 이미지 업로드용 Supabase Storage `reward-images` 버킷 생성 (public read, 5MB 제한, jpg/png/webp만 허용). `scripts/create-reward-images-bucket.mjs`(Storage Admin API)로 실행, raw SQL 아님 — 별도 쓰기 정책 없음(업로드는 항상 service_role 서버 API 경유) |
+| 041 | [`041_reward_redemption_coupons_integration.sql`](./041_reward_redemption_coupons_integration.sql) | 포인트 리워드 교환을 `rewards_issued` 대신 `coupons` 테이블로 통합 — `coupons.source_type`에 `reward_redemption` 추가, `coupons.reward_catalog_id` 컬럼 추가, `redeem_points_atomic`이 `coupons`에 발급하도록 변경. 게임 당첨 쿠폰과 완전히 동일한 코드 확인 화면(`/me/points/[couponId]`)·계산대 흐름을 그대로 재사용 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 
@@ -77,3 +78,15 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 **조치**: [`039_enable_rls_all_tables.sql`](./039_enable_rls_all_tables.sql)로 25개 테이블 전체 RLS 활성화 (정책 미추가 = anon/authenticated 완전 차단, service_role만 기존대로 동작). 앱 코드 변경 없음.
 
 **향후 재발 방지 원칙**: "permission denied" 에러가 다시 발생해도 **RLS를 끄는 방식으로 해결하지 않는다.** 대신 (1) 정말 `service_role` GRANT가 누락된 것인지 먼저 확인하고, (2) 클라이언트에서 직접 접근이 필요한 경우에만 최소 권한 정책(policy)을 추가한다.
+
+## 2026-08-25 (2차): 021·022 마이그레이션이 실제 DB에 미적용 상태였던 것 발견
+
+**발단**: `/admin/loyalty-settings`에서 저장 시 `Could not find the 'default_revisit_interval_days' column of 'loyalty_settings' in the schema cache` 에러 발생.
+
+**원인**: `021_customer_segments.sql`(← `loyalty_settings.default_revisit_interval_days`, `customer_loyalty.segment` 추가 + `recalculate_customer_segment` 함수)과 `022_churn_risk_alerts.sql`(← `process_churn_risk` 함수)가 git에는 파일로 존재하지만, 실제 Supabase DB에는 **한 번도 실행되지 않은 상태**였음 (`churn_risk_alerts` 테이블만 어떤 경로로든 이미 존재했고, 나머지는 전부 누락). 이 폴더 최상단 안내문("Git에 파일이 있다고 해서 실제로 실행되었음이 보장되지 않는다")이 실제로 발생한 사례.
+
+**영향 범위**: 포인트 정책 저장(`loyalty-settings`)뿐 아니라, 이 컬럼/함수에 의존하는 **고객 세그먼트 자동분류**(`/admin/members`, `/api/admin/segments`, `lib/segments/recalculate.ts`)와 **이탈위험 알림**(`/api/admin/churn-risk`) 기능도 같은 원인으로 조용히 실패하고 있었을 가능성이 높음.
+
+**조치**: `DATABASE_URL`(postgres 직접 연결)로 021, 022 파일 전체를 그대로 재실행 — 두 파일 모두 `ADD COLUMN IF NOT EXISTS` / `CREATE OR REPLACE FUNCTION` / `DROP CONSTRAINT IF EXISTS` 기반이라 재실행해도 안전(멱등)함을 확인 후 적용. 적용 후 `information_schema`로 컬럼 존재, `pg_proc`으로 함수 존재, 실제 PostgREST(Supabase JS 클라이언트) 경유 upsert까지 재현 테스트해서 정상 동작 확인함. 앱 코드는 원래부터 이 컬럼/함수를 전제로 작성되어 있었으므로 코드 변경 없음.
+
+**향후 재발 방지 원칙**: 새 DB 변경 작업을 시작하기 전, 특히 "예전에 만들어뒀던 기능인데 갑자기 에러난다"는 신고가 들어오면 코드보다 먼저 `information_schema.columns` / `pg_proc`으로 **실제 DB 상태부터 확인**한다. 이 폴더의 파일 존재 여부만으로 DB 상태를 판단하지 않는다.

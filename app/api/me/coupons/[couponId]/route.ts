@@ -34,8 +34,9 @@ export async function GET(
     return NextResponse.json({ error: '본인의 쿠폰만 확인할 수 있습니다' }, { status: 403 })
   }
 
+  // store_settings.store_name은 대부분 비어있는 레거시 컬럼 — 업체명은 store_contracts가 정답 소스다.
   const { data: store } = await supabase
-    .from('store_settings')
+    .from('store_contracts')
     .select('store_name')
     .eq('store_id', coupon.store_id)
     .maybeSingle()

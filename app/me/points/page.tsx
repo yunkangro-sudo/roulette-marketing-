@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
 
@@ -86,6 +86,7 @@ function RewardGauge({ percent, sufficient, pointsShort }: { percent: number; su
 }
 
 function PointsContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const storeId = searchParams.get('store_id') ?? ''
 
@@ -148,10 +149,11 @@ function PointsContent() {
       const data = await res.json()
       if (!res.ok) {
         setMessage({ text: data.error ?? '교환 실패', ok: false })
-      } else {
-        setMessage({ text: `🎉 "${reward.name}" 교환 완료! 직원에게 화면을 보여주세요.`, ok: true })
-        await load()
+        return
       }
+      // 게임 당첨 쿠폰과 동일하게, 발급된 쿠폰 코드 화면으로 바로 이동해서 그 자리에서
+      // "사장님 확인"까지 이어지게 한다 (기존엔 토스트만 뜨고 끝이라 코드 확인 화면이 없었음).
+      router.push(`/me/points/${encodeURIComponent(data.coupon_id)}?store_id=${encodeURIComponent(storeId)}`)
     } catch {
       setMessage({ text: '네트워크 오류가 발생했습니다', ok: false })
     } finally {

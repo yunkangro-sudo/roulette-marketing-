@@ -61,9 +61,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: result?.error ?? '교환 실패' }, { status: 400 })
   }
 
+  // 리워드 교환도 게임 당첨과 동일하게 coupons 테이블에 발급된다 — 반환된 coupon_id로
+  // 게임 당첨 쿠폰과 완전히 동일한 코드 확인 화면(/me/points/[couponId])으로 이동시킨다.
   return NextResponse.json({
     ok: true,
-    issued_id: result.issued_id,
+    coupon_id: result.coupon_id,
     new_balance: result.new_balance,
     reward_name: reward.name,
   })

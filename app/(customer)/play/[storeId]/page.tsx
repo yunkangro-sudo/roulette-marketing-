@@ -41,15 +41,12 @@ export default async function PlayPage({ params, searchParams }: Props) {
     .eq('status', 'active')
     .maybeSingle()
 
+  // 업체명은 store_contracts(관리자 "업체 정보" 화면에서 실제로 입력·관리되는 테이블)가 정답 소스다.
+  // store_settings.store_name은 광고비/객단가 설정용 레거시 컬럼이라 실제 매장 대부분 비어있어서
+  // 손님 화면에 store_id 원본값("chj-001" 등)이 그대로 노출되는 버그의 원인이었다.
   const { data: contract } = await supabase
     .from('store_contracts')
-    .select('daangn_url, kakao_channel_url')
-    .eq('store_id', storeId)
-    .maybeSingle()
-
-  const { data: store } = await supabase
-    .from('store_settings')
-    .select('store_name')
+    .select('store_name, daangn_url, kakao_channel_url')
     .eq('store_id', storeId)
     .maybeSingle()
 
@@ -62,7 +59,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
       <PlayFlow
         storeId={storeId}
         event={event}
-        storeName={store?.store_name ?? null}
+        storeName={contract?.store_name ?? null}
         daangnUrl={safeHttpUrl(contract?.daangn_url)}
         kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
         resumeClaim={claim === '1'}
