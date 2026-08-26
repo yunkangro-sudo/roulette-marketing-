@@ -39,6 +39,9 @@ export async function POST(req: Request) {
   // "최소 사용 가능 잔액"(loyalty_settings.usage_threshold) 설정은 더 이상 여기 관여하지
   // 않는다 (예전엔 이 값이 리워드 가격 위에 추가로 얹혀져서, 가격만큼 모아도 여전히
   // 교환이 막히는 혼란스러운 버그가 있었다). RPC 시그니처 호환을 위해 0을 넘긴다.
+  //
+  // 이 시점(교환하기)에는 포인트도 재고도 차감하지 않는다 — 둘 다 "사장님 확인"
+  // 시점(confirm_coupon_used_atomic)에 비로소 차감된다. 여기서는 쿠폰 코드만 발급한다.
   const { data: result, error } = await supabase.rpc('redeem_points_atomic', {
     p_kakao_user_id: kakao_user_id,
     p_store_id: store_id,

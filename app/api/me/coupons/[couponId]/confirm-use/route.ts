@@ -11,6 +11,9 @@ import { logActivity } from '@/lib/activity/log'
  * 직원 로그인/PIN 없이, 손님 본인 소유 쿠폰인지만 확인한 뒤 즉시 status를
  * 'used'로 전환한다. (기존 /staff 2단계 확인 플로우를 대체함 — 부정사용
  * 방지 장치는 없으며, 이는 의도된 결정이다.)
+ *
+ * 리워드 교환 쿠폰(source_type = reward_redemption)의 포인트 차감은 "교환하기"가
+ * 아니라 바로 이 순간(사장님 확인)에 일어난다 — confirm_coupon_used_atomic RPC 참고.
  */
 export async function POST(
   _req: Request,
@@ -45,14 +48,16 @@ export async function POST(
     return NextResponse.json({ error: '이미 사용된 쿠폰입니다' }, { status: 409 })
   }
 
-  const now = new Date().toISOString()
-  const { error: upErr } = await supabase
-    .from('coupons')
-    .update({ status: 'used', used_at: now })
-    .eq('id', couponId)
+  const { data: result, error: rpcErr } = await supabase.rpc('confirm_coupon_used_atomic', {
+    p_coupon_id: couponId,
+    p_expected_status: null,
+  })
 
-  if (upErr) {
-    return NextResponse.json({ error: upErr.message }, { status: 500 })
+  if (rpcErr) {
+    return NextResponse.json({ error: rpcErr.message }, { status: 500 })
+  }
+  if (!result?.ok) {
+    return NextResponse.json({ error: result?.error ?? '처리에 실패했습니다' }, { status: 409 })
   }
 
   logActivity({
@@ -63,5 +68,5 @@ export async function POST(
     refType: 'coupon',
   }).catch(() => {})
 
-  return NextResponse.json({ ok: true, status: 'used', usedAt: now })
+  return NextResponse.json({ ok: true, status: 'used', usedAt: result.used_at })
 }

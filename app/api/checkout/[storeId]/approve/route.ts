@@ -92,11 +92,13 @@ export async function POST(
       if (effective !== 'pending_apply') {
         return NextResponse.json({ error: '당근 단골 확인 후에만 할인 적용이 가능합니다' }, { status: 409 })
       }
-      const { error: upErr } = await supabase.from('coupons').update({
-        status: 'used',
-        used_at: now,
-      }).eq('id', itemId).eq('status', 'pending_apply')
-      if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+      // 리워드 교환 쿠폰의 포인트 차감은 여기(실사용 확정 순간)에서 처리한다.
+      const { data: result, error: rpcErr } = await supabase.rpc('confirm_coupon_used_atomic', {
+        p_coupon_id: itemId,
+        p_expected_status: 'pending_apply',
+      })
+      if (rpcErr) return NextResponse.json({ error: rpcErr.message }, { status: 500 })
+      if (!result?.ok) return NextResponse.json({ error: result?.error ?? '처리에 실패했습니다' }, { status: 409 })
       await markQueue(supabase, storeId, 'coupon', itemId, 'applied')
       logActivity({
         storeId, kakaoUserId: coupon.kakao_user_id,

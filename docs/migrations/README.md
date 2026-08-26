@@ -65,6 +65,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 040 | [`040_reward_images_storage_bucket.sql`](./040_reward_images_storage_bucket.sql) | 리워드 이미지 업로드용 Supabase Storage `reward-images` 버킷 생성 (public read, 5MB 제한, jpg/png/webp만 허용). `scripts/create-reward-images-bucket.mjs`(Storage Admin API)로 실행, raw SQL 아님 — 별도 쓰기 정책 없음(업로드는 항상 service_role 서버 API 경유) |
 | 041 | [`041_reward_redemption_coupons_integration.sql`](./041_reward_redemption_coupons_integration.sql) | 포인트 리워드 교환을 `rewards_issued` 대신 `coupons` 테이블로 통합 — `coupons.source_type`에 `reward_redemption` 추가, `coupons.reward_catalog_id` 컬럼 추가, `redeem_points_atomic`이 `coupons`에 발급하도록 변경. 게임 당첨 쿠폰과 완전히 동일한 코드 확인 화면(`/me/points/[couponId]`)·계산대 흐름을 그대로 재사용 |
 | 042 | [`042_remove_usage_threshold_gate.sql`](./042_remove_usage_threshold_gate.sql) | `redeem_points_atomic`에서 `loyalty_settings.usage_threshold`("최소 사용 가능 잔액") 체크 제거 — 리워드 가격 위에 이 값이 추가로 얹혀져서, 리워드 가격만큼 모아도 여전히 교환이 막히는 버그가 있었음. 이제 리워드 교환 가능 여부는 오직 해당 리워드의 `point_cost`만으로 판단 (컬럼/관리자 화면 자체는 유지) |
+| 043 | [`043_defer_point_deduction_to_confirm.sql`](./043_defer_point_deduction_to_confirm.sql) | 리워드 교환의 포인트/재고 차감 시점을 "교환하기" 클릭 순간에서 "사장님 확인"(실사용 확정) 순간으로 이동. `coupons.point_cost` 컬럼 추가(교환 당시 가격 고정), `redeem_points_atomic`은 이제 쿠폰만 발급하고 포인트/재고를 건드리지 않음, 신규 `confirm_coupon_used_atomic` RPC가 쿠폰을 `used`로 확정하면서 포인트 차감 + 재고 차감 + `point_ledger` 기록을 원자적으로 처리. `/api/me/coupons/[couponId]/confirm-use`, `/api/checkout/[storeId]/approve`(apply 액션)에서 이 RPC를 호출하도록 변경 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 
@@ -91,3 +92,13 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 **조치**: `DATABASE_URL`(postgres 직접 연결)로 021, 022 파일 전체를 그대로 재실행 — 두 파일 모두 `ADD COLUMN IF NOT EXISTS` / `CREATE OR REPLACE FUNCTION` / `DROP CONSTRAINT IF EXISTS` 기반이라 재실행해도 안전(멱등)함을 확인 후 적용. 적용 후 `information_schema`로 컬럼 존재, `pg_proc`으로 함수 존재, 실제 PostgREST(Supabase JS 클라이언트) 경유 upsert까지 재현 테스트해서 정상 동작 확인함. 앱 코드는 원래부터 이 컬럼/함수를 전제로 작성되어 있었으므로 코드 변경 없음.
 
 **향후 재발 방지 원칙**: 새 DB 변경 작업을 시작하기 전, 특히 "예전에 만들어뒀던 기능인데 갑자기 에러난다"는 신고가 들어오면 코드보다 먼저 `information_schema.columns` / `pg_proc`으로 **실제 DB 상태부터 확인**한다. 이 폴더의 파일 존재 여부만으로 DB 상태를 판단하지 않는다.
+
+## 2026-08-26: 리워드 교환 시 포인트/재고 차감 시점이 잘못 설계되어 있던 문제
+
+**발단**: 손님이 포인트로 리워드를 교환("교환하기" 클릭)한 뒤, 실제 매장에서 "사장님 확인" 버튼을 누르지 않았는데도 다른 리워드의 "교환하기" 버튼이 비활성화되는 현상이 반복 신고됨.
+
+**원인**: `redeem_points_atomic`이 "교환하기" 클릭 즉시 포인트 잔액과 재고를 차감하도록 설계되어 있었음. 그런데 실제 정책은 "교환하기 = 쿠폰 코드 화면만 보여줌", "사장님 확인 = 실제 차감 확정"이어야 했음. 즉시 차감 방식에서는 손님이 매장에 가기도 전에 포인트가 사라져서, "누르지도 않았는데 사용 처리된 것처럼" 보이는 것이 당연한 결과였음(실제로는 버그가 아니라 설계 자체가 정책과 달랐던 것).
+
+**조치**: [`043_defer_point_deduction_to_confirm.sql`](./043_defer_point_deduction_to_confirm.sql)로 차감 시점을 이동. `coupons.point_cost` 컬럼을 추가해 교환 당시 가격을 쿠폰에 고정 저장하고, `redeem_points_atomic`은 잔액/재고를 조회만 해서 교환 가능 여부만 확인한 뒤 쿠폰 row만 생성하도록 수정. 신규 `confirm_coupon_used_atomic` RPC를 만들어 쿠폰이 실제로 `used`로 확정되는 순간(`/api/me/coupons/[couponId]/confirm-use`, `/api/checkout/[storeId]/approve`의 `apply` 액션) 포인트 차감 + 재고 차감 + `point_ledger` 기록을 한 번에 처리하도록 변경. 실제 DB에 테스트 계정으로 교환→확인 전체 흐름을 재현해 포인트/재고가 각 시점에 정확히 변화하는지 확인함.
+
+**향후 재발 방지 원칙**: "찜/예약" 성격의 액션(여기서는 "교환하기")과 "실제 확정/사용" 액션(여기서는 "사장님 확인")이 분리된 플로우에서는, 잔액 차감 같은 비가역적 부작용을 반드시 확정 액션 쪽에 두어야 한다. 예약 단계에서는 "가능한지 확인"만 하고 실제 상태 변경은 하지 않는다.
