@@ -8,7 +8,7 @@ import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 interface Props {
   params: Promise<{ storeId: string }>
-  searchParams: Promise<{ claim?: string; preview_result?: string }>
+  searchParams: Promise<{ claim?: string; preview_result?: string; auth_error?: string }>
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function PlayPage({ params, searchParams }: Props) {
   const { storeId } = await params
-  const { claim, preview_result } = await searchParams
+  const { claim, preview_result, auth_error } = await searchParams
   if (preview_result === 'big' || preview_result === 'small' || preview_result === 'miss') {
     return <DeviceFrame><ResultPreview tier={preview_result} /></DeviceFrame>
   }
@@ -63,6 +63,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
         daangnUrl={safeHttpUrl(contract?.daangn_url)}
         kakaoChannelUrl={safeHttpUrl(contract?.kakao_channel_url)}
         resumeClaim={claim === '1'}
+        authError={auth_error === '1'}
       />
     </DeviceFrame>
   )

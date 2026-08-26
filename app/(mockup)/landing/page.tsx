@@ -2,93 +2,16 @@
 
 import { useEffect, useState } from 'react'
 
-/** 실제 배포 게임 화면(데모용 매장) — 무료 데모 체험하기 버튼들이 공통으로 여는 팝업에 사용 */
+/** 실제 배포 게임 화면(데모용 매장) — 무료 데모 체험하기 버튼들이 공통으로 여는 링크에 사용.
+ *
+ * 예전엔 이 URL을 iframe으로 감싼 모달 팝업(<DemoModal />)로 띄웠는데, 카카오 로그인
+ * 페이지는 보안 정책상 다른 사이트의 iframe 안에서 열리는 것 자체를 거부한다(X-Frame-Options).
+ * 그래서 데모 안에서 "카카오로 결과 확인하기"를 누르면 일부 PC(브라우저의 서드파티
+ * 쿠키/프레임 정책, 회사 방화벽 등)에서 로그인이 막히는 문제가 있었다. iframe 없이
+ * 새 탭에서 실제 페이지를 최상위로 열면, 실서비스 손님 화면과 완전히 동일한(이미 정상
+ * 동작하는) 리다이렉트 기반 카카오 로그인을 그대로 타게 되어 이 문제가 근본적으로 사라진다.
+ */
 const DEMO_GAME_URL = '/play/test'
-const OPEN_DEMO_EVENT = 'open-demo-modal'
-
-/** 페이지 곳곳의 데모 버튼에서 호출 — 컴포넌트 트리를 관통하는 props 없이
- *  전역 이벤트로 하단의 <DemoModal />을 연다 */
-function openDemoModal() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event(OPEN_DEMO_EVENT))
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   무료 데모 팝업 — PC 화면 중앙에 "약간 큰 모바일" 크기의 폰 프레임으로
-   실제 배포된 게임 화면을 그대로 띄운다 (iframe이라 게임 자체 로직/스타일에
-   영향 없음)
-───────────────────────────────────────────────────────────── */
-function DemoModal() {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    const onOpen = () => setOpen(true)
-    window.addEventListener(OPEN_DEMO_EVENT, onOpen)
-    return () => window.removeEventListener(OPEN_DEMO_EVENT, onOpen)
-  }, [])
-
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', onKeyDown)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = prevOverflow
-    }
-  }, [open])
-
-  if (!open) return null
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6"
-      style={{ background: 'rgba(10,10,14,0.72)', backdropFilter: 'blur(6px)' }}
-      onClick={() => setOpen(false)}
-    >
-      <div className="relative" onClick={(e) => e.stopPropagation()}>
-        {/* 폰 프레임 — "약간 큰 모바일" 사이즈 + 베젤/노치로 실제 폰처럼 보이게 */}
-        <div
-          className="relative overflow-hidden rounded-[40px]"
-          style={{
-            width: 430,
-            height: 'min(900px, 92vh)',
-            background: '#0B0B0E',
-            padding: 10,
-            boxShadow: '0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)',
-          }}
-        >
-          {/* 상단 노치 */}
-          <div
-            className="absolute left-1/2 top-[10px] z-10 h-[22px] w-[120px] -translate-x-1/2 rounded-full"
-            style={{ background: '#0B0B0E' }}
-          />
-          {/* 닫기 버튼 — 프레임 안쪽 우상단(어느 화면 높이에서도 항상 보이는 위치) */}
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="데모 닫기"
-            className="absolute right-[18px] top-[18px] z-20 flex h-8 w-8 items-center justify-center rounded-full text-sm text-white transition-colors hover:bg-black/70"
-            style={{ background: 'rgba(0,0,0,0.5)' }}
-          >
-            ✕
-          </button>
-          <div className="relative h-full w-full overflow-hidden rounded-[32px] bg-white">
-            <iframe
-              src={DEMO_GAME_URL}
-              title="무료 데모 체험"
-              className="h-full w-full border-0"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 /* ─────────────────────────────────────────────────────────────
    NAVBAR
@@ -382,14 +305,15 @@ function HeroSection() {
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-3 mb-10">
-            <button
-              type="button"
-              onClick={openDemoModal}
+            <a
+              href={DEMO_GAME_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-7 py-3.5 rounded-xl text-white font-semibold text-base transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
               style={{ background: '#3D5AFE', boxShadow: '0 4px 20px rgba(61,90,254,0.35)' }}
             >
               무료 데모 체험하기
-            </button>
+            </a>
             <a href="/admin/login"
               className="px-7 py-3.5 rounded-xl font-semibold text-base transition-all border hover:bg-white"
               style={{ color: '#14151A', borderColor: '#E4E8ED' }}
@@ -663,14 +587,15 @@ function GameProcessSection() {
               테이블·계산대에 QR 스탠드만 두면 됩니다. 나머지는 시스템이 자동으로.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openDemoModal}
+          <a
+            href={DEMO_GAME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex-shrink-0 px-6 py-3 rounded-xl font-semibold text-sm text-white"
             style={{ background: '#3D5AFE' }}
           >
             데모 체험하기 →
-          </button>
+          </a>
         </div>
       </div>
     </section>
@@ -1556,14 +1481,15 @@ function CtaBanner() {
           >
             파일럿 신청하기
           </button>
-          <button
-            type="button"
-            onClick={openDemoModal}
+          <a
+            href={DEMO_GAME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-9 py-4 rounded-xl font-semibold text-base transition-all border"
             style={{ borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.85)' }}
           >
             먼저 데모 체험하기 →
-          </button>
+          </a>
         </div>
 
         <p className="text-xs mt-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
@@ -1656,7 +1582,6 @@ export default function LandingPage() {
       <FaqSection />
       <CtaBanner />
       <Footer />
-      <DemoModal />
     </div>
   )
 }

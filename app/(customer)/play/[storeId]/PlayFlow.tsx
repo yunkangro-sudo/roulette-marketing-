@@ -41,6 +41,51 @@ interface Props {
   kakaoChannelUrl?: string | null
   /** 카카오 로그인 직후(?claim=1)에만 잠금 결과/claim을 이어간다 */
   resumeClaim?: boolean
+  /** 카카오 로그인 콜백에서 에러가 나서 돌아온 경우(?auth_error=1) */
+  authError?: boolean
+}
+
+/** 카카오 로그인 실패 시 랜딩 화면 상단에 뜨는 안내 배너 — 리다이렉트로 바꿔도 여전히
+ *  막히는 극소수 환경(회사 방화벽 등)을 위한 안전장치. 현재 페이지 주소를 복사해서
+ *  다른 브라우저로 열어볼 수 있게 안내한다. */
+function AuthErrorBanner({ onDismiss }: { onDismiss: () => void }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    const url = `${window.location.origin}${window.location.pathname}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // 클립보드 API를 쓸 수 없는 환경 — 조용히 무시(버튼은 계속 눌러볼 수 있음)
+    }
+  }, [])
+
+  return (
+    <div className="absolute inset-x-4 top-3 z-30 rounded-2xl bg-red-50 px-4 py-3 text-center shadow-md">
+      <p className="text-xs font-bold leading-relaxed text-red-600">
+        카카오 로그인에 실패했어요.<br />
+        문제가 계속되면 이 주소를 복사해서 다른 브라우저에서 열어보세요.
+      </p>
+      <div className="mt-2.5 flex items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="rounded-full bg-red-500 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-400"
+        >
+          {copied ? '복사됐어요!' : '주소 복사하기'}
+        </button>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500/70 transition-colors hover:bg-red-100"
+        >
+          닫기
+        </button>
+      </div>
+    </div>
+  )
 }
 
 const IS_KAKAO = !!process.env.NEXT_PUBLIC_KAKAO_JS_KEY
@@ -136,13 +181,14 @@ function toPrizeResult(revealed: {
   }
 }
 
-export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoChannelUrl, resumeClaim = false }: Props) {
+export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoChannelUrl, resumeClaim = false, authError = false }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [result, setResult] = useState<PrizeResult | null>(null)
   const [nextAvailableAt, setNextAvailableAt] = useState<string | null>(null)
   const [showPrizeList, setShowPrizeList] = useState(false)
+  const [showAuthError, setShowAuthError] = useState(authError)
   const claimingRef = useRef(false)
   const { ref: landingImgRef, layout: landingLayout } = useContainLayout(LANDING_IMG_W, LANDING_IMG_H)
 
@@ -198,6 +244,14 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
     if (step !== 'landing') return
     preloadImages([...PLAY_SCREEN_IMAGES, ...RESULT_SCREEN_IMAGES])
   }, [step])
+
+  // 새로고침해도 배너가 계속 뜨지 않도록, 표시 직후 주소에서 ?auth_error=1을 지운다.
+  useEffect(() => {
+    if (!authError || typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    url.searchParams.delete('auth_error')
+    window.history.replaceState({}, '', url.toString())
+  }, [authError])
 
   useEffect(() => {
     if (!event) {
@@ -331,6 +385,8 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
   if (step === 'landing') {
     return (
       <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
+        {showAuthError && <AuthErrorBanner onDismiss={() => setShowAuthError(false)} />}
+
         {/* 캐비닛 이미지 — 상단 안내 헤더를 없애고 세이프 영역만 최소로 확보(화면 길이 축소) */}
         <div
           ref={landingImgRef}
