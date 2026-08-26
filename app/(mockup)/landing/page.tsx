@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 /** 실제 배포 게임 화면(데모용 매장) — 무료 데모 체험하기 버튼들이 공통으로 여는 링크에 사용.
  *
@@ -27,16 +28,15 @@ function Navbar() {
       }}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
-            style={{ background: 'linear-gradient(135deg, #FEE500, #FF8A3D)' }}
-          >
-            🎮
-          </div>
-          <span className="font-bold text-lg" style={{ color: '#14151A', fontFamily: 'Pretendard Variable, sans-serif' }}>
-            단골마케팅
-          </span>
+        <div className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="단골팅"
+            width={945}
+            height={487}
+            priority
+            className="h-8 w-auto"
+          />
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm" style={{ color: 'rgba(20,21,26,0.6)' }}>
           <a href="#features" className="hover:text-[#14151A] transition-colors">서비스 소개</a>
