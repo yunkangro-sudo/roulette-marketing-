@@ -9,7 +9,7 @@ type CtaProps = { onCta: () => void }
 
 export function ProductShowcase() {
   return (
-    <section id="service" className="scroll-mt-20 bg-[#141414] py-20 text-white md:py-28">
+    <section id="service" className="scroll-mt-20 bg-[#0B2B26] py-20 text-white md:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green">실제 제품</p>
         <h2 className="mt-3 max-w-2xl text-[32px] leading-tight md:text-[44px]">
@@ -17,15 +17,16 @@ export function ProductShowcase() {
           <br />
           단골팅 게임 화면
         </h2>
+        {/* 진입 → 진행 → 당첨으로 이어지는 하나의 플레이 흐름 3장 구성 */}
         <div className="mt-12 flex gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
           <div className="min-w-[220px] flex-1">
             <ScreenshotSlot shotId="01" tone="dark" />
           </div>
           <div className="min-w-[220px] flex-1">
-            <ScreenshotSlot shotId="05" tone="dark" />
+            <ScreenshotSlot shotId="02" tone="dark" />
           </div>
           <div className="min-w-[220px] flex-1">
-            <ScreenshotSlot shotId="09" tone="dark" />
+            <ScreenshotSlot shotId="05" tone="dark" />
           </div>
         </div>
       </div>

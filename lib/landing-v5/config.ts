@@ -87,7 +87,7 @@ export const NAV_LINKS = [
   { href: '#stories', label: '도입사례' },
 ] as const
 
-export type ScreenshotId = '01' | '04' | '05' | '09' | '10' | '12'
+export type ScreenshotId = '01' | '02' | '04' | '05' | '09' | '10' | '12'
 
 export type ScreenshotSlotConfig = {
   id: ScreenshotId
@@ -100,9 +100,15 @@ export type ScreenshotSlotConfig = {
 export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   '01': {
     id: '01',
-    src: '',
+    src: '/landing-v5/screens/01-entry.webp',
     label: '게임 진입 화면',
     caption: 'QR 찍고 바로 시작',
+  },
+  '02': {
+    id: '02',
+    src: '/landing-v5/screens/02-progress.webp',
+    label: '게임 진행 화면',
+    caption: '크레인이 자동으로 상품을 찾아요',
   },
   '04': {
     id: '04',
@@ -112,7 +118,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '05': {
     id: '05',
-    src: '',
+    src: '/landing-v5/screens/05-win.webp',
     label: '당첨 결과 화면',
     caption: '화려하지만 절제된 축하 연출',
   },
