@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, type TouchEvent } from 'react'
+import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import BeforeAfterSlider from './BeforeAfterSlider'
 import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
@@ -34,42 +35,124 @@ export function ProductShowcase() {
   )
 }
 
+/** 문제제기 섹션 우측 시각물 — "광고→노출→방문" 다음 화살표가 물음표에서 끊기는 다이어그램.
+ *  회색 톤으로만 구성해 "불확실함"을 표현한다(그린은 이 다이어그램 안에는 쓰지 않음 — 문제는 아직 해결 전 상태). */
+function AdUncertaintyDiagram() {
+  const chain = [
+    { icon: Megaphone, label: '광고' },
+    { icon: Eye, label: '노출' },
+    { icon: Footprints, label: '방문' },
+  ]
+  return (
+    <div className="rounded-2xl border border-dg-line bg-white p-8 shadow-[0_20px_48px_rgba(17,17,17,0.08)]">
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-4">
+        {chain.map(({ icon: Icon, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-dg-bg text-dg-ink-soft">
+                <Icon size={20} strokeWidth={1.75} />
+              </span>
+              <span className="text-[12px] font-semibold text-dg-ink-soft">{label}</span>
+            </div>
+            <ArrowRight size={16} className="text-dg-ink-soft/30" />
+          </div>
+        ))}
+        <div className="flex flex-col items-center gap-2">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-dg-ink-soft/25 text-dg-ink-soft/30">
+            <HelpCircle size={22} strokeWidth={1.75} />
+          </span>
+          <span className="text-[12px] font-semibold text-dg-ink-soft/40">???</span>
+        </div>
+      </div>
+      <p className="mt-7 text-center text-[13px] leading-relaxed text-dg-ink-soft/80">
+        그 손님이 다시 왔는지, 광고는 알려주지 않습니다
+      </p>
+    </div>
+  )
+}
+
 export function ProblemSection() {
   return (
-    <section className="py-20 md:py-28">
-      <div className="mx-auto max-w-4xl px-5">
-        <h2 className="text-[32px] leading-tight text-dg-ink md:text-[48px]">
-          손님이 와도
-          <br />
-          광고비는 이미 나갔습니다
-        </h2>
-        <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-dg-ink-soft md:text-[18px]">
-          네이버, 인스타그램, 당근 광고로 손님을 데려오는 것까지는 가능합니다. 밥을 먹고, 결제하고, 손님은 나갑니다. 그 손님이 다시 왔는지는 광고가 알려주지 않습니다. 사장님은 그 손님이 누구인지도 모릅니다.
-        </p>
-        <div className="mt-10 bg-[#171717] px-6 py-8 text-white md:px-10" style={{ borderRadius: 6 }}>
-          <p className="text-[24px] font-extrabold leading-snug tracking-tight md:text-[32px]">
-            한 번 온 손님을 그냥 보내지 않는 것.
-            <br />
-            단골팅은 여기서 시작합니다.
-          </p>
+    <section className="pt-20 pb-8 md:pt-28 md:pb-10">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+          <div>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">문제제기</p>
+            <h2 className="mt-3 text-[34px] leading-tight text-dg-ink md:text-[50px]">
+              손님이 와도
+              <br />
+              광고비는 이미 나갔습니다
+            </h2>
+            <p className="mt-6 text-[15px] leading-relaxed text-dg-ink-soft md:text-[17px]">
+              네이버, 인스타그램, 당근 광고로 손님을 데려오는 것까지는 가능합니다. 밥을 먹고, 결제하고, 손님은 나갑니다. 그 손님이 다시 왔는지는 광고가 알려주지 않습니다. 사장님은 그 손님이 누구인지도 모릅니다.
+            </p>
+            <div className="relative mt-10 overflow-hidden bg-[#171717] px-6 py-8 pl-8 text-white shadow-[0_20px_44px_rgba(0,0,0,0.28)] md:px-10 md:pl-12" style={{ borderRadius: 6 }}>
+              <span className="absolute inset-y-0 left-0 w-1 bg-dg-green" />
+              <Quote size={20} strokeWidth={2.25} className="mb-3 text-dg-green" />
+              <p className="text-[24px] font-extrabold leading-snug tracking-tight md:text-[32px]">
+                한 번 온 손님을 그냥 보내지 않는 것.
+                <br />
+                단골팅은 여기서 시작합니다.
+              </p>
+            </div>
+          </div>
+          <div>
+            <AdUncertaintyDiagram />
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
+/** 포지셔닝 전환 섹션 좌측 시각물 — 회색 "광고" 아이콘이 화살표를 거쳐 그린 "마케팅" 아이콘으로
+ *  전환되는 미니 다이어그램. 문제제기 섹션과 좌우가 반대라 스크롤 리듬이 생긴다. */
+function AdToMarketingDiagram() {
+  return (
+    <div className="rounded-2xl border border-dg-line bg-dg-bg p-8 shadow-[0_20px_48px_rgba(17,17,17,0.06)]">
+      <div className="flex items-center justify-center gap-5">
+        <div className="flex flex-col items-center gap-2">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-dg-ink-soft shadow-sm">
+            <Megaphone size={24} strokeWidth={1.75} />
+          </span>
+          <span className="text-[13px] font-semibold text-dg-ink-soft">광고</span>
+        </div>
+        <ArrowRight size={20} className="text-dg-ink-soft/30" />
+        <div className="flex flex-col items-center gap-2">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-dg-green text-dg-ink shadow-sm">
+            <Repeat size={24} strokeWidth={1.75} />
+          </span>
+          <span className="text-[13px] font-bold text-dg-ink">마케팅</span>
+        </div>
+      </div>
+      <p className="mt-7 text-center text-[13px] leading-relaxed text-dg-ink-soft">
+        한 번의 방문에서, 반복되는 방문으로
+      </p>
+    </div>
+  )
+}
+
 export function PositioningSection() {
   return (
-    <section className="bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-4xl px-5">
-        <h2 className="text-[32px] leading-tight text-dg-ink md:text-[48px]">
-          첫 방문을 만드는 광고에서
-          <br />
-          <span className="text-dg-green-deep">두 번째 방문을 만드는 마케팅</span>으로.
-        </h2>
-        <p className="mt-6 max-w-2xl text-[16px] leading-relaxed text-dg-ink-soft md:text-[18px]">
-          새 손님을 계속 사오는 것만으로는 매장이 성장하기 어렵습니다. 한 번 온 손님이 다시 오고, 또 오게 만드는 것 — 단골팅은 광고 이후의 고객 행동을 설계합니다.
-        </p>
+    <section className="bg-white pt-8 pb-20 md:pt-10 md:pb-28">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-16">
+          {/* 모바일: 텍스트가 항상 먼저 노출되도록 DOM 순서는 텍스트 우선, 데스크톱만 order로 좌측 이동 */}
+          <div className="lg:order-2">
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">포지셔닝 전환</p>
+            <h2 className="mt-3 text-[34px] leading-tight text-dg-ink md:text-[50px]">
+              첫 방문을 만드는 광고에서
+              <br />
+              <span className="text-dg-green-deep">두 번째 방문을 만드는 마케팅</span>으로.
+            </h2>
+            <p className="mt-6 text-[15px] leading-relaxed text-dg-ink-soft md:text-[17px]">
+              새 손님을 계속 사오는 것만으로는 매장이 성장하기 어렵습니다. 한 번 온 손님이 다시 오고, 또 오게 만드는 것 — 단골팅은 광고 이후의 고객 행동을 설계합니다.
+            </p>
+          </div>
+          <div className="lg:order-1">
+            <AdToMarketingDiagram />
+          </div>
+        </div>
       </div>
     </section>
   )
