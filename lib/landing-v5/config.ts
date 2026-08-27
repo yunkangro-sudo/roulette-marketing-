@@ -87,7 +87,7 @@ export const NAV_LINKS = [
   { href: '#stories', label: '도입사례' },
 ] as const
 
-export type ScreenshotId = '01' | '02' | '04' | '05' | '09' | '10' | '12'
+export type ScreenshotId = '01' | '02' | '04' | '05' | '06' | '08' | '09' | '10' | '12'
 
 export type ScreenshotSlotConfig = {
   id: ScreenshotId
@@ -122,6 +122,18 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     label: '당첨 결과 화면',
     caption: '화려하지만 절제된 축하 연출',
   },
+  '06': {
+    id: '06',
+    src: '/landing-v5/screens/06-qr.webp',
+    label: '테이블 QR 코드',
+    caption: '매장 어디서나, QR 하나로 시작',
+  },
+  '08': {
+    id: '08',
+    src: '/landing-v5/screens/08-kakao.webp',
+    label: '카카오 알림톡',
+    caption: '당첨되면 카톡으로 바로 알려드려요',
+  },
   '09': {
     id: '09',
     src: '',
@@ -130,9 +142,9 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '10': {
     id: '10',
-    src: '',
-    label: '내 럭키박스함',
-    caption: '받은 선물을 한곳에서 확인',
+    src: '/landing-v5/screens/07-wallet.webp',
+    label: '당첨 쿠폰함',
+    caption: '받은 혜택을 한눈에',
   },
   '12': {
     id: '12',

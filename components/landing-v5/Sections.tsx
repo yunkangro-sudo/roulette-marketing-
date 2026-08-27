@@ -8,26 +8,64 @@ import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
 
+/** 인형뽑기 게임 프레임과 무관한 실사 이미지(QR 스탠드, 카카오톡 캡처)를 담는 카드 —
+ *  ScreenshotSlot의 폰 베젤을 억지로 씌우지 않고 콘텐츠 형태 그대로 보여준다. */
+function TouchpointCard({
+  src,
+  alt,
+  cardBg = 'bg-dg-bg',
+}: {
+  src: string
+  alt: string
+  cardBg?: string
+}) {
+  return (
+    <div
+      className={`mx-auto w-full max-w-[240px] overflow-hidden p-3 shadow-[0_16px_40px_rgba(0,0,0,0.35)] ${cardBg}`}
+      style={{ borderRadius: 16 }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="h-auto w-full rounded-lg" />
+    </div>
+  )
+}
+
 export function ProductShowcase() {
   return (
-    <section id="service" className="scroll-mt-20 bg-[#0B2B26] py-20 text-white md:py-28">
+    <section
+      id="service"
+      className="scroll-mt-20 py-20 text-white md:py-28"
+      style={{
+        background: 'radial-gradient(120% 120% at 50% 25%, #1C2C25 0%, #14201C 55%, #0E1714 100%)',
+      }}
+    >
       <div className="mx-auto max-w-6xl px-5">
-        <p className="text-[13px] font-semibold tracking-wide text-dg-green">실제 제품</p>
+        <p className="text-[13px] font-semibold tracking-wide text-dg-green">실제 접점</p>
         <h2 className="mt-3 max-w-2xl text-[32px] leading-tight md:text-[44px]">
-          손님이 실제로 보는
+          손님이 실제로 만나는
           <br />
-          단골팅 게임 화면
+          단골팅의 순간들
         </h2>
-        {/* 진입 → 진행 → 당첨으로 이어지는 하나의 플레이 흐름 3장 구성 */}
-        <div className="mt-12 flex gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible md:pb-0">
-          <div className="min-w-[220px] flex-1">
-            <ScreenshotSlot shotId="01" tone="dark" />
+        {/* 손님이 매장에서 실제로 마주치는 3가지 접점 — QR / 쿠폰함 / 카톡 알림 (게임 플레이 흐름은 03번 섹션에서 별도로 다룸) */}
+        <div className="mt-12 flex gap-8 overflow-x-auto pb-4 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
+          <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
+            <TouchpointCard src="/landing-v5/screens/06-qr.webp" alt="매장 테이블에 놓인 단골팅 QR 코드 스탠드" />
+            <h3 className="mt-5 text-[17px] font-bold text-white">테이블 QR 코드</h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">매장 어디서나, QR 하나로 시작</p>
           </div>
-          <div className="min-w-[220px] flex-1">
-            <ScreenshotSlot shotId="02" tone="dark" />
+          <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
+            <ScreenshotSlot shotId="10" tone="dark" caption="" />
+            <h3 className="mt-5 text-[17px] font-bold text-white">당첨 쿠폰함</h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">받은 혜택을 한눈에</p>
           </div>
-          <div className="min-w-[220px] flex-1">
-            <ScreenshotSlot shotId="05" tone="dark" />
+          <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
+            <TouchpointCard
+              src="/landing-v5/screens/08-kakao.webp"
+              alt="카카오 알림톡으로 도착한 매장 쿠폰 발급 안내 메시지"
+              cardBg="bg-white"
+            />
+            <h3 className="mt-5 text-[17px] font-bold text-white">카카오 알림톡</h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">당첨되면 카톡으로 바로 알려드려요</p>
           </div>
         </div>
       </div>
