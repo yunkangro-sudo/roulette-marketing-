@@ -112,7 +112,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '04': {
     id: '04',
-    src: '',
+    src: '/landing-v5/screens/04-result.webp',
     label: '결과 확인 화면',
     caption: '카카오 로그인 후 선물 공개',
   },
@@ -136,9 +136,9 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '09': {
     id: '09',
-    src: '',
+    src: '/landing-v5/screens/09-follow.webp',
     label: '당근마켓 단골 인증',
-    caption: '고액 당첨 시 리워드 수령 조건',
+    caption: '당근마켓에서 단골 추가',
   },
   '10': {
     id: '10',
