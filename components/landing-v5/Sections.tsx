@@ -8,8 +8,8 @@ import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
 
-/** 인형뽑기 게임 프레임과 무관한 실사 이미지(QR 스탠드, 카카오톡 캡처)를 담는 카드 —
- *  ScreenshotSlot의 폰 베젤을 억지로 씌우지 않고 콘텐츠 형태 그대로 보여준다. */
+/** 인형뽑기 게임 프레임과 무관한 실사 이미지(QR 스탠드, 쿠폰함, 카카오톡 캡처)를 담는 카드 —
+ *  원본 비율이 제각각이라도 카드 박스 크기(3:4)는 통일하고, object-contain으로 잘림 없이 담는다. */
 function TouchpointCard({
   src,
   alt,
@@ -21,11 +21,11 @@ function TouchpointCard({
 }) {
   return (
     <div
-      className={`mx-auto w-full max-w-[240px] overflow-hidden p-3 shadow-[0_16px_40px_rgba(0,0,0,0.35)] ${cardBg}`}
-      style={{ borderRadius: 16 }}
+      className={`mx-auto flex w-full max-w-[240px] items-center justify-center overflow-hidden p-4 shadow-[0_16px_40px_rgba(0,0,0,0.35)] ${cardBg}`}
+      style={{ borderRadius: 16, aspectRatio: '3 / 4' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="h-auto w-full rounded-lg" />
+      <img src={src} alt={alt} className="max-h-full max-w-full rounded-lg object-contain" />
     </div>
   )
 }
@@ -54,7 +54,7 @@ export function ProductShowcase() {
             <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">매장 어디서나, QR 하나로 시작</p>
           </div>
           <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
-            <ScreenshotSlot shotId="10" tone="dark" caption="" />
+            <TouchpointCard src="/landing-v5/screens/07-wallet.webp" alt="포인트 잔액과 리워드 교환 목록이 보이는 내 쿠폰함 화면" />
             <h3 className="mt-5 text-[17px] font-bold text-white">당첨 쿠폰함</h3>
             <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">받은 혜택을 한눈에</p>
           </div>
