@@ -6,6 +6,7 @@ import Link from 'next/link'
 import CompanyForm from './CompanyForm'
 import CompanySubscriptionsPanel, { type Subscription } from './CompanySubscriptionsPanel'
 import CompanySummaryPanel from './CompanySummaryPanel'
+import DeleteCompanyDangerZone from './DeleteCompanyDangerZone'
 
 interface CompanyInitial {
   id: string
@@ -51,9 +52,11 @@ interface Props {
   company: CompanyInitial
   subscriptions: Subscription[]
   subscriptionStatus: SubscriptionStatus
+  /** 슈퍼관리자만 "위험 구역"(업체 완전 삭제)을 볼 수 있음 — agency는 계약 관리는 가능하지만 데이터 파괴는 불가 */
+  isSuperAdmin: boolean
 }
 
-export default function CompanyDetailTabsClient({ company, subscriptions, subscriptionStatus }: Props) {
+export default function CompanyDetailTabsClient({ company, subscriptions, subscriptionStatus, isSuperAdmin }: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('basic')
   const [entering, setEntering] = useState(false)
@@ -133,6 +136,10 @@ export default function CompanyDetailTabsClient({ company, subscriptions, subscr
         <CompanySubscriptionsPanel companyId={company.id} initialSubscriptions={subscriptions} />
       )}
       {tab === 'summary' && <CompanySummaryPanel storeId={company.store_id} />}
+
+      {isSuperAdmin && (
+        <DeleteCompanyDangerZone companyId={company.id} storeName={company.store_name} />
+      )}
     </div>
   )
 }

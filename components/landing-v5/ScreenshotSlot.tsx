@@ -28,7 +28,7 @@ export default function ScreenshotSlot({ shotId, caption, className = '', tone =
             <span className="font-num text-[11px] tracking-widest text-dg-green">
               {shot.id}
             </span>
-            <p className="font-han text-[22px] leading-snug text-white">
+            <p className="text-[22px] font-extrabold leading-snug tracking-tight text-white">
               {shot.label}
             </p>
             <p className="text-[12px] leading-relaxed text-white/45">

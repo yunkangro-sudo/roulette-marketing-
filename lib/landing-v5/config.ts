@@ -44,6 +44,42 @@ export const ROI_ASSUMPTIONS = {
 
 export const DEMO_PRIZES = [10_000, 2_000, 1_000] as const
 
+export type ClientCategory = '카페·디저트' | '버거·패스트푸드' | '분식·스낵'
+
+export type Client = {
+  name: string
+  logoUrl: string | null
+  category: ClientCategory
+}
+
+/** 실제 로고 파일이 준비되면 logoUrl에 경로만 채우면 자동으로 이미지로 렌더링된다. */
+export const CLIENTS: Client[] = [
+  { name: '설빙', logoUrl: null, category: '카페·디저트' },
+  { name: '던킨도너츠', logoUrl: null, category: '카페·디저트' },
+  { name: '배스킨라빈스', logoUrl: null, category: '카페·디저트' },
+  { name: '맘스터치', logoUrl: null, category: '버거·패스트푸드' },
+  { name: '버거킹', logoUrl: null, category: '버거·패스트푸드' },
+  { name: 'KFC', logoUrl: null, category: '버거·패스트푸드' },
+  { name: '촌놈칩스', logoUrl: null, category: '분식·스낵' },
+  { name: '노걸대', logoUrl: null, category: '분식·스낵' },
+  { name: '죠스떡볶이', logoUrl: null, category: '분식·스낵' },
+  { name: '신전떡볶이', logoUrl: null, category: '분식·스낵' },
+]
+
+export const CLIENT_CATEGORIES: ClientCategory[] = ['카페·디저트', '버거·패스트푸드', '분식·스낵']
+
+/** 히어로 롤링 키워드 — 조사 없이 문장이 끝나는 구조만 사용("게임 한 판으로 완성되는 OOO."). */
+export const HERO_ROTATOR_WORDS = [
+  '재방문',
+  '단골',
+  '매출',
+  '재구매',
+  '충성고객',
+  '입소문',
+  '후기',
+  '예약률',
+] as const
+
 export const NAV_LINKS = [
   { href: '#service', label: '서비스' },
   { href: '#process', label: '프로세스' },
@@ -99,83 +135,6 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     caption: '매장에서 쿠폰 사용 처리',
   },
 }
-
-type CtaHitArea = {
-  left: string
-  top: string
-  width: string
-  height: string
-  label: string
-}
-
-export type HeroSlide = {
-  id: 'action' | 'declare' | 'stats'
-  src: string
-  width: number
-  height: number
-  /** 이미지 상단에서 잘라낼 비율. 히어로02 내장 내비 제거용. */
-  cropTopRatio: number
-  alt: string
-  bg: string
-  cta: CtaHitArea
-}
-
-export const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'action',
-    src: '/landing-v5/hero-action.png',
-    width: 1536,
-    height: 1024,
-    cropTopRatio: 0,
-    alt: '도망가려던 손님, 붙잡았습니다.',
-    bg: '#F4EFE6',
-    cta: {
-      left: '68%',
-      top: '80%',
-      width: '28%',
-      height: '12%',
-      label: '궁금하면, 단골팅',
-    },
-  },
-  {
-    id: 'declare',
-    src: '/landing-v5/hero-declare.png',
-    width: 1536,
-    height: 1024,
-    cropTopRatio: 0.108,
-    alt: '손님을 모으는 게 아니라 다시 오게 만듭니다',
-    bg: '#F6F5F2',
-    cta: {
-      left: '54%',
-      top: '62%',
-      width: '38%',
-      height: '14%',
-      label: '무료로 시작하기',
-    },
-  },
-  {
-    id: 'stats',
-    src: '/landing-v5/hero-stats.png',
-    width: 1536,
-    height: 1024,
-    cropTopRatio: 0,
-    alt: '손님을 모으는 광고 말고, 다시 오게 만드는 게임.',
-    bg: '#F3EBDA',
-    cta: {
-      left: '70%',
-      top: '84%',
-      width: '26%',
-      height: '12%',
-      label: '체험해보기',
-    },
-  },
-]
-
-export const REVIEW_PLACEHOLDERS = [
-  { id: 1, store: '도입 매장 후기 1', quote: '도입 매장 확보 후 실제 후기로 교체 예정' },
-  { id: 2, store: '도입 매장 후기 2', quote: '도입 매장 확보 후 실제 후기로 교체 예정' },
-  { id: 3, store: '도입 매장 후기 3', quote: '도입 매장 확보 후 실제 후기로 교체 예정' },
-] as const
 
 export const FAQ_ITEMS = [
   {

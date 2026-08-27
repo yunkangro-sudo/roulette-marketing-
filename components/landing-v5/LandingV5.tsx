@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import './landing-v5.css'
 import Navbar from './Navbar'
-import HeroSequence from './HeroSequence'
+import Hero from './Hero'
+import ClientLogoStrip from './ClientLogoStrip'
 import {
   ProductShowcase,
   ProblemSection,
@@ -17,7 +18,7 @@ import {
   Footer,
 } from './Sections'
 import RoiCalculator from './RoiCalculator'
-import ReviewsCarousel from './ReviewsCarousel'
+import ClientsSection from './ClientsSection'
 import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
 import DemoModal from './DemoModal'
@@ -30,16 +31,17 @@ export default function LandingV5() {
     <div className="landing-v5 min-h-screen">
       <Navbar />
       <main>
-        <HeroSequence onCta={openDemo} />
+        <Hero onCta={openDemo} />
+        <ClientLogoStrip />
         <ProductShowcase />
         <ProblemSection />
         <PositioningSection />
-        <HowItWorks />
+        <HowItWorks onCta={openDemo} />
         <DifferenceSection />
         <ProofSection />
         <RoiCalculator />
         <ChannelTrust />
-        <ReviewsCarousel />
+        <ClientsSection />
         <PricingSection onCta={openDemo} />
         <FaqSection />
         <FinalCta onCta={openDemo} />

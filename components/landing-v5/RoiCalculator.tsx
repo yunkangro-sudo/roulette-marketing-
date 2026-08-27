@@ -42,7 +42,7 @@ export default function RoiCalculator() {
             <div className="mt-6 border-t border-dg-line pt-5">
               <div className="flex items-center justify-between">
                 <span className="font-semibold">이번 이벤트로 실제로 남은 이익</span>
-                <span className="font-han text-[28px] text-dg-green-deep">
+                <span className="font-num text-[28px] font-bold text-dg-green-deep">
                   +{formatWon(example.profit)}
                 </span>
               </div>
@@ -57,7 +57,7 @@ export default function RoiCalculator() {
             <label className="mt-6 block">
               <span className="text-[14px] text-white/70">우리 매장 하루 평균 손님 수</span>
               <div className="mt-3 flex items-end justify-between">
-                <span className="font-han text-[42px] leading-none text-dg-green">{dailyGuests}</span>
+                <span className="font-num text-[42px] font-bold leading-none text-dg-green">{dailyGuests}</span>
                 <span className="pb-1 text-[13px] text-white/45">명</span>
               </div>
               <input

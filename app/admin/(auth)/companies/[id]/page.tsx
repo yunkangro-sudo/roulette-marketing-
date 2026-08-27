@@ -42,6 +42,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       company={{ ...company, advertiserEmail: advertiserAccount?.email ?? '' }}
       subscriptions={subscriptions ?? []}
       subscriptionStatus={subscriptionStatus}
+      isSuperAdmin={account.role === 'super_admin'}
     />
   )
 }

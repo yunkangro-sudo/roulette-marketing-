@@ -1,5 +1,7 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css");
+@import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -20,6 +22,13 @@
   --kakao-yellow: #FEE500;
   --danggeun-orange: #FF8A3D;
   --merge-gradient: linear-gradient(135deg, #FEE500, #FF8A3D);
+
+  /* 단골팅 브랜드 리뉴얼 토큰 — 크레인게임/진열장 세계관 */
+  --dangolting-green: #00C7A7;
+  --dangolting-ivory: #FAF7F0;
+  --dangolting-gold: #D9A94F;
+  --dangolting-charcoal: #222222;
+  --dangolting-gray: #6B7280;
 }
 
 * {
@@ -44,6 +53,15 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* 디스플레이 타이포 — 히어로 헤드라인 등 핵심 전환 문장 2~3곳에만 제한적으로 사용 */
+.font-display {
+  font-family: 'Black Han Sans', 'Pretendard Variable', sans-serif;
+}
+
+.font-suit {
+  font-family: 'SUIT Variable', 'Pretendard Variable', sans-serif;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -61,4 +79,37 @@ body {
 .animate-float-delayed {
   animation: float 4s ease-in-out infinite;
   animation-delay: 1.5s;
+}
+
+/* 히어로 로드 시 크레인이 살짝 흔들리는 1회성 모션 — 진열장 안 크레인이 방금
+   멈춘 듯한 느낌을 주는 유일한 시그니처 모션. 여러 효과를 흩뿌리지 않고
+   이 한 순간에만 집중한다. */
+@keyframes craneSettle {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-3deg); }
+  40%  { transform: rotate(2.5deg); }
+  60%  { transform: rotate(-1.5deg); }
+  80%  { transform: rotate(0.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-crane-settle {
+  transform-origin: top center;
+  animation: craneSettle 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s 1 both;
+}
+
+/* 키보드 포커스 — 시각적으로 명확한 포커스 표시 (품질 기준선) */
+.focus-ring-visible:focus-visible {
+  outline: 2px solid var(--dangolting-green);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-crane-settle {
+    animation: none !important;
+  }
+  .animate-float,
+  .animate-float-delayed {
+    animation: none !important;
+  }
 }

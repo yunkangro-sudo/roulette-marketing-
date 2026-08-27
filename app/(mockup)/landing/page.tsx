@@ -62,305 +62,100 @@ function Navbar() {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PHONE MOCKUP (Hero 전용)
-───────────────────────────────────────────────────────────── */
-function PhoneMockup() {
-  return (
-    <div className="relative mx-auto" style={{ width: 260 }}>
-      {/* Floating stat card — top left */}
-      <div
-        className="absolute -left-20 top-16 rounded-2xl shadow-xl px-4 py-3 border animate-float-delayed"
-        style={{ background: '#fff', borderColor: '#E4E8ED', width: 148, zIndex: 10 }}
-      >
-        <p className="text-[10px] mb-0.5" style={{ color: 'rgba(20,21,26,0.5)' }}>이번 주 재방문율</p>
-        <p className="font-mono-data text-2xl font-bold" style={{ color: '#1FC77A' }}>+23%</p>
-        <p className="text-[9px] mt-0.5" style={{ color: 'rgba(20,21,26,0.4)' }}>↑ 지난 주 대비</p>
-      </div>
-
-      {/* Floating stat card — bottom right */}
-      <div
-        className="absolute -right-16 bottom-28 rounded-2xl shadow-xl px-4 py-3 border animate-float"
-        style={{ background: '#fff', borderColor: '#E4E8ED', width: 128, zIndex: 10 }}
-      >
-        <p className="text-[10px] mb-0.5" style={{ color: 'rgba(20,21,26,0.5)' }}>오늘 참여</p>
-        <p className="font-mono-data text-2xl font-bold" style={{ color: '#3D5AFE' }}>147명</p>
-        <p className="text-[9px] mt-0.5" style={{ color: 'rgba(20,21,26,0.4)' }}>게임 참여자</p>
-      </div>
-
-      {/* Phone frame */}
-      <div
-        className="relative rounded-[44px] overflow-hidden shadow-2xl"
-        style={{
-          width: 260,
-          height: 540,
-          border: '8px solid #1a1a1a',
-          background: '#fff',
-        }}
-      >
-        {/* Dynamic island */}
-        <div
-          className="absolute top-3 left-1/2 -translate-x-1/2 rounded-full z-10"
-          style={{ width: 96, height: 28, background: '#1a1a1a' }}
-        />
-
-        {/* Screen */}
-        <div
-          className="h-full flex flex-col overflow-hidden"
-          style={{ background: '#F4F6F8', paddingTop: 44 }}
-        >
-          {/* Status bar */}
-          <div
-            className="flex justify-between items-center px-5 py-1 text-[10px] font-semibold"
-            style={{ color: '#14151A' }}
-          >
-            <span>9:41</span>
-            <span style={{ letterSpacing: 1 }}>●●●</span>
-          </div>
-
-          {/* Store header */}
-          <div className="text-center px-4 pb-2 pt-1">
-            <p className="text-[9px] font-medium" style={{ color: 'rgba(20,21,26,0.45)' }}>
-              홍대 카페 봄봄 ·  이벤트
-            </p>
-            <p className="text-[12px] font-bold mt-0.5" style={{ color: '#14151A' }}>
-              🎁 행운의 스크래치 이벤트
-            </p>
-          </div>
-
-          {/* Scratch card */}
-          <div
-            className="mx-4 rounded-2xl overflow-hidden shadow-md"
-            style={{ background: '#fff', border: '1px solid #E4E8ED' }}
-          >
-            {/* Card header */}
-            <div
-              className="px-4 py-2 text-center text-[9px] font-bold"
-              style={{ background: 'linear-gradient(135deg, #FEE500, #FF8A3D)', color: '#14151A' }}
-            >
-              스크래치로 긁어보세요! ✨
-            </div>
-
-            {/* Scratch area — partial reveal */}
-            <div className="relative" style={{ height: 100 }}>
-              {/* Revealed reward underneath */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1"
-                   style={{ background: '#fff' }}>
-                <span style={{ fontSize: 24 }}>☕</span>
-                <p className="text-[10px] font-bold" style={{ color: '#14151A' }}>
-                  아메리카노 1,000원 할인
-                </p>
-                <p className="text-[8px]" style={{ color: 'rgba(20,21,26,0.45)' }}>
-                  오늘부터 14일 이내 사용
-                </p>
-              </div>
-              {/* Partial scratch layer — bottom-right remains */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'linear-gradient(125deg, transparent 0%, transparent 48%, rgba(178,178,178,0.9) 48%)',
-                }}
-              />
-              <div
-                className="absolute inset-0 pointer-events-none opacity-50"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(60deg, rgba(180,180,180,0.25) 0px, rgba(180,180,180,0.25) 1px, transparent 1px, transparent 6px)',
-                  clipPath: 'polygon(48% 0%, 100% 0%, 100% 100%, 48% 100%)',
-                }}
-              />
-            </div>
-
-            {/* Coupon code */}
-            <div
-              className="px-4 py-2 text-center"
-              style={{ background: '#F4F6F8', borderTop: '1px solid #E4E8ED' }}
-            >
-              <span
-                className="font-mono-data text-[11px] font-bold tracking-[0.18em]"
-                style={{ color: '#3D5AFE' }}
-              >
-                CAFE-4829-K
-              </span>
-            </div>
-          </div>
-
-          {/* CTA Badges */}
-          <div className="mx-4 mt-2.5 space-y-1.5">
-            {/* Kakao badge */}
-            <div
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
-              style={{ background: '#FEE500' }}
-            >
-              <span style={{ fontSize: 14 }}>💬</span>
-              <div>
-                <p className="text-[9px] font-bold leading-tight" style={{ color: '#14151A' }}>
-                  카카오 채널 친구추가 완료 ✓
-                </p>
-                <p className="text-[8px]" style={{ color: 'rgba(20,21,26,0.6)' }}>
-                  재방문 알림을 받아보세요
-                </p>
-              </div>
-            </div>
-            {/* Danggeun badge */}
-            <div
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl"
-              style={{
-                background: 'rgba(255,138,61,0.12)',
-                border: '1px solid rgba(255,138,61,0.35)',
-              }}
-            >
-              <span style={{ fontSize: 14 }}>🥕</span>
-              <div>
-                <p className="text-[9px] font-bold leading-tight" style={{ color: '#FF8A3D' }}>
-                  당근 단골추가 완료 ✓
-                </p>
-                <p className="text-[8px]" style={{ color: 'rgba(20,21,26,0.6)' }}>
-                  동네 소식을 받아보세요
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────────────────────
    SECTION 1: HERO
+   컨셉: 유리 진열장 속 크레인 게임 — "도망가려던 손님을 붙잡았다"는
+   후킹 카피를 크레인이 손님을 낚아채는 일러스트로 그대로 시각화한다.
+   시그니처 모션은 단 하나만: 로드 시 크레인이 살짝 흔들리다 멈추는
+   1회성 움직임(진열장 조명 아래 방금 멈춘 크레인의 정서).
 ───────────────────────────────────────────────────────────── */
 function HeroSection() {
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center overflow-hidden pt-16"
-      style={{ background: '#FAFAF8' }}
+      style={{ background: '#FAF7F0' }}
     >
-      {/* Merge gradient background glow — ONLY here */}
+      {/* 진열장 조명 — 그린 → 골드 은은한 radial glow (시그니처 요소 1단계) */}
       <div
         className="absolute pointer-events-none"
         style={{
-          top: '50%',
-          left: '60%',
-          transform: 'translate(-50%, -50%)',
-          width: 680,
-          height: 680,
+          top: '45%',
+          right: '10%',
+          transform: 'translate(0, -50%)',
+          width: 640,
+          height: 640,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #FEE500, #FF8A3D)',
-          opacity: 0.18,
-          filter: 'blur(100px)',
+          background:
+            'radial-gradient(circle, rgba(0,199,167,0.20) 0%, rgba(217,169,79,0.14) 45%, transparent 72%)',
+          filter: 'blur(64px)',
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center w-full">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
         {/* Left: Copy */}
-        <div>
-          {/* Eyebrow badge */}
-          <div
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-8 border"
-            style={{
-              borderColor: 'rgba(61,90,254,0.2)',
-              color: '#3D5AFE',
-              background: 'rgba(61,90,254,0.06)',
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full inline-block"
-              style={{ background: '#3D5AFE' }}
-            />
-            카카오 × 당근 통합 마케팅 자동화
-          </div>
-
-          {/* Headline */}
+        <div className="text-center lg:text-left">
           <h1
-            className="text-5xl lg:text-6xl font-bold leading-[1.12] mb-6"
-            style={{
-              color: '#14151A',
-              fontFamily: 'Pretendard Variable, sans-serif',
-              letterSpacing: '-0.025em',
-            }}
+            className="font-display text-5xl lg:text-[64px] leading-[1.18] mb-6"
+            style={{ color: '#222222', letterSpacing: '-0.01em' }}
           >
-            단골이 없다면,
+            도망가려던 손님,
             <br />
-            <span className="relative inline-block">
-              1년이 지나도
-              <span
-                className="absolute left-0 -bottom-1 right-0 h-[3px] rounded-full"
-                style={{ background: 'linear-gradient(135deg, #FEE500, #FF8A3D)' }}
-              />
-            </span>{' '}
-            개업 첫날입니다.
+            <span style={{ color: '#00C7A7' }}>붙잡았습니다.</span>
           </h1>
 
-          {/* Sub-headline */}
-          <p
-            className="text-lg leading-relaxed mb-10 max-w-[480px]"
-            style={{ color: 'rgba(20,21,26,0.65)' }}
-          >
-            손님은 계속 오는데, 왜 매출은 그대로일까요?
-            <br />
-            게임 한 번으로 단골을 남기세요.
+          <p className="font-suit text-lg lg:text-xl mb-10" style={{ color: '#6B7280' }}>
+            게임 한 판의 힘, 단골팅.
           </p>
 
-          {/* CTAs */}
-          <div className="flex flex-wrap gap-3 mb-10">
+          <div className="flex justify-center lg:justify-start">
             <a
-              href={DEMO_GAME_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-7 py-3.5 rounded-xl text-white font-semibold text-base transition-all hover:opacity-90 hover:-translate-y-0.5 active:translate-y-0"
-              style={{ background: '#3D5AFE', boxShadow: '0 4px 20px rgba(61,90,254,0.35)' }}
+              href="#features"
+              className="focus-ring-visible group relative inline-flex items-center gap-2 px-8 py-4 rounded-full font-suit font-semibold text-base text-white transition-all hover:-translate-y-0.5 active:translate-y-0 overflow-hidden"
+              style={{ background: '#222222' }}
             >
-              무료 데모 체험하기
-            </a>
-            <a href="/admin/login"
-              className="px-7 py-3.5 rounded-xl font-semibold text-base transition-all border hover:bg-white"
-              style={{ color: '#14151A', borderColor: '#E4E8ED' }}
-            >
-              샘플 대시보드 보기 →
-            </a>
-          </div>
-
-          {/* Social proof */}
-          <div className="flex items-center gap-4">
-            <div className="flex -space-x-2">
-              {[
-                { label: '카', bg: '#3D5AFE', color: '#fff' },
-                { label: '음', bg: '#1FC77A', color: '#fff' },
-                { label: '미', bg: '#FF8A3D', color: '#fff' },
-                { label: '편', bg: '#FEE500', color: '#14151A' },
-              ].map(({ label, bg, color }, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold"
-                  style={{ background: bg, color, borderColor: '#FAFAF8' }}
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm" style={{ color: 'rgba(20,21,26,0.5)' }}>
-              파일럿 매장 운영 중 · 평균 재방문율{' '}
-              <span className="font-mono-data font-bold" style={{ color: '#1FC77A' }}>
-                +18%p
+              <span className="relative z-10">궁금하면, 단골팅</span>
+              <span className="relative z-10 transition-transform group-hover:translate-x-1">
+                →
               </span>
-            </p>
+              {/* 글로시 스윕 — 유리 진열장 반사광 느낌의 hover 모션 */}
+              <span
+                className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)',
+                }}
+              />
+            </a>
           </div>
         </div>
 
-        {/* Right: Phone mockup */}
+        {/* Right: Illustration */}
         <div className="flex justify-center lg:justify-end">
-          <PhoneMockup />
+          <div className="animate-crane-settle relative w-full" style={{ maxWidth: 560 }}>
+            <Image
+              src="/hero.png"
+              alt="크레인 게임 손잡이에 붙잡힌 손님과 기뻐하는 단골팅 선물박스 마스코트"
+              width={1672}
+              height={941}
+              priority
+              className="hidden md:block w-full h-auto"
+            />
+            <Image
+              src="/hero-mobile.png"
+              alt="크레인 게임 손잡이에 붙잡힌 손님과 기뻐하는 단골팅 선물박스 마스코트"
+              width={1672}
+              height={941}
+              priority
+              className="md:hidden w-full h-auto"
+            />
+          </div>
         </div>
       </div>
 
       {/* Bottom fade */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to bottom, transparent, #FAFAF8)',
-        }}
+        style={{ background: 'linear-gradient(to bottom, transparent, #FAF7F0)' }}
       />
     </section>
   )

@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useRef, type TouchEvent } from 'react'
 import ScreenshotSlot from './ScreenshotSlot'
 import BeforeAfterSlider from './BeforeAfterSlider'
 import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
@@ -43,7 +46,7 @@ export function ProblemSection() {
           네이버, 인스타그램, 당근 광고로 손님을 데려오는 것까지는 가능합니다. 밥을 먹고, 결제하고, 손님은 나갑니다. 그 손님이 다시 왔는지는 광고가 알려주지 않습니다. 사장님은 그 손님이 누구인지도 모릅니다.
         </p>
         <div className="mt-10 bg-[#171717] px-6 py-8 text-white md:px-10" style={{ borderRadius: 6 }}>
-          <p className="font-han text-[24px] leading-snug md:text-[32px]">
+          <p className="text-[24px] font-extrabold leading-snug tracking-tight md:text-[32px]">
             한 번 온 손님을 그냥 보내지 않는 것.
             <br />
             단골팅은 여기서 시작합니다.
@@ -71,7 +74,7 @@ export function PositioningSection() {
   )
 }
 
-export function HowItWorks() {
+export function HowItWorks({ onCta }: CtaProps) {
   const steps = [
     {
       n: '01',
@@ -99,17 +102,42 @@ export function HowItWorks() {
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">작동 원리</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2">
           {steps.map((step) => (
             <article key={step.n} className="border border-dg-line bg-white p-5" style={{ borderRadius: 6 }}>
               <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
-              <h3 className="mt-3 text-[24px] text-dg-ink">{step.title}</h3>
-              <p className="mt-3 min-h-[72px] text-[14px] leading-relaxed text-dg-ink-soft">{step.body}</p>
+              <h3 className="mt-3 text-[22px] text-dg-ink">{step.title}</h3>
+              <p className="mt-3 min-h-[64px] text-[15px] leading-relaxed text-dg-ink-soft">{step.body}</p>
               <div className="mt-6">
                 <ScreenshotSlot shotId={step.shot} />
               </div>
             </article>
           ))}
+
+          <article
+            className="flex flex-col justify-between bg-dg-ink p-6 text-white"
+            style={{ borderRadius: 6 }}
+          >
+            <div>
+              <p className="text-[13px] font-semibold text-dg-green">이게 전부입니다</p>
+              <h3 className="mt-3 text-[26px] leading-snug">
+                이 세 걸음이면
+                <br />
+                단골이 만들어집니다
+              </h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-white/60">
+                복잡한 앱 설치도, 어려운 세팅도 없습니다. QR 하나로 시작하는 가장 쉬운 재방문 설계입니다.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onCta}
+              className="mt-6 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-dg-green px-6 py-3 text-[14px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green active:translate-y-0"
+            >
+              궁금하면, 단골팅
+              <span aria-hidden="true">→</span>
+            </button>
+          </article>
         </div>
 
         <BeforeAfterSlider />
@@ -158,7 +186,7 @@ export function ProofSection() {
   ]
 
   return (
-    <section className="bg-[#141414] py-20 text-white md:py-28">
+    <section id="proof" className="scroll-mt-20 bg-[#141414] py-20 text-white md:py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <p className="text-[13px] font-semibold tracking-wide text-dg-green">데이터로 증명</p>
@@ -182,13 +210,13 @@ export function ProofSection() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
               <p className="text-[12px] text-white/45">6개월 재방문율 변화</p>
-              <p className="mt-2 font-han text-[36px]">
+              <p className="mt-2 font-num text-[36px] font-bold">
                 12% → <span className="text-dg-green">32%</span>
               </p>
             </div>
             <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
               <p className="text-[12px] text-white/45">누적 추정 재방문 매출</p>
-              <p className="mt-2 font-han text-[36px] text-dg-green">2,100만원+</p>
+              <p className="mt-2 font-num text-[36px] font-bold text-dg-green">2,100만원+</p>
             </div>
           </div>
         </div>
@@ -223,16 +251,24 @@ export function ChannelTrust() {
           <div>
             <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">채널과 운영</p>
             <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">흩어지지 않고 한 흐름으로</h2>
-            <div className="mt-8 overflow-hidden border border-dg-line" style={{ borderRadius: 6 }}>
-              {roles.map((row, i) => (
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {roles.map((row) => (
                 <div
                   key={row.name}
-                  className={`grid grid-cols-[120px_1fr] ${i !== 0 ? 'border-t border-dg-line' : ''}`}
+                  className="flex min-h-[104px] flex-col justify-center border border-dg-line bg-dg-bg px-4 py-4"
+                  style={{ borderRadius: 6 }}
                 >
-                  <div className="bg-dg-bg px-4 py-3 text-[14px] font-semibold text-dg-ink">{row.name}</div>
-                  <div className="px-4 py-3 text-[14px] text-dg-ink-soft">{row.role}</div>
+                  <p className="text-[15px] font-semibold text-dg-ink">{row.name}</p>
+                  <p className="mt-1.5 text-[13px] leading-snug text-dg-ink-soft">{row.role}</p>
                 </div>
               ))}
+              <div
+                className="flex min-h-[104px] flex-col items-start justify-center bg-dg-green px-4 py-4"
+                style={{ borderRadius: 6 }}
+              >
+                <p className="text-[17px] font-extrabold leading-snug tracking-tight text-dg-ink">연동됩니다</p>
+                <p className="mt-1.5 text-[13px] leading-snug text-dg-ink/70">따로 관리할 필요 없이</p>
+              </div>
             </div>
           </div>
           <ScreenshotSlot shotId="12" />
@@ -258,6 +294,25 @@ export function ChannelTrust() {
 
 export function PricingSection({ onCta }: CtaProps) {
   const plans = [PRICING.basic, PRICING.full]
+  const [activeIdx, setActiveIdx] = useState(0)
+  const touchStartX = useRef<number | null>(null)
+
+  const goTo = (idx: number) => setActiveIdx((idx + plans.length) % plans.length)
+
+  const onTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  const onTouchEnd = (e: TouchEvent) => {
+    if (touchStartX.current === null) return
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(delta) > 40) {
+      goTo(activeIdx + (delta < 0 ? 1 : -1))
+    }
+    touchStartX.current = null
+  }
+
+  const plan = plans[activeIdx]
+  const featured = plan.id === 'full'
 
   return (
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
@@ -265,39 +320,79 @@ export function PricingSection({ onCta }: CtaProps) {
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">매장 규모에 맞게 시작하세요</h2>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          {plans.map((plan) => {
-            const featured = plan.id === 'full'
-            return (
-              <article
-                key={plan.id}
-                className={`border p-7 ${featured ? 'border-dg-green bg-white' : 'border-dg-line bg-white'}`}
-                style={{ borderRadius: 6 }}
-              >
-                <p className="text-[13px] font-semibold text-dg-ink-soft">{plan.hint}</p>
-                <h3 className="mt-2 text-[28px] text-dg-ink">{plan.name}</h3>
-                <p className="mt-4 font-han text-[36px] text-dg-ink">{formatMonthlyPrice(plan.monthlyPrice)}</p>
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2 text-[14px] text-dg-ink">
-                      <span className="text-dg-green">•</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  onClick={onCta}
-                  className={`mt-8 w-full py-3.5 text-[14px] font-bold transition-opacity hover:opacity-90 ${
-                    featured ? 'bg-dg-green text-dg-ink' : 'border border-dg-ink bg-white text-dg-ink'
-                  }`}
-                  style={{ borderRadius: 4 }}
-                >
-                  우리 매장 재방문 설계하기
-                </button>
-              </article>
-            )
-          })}
+        {/* 탭 */}
+        <div
+          role="tablist"
+          aria-label="요금제 선택"
+          className="mt-10 inline-flex rounded-full border border-dg-line bg-white p-1"
+        >
+          {plans.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              role="tab"
+              aria-selected={i === activeIdx}
+              onClick={() => setActiveIdx(i)}
+              className={`min-h-[44px] rounded-full px-6 text-[14px] font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green ${
+                i === activeIdx ? 'bg-dg-ink text-white' : 'text-dg-ink-soft hover:text-dg-ink'
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+
+        <div
+          className="mt-6 max-w-xl"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <article
+            key={plan.id}
+            className={`border p-7 ${featured ? 'border-dg-green bg-white' : 'border-dg-line bg-white'}`}
+            style={{ borderRadius: 6 }}
+          >
+            <p className="text-[13px] font-semibold text-dg-ink-soft">{plan.hint}</p>
+            <h3 className="mt-2 text-[28px] text-dg-ink">{plan.name}</h3>
+            <p className="mt-4 font-num text-[36px] font-bold text-dg-ink">{formatMonthlyPrice(plan.monthlyPrice)}</p>
+            <ul className="mt-6 space-y-3">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex gap-2 text-[15px] text-dg-ink">
+                  <span className="text-dg-green">•</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={onCta}
+              className={`mt-8 min-h-[44px] w-full py-3.5 text-[14px] font-bold transition-opacity hover:opacity-90 ${
+                featured ? 'bg-dg-green text-dg-ink' : 'border border-dg-ink bg-white text-dg-ink'
+              }`}
+              style={{ borderRadius: 4 }}
+            >
+              우리 매장 재방문 설계하기
+            </button>
+          </article>
+        </div>
+
+        {/* 페이지네이션 점 */}
+        <div className="mt-6 flex items-center gap-2">
+          {plans.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              aria-label={`${p.name} 요금제 보기`}
+              onClick={() => setActiveIdx(i)}
+              className="flex h-11 w-11 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green"
+            >
+              <span
+                className={`block h-2 rounded-full transition-all ${
+                  i === activeIdx ? 'w-6 bg-dg-ink' : 'w-2 bg-dg-line'
+                }`}
+              />
+            </button>
+          ))}
         </div>
       </div>
     </section>
@@ -332,17 +427,48 @@ export function FinalCta({ onCta }: CtaProps) {
 
 export function Footer() {
   return (
-    <footer className="border-t border-dg-line bg-dg-bg py-14">
+    <footer className="border-t border-dg-line bg-dg-bg pb-8 pt-14">
       <div className="mx-auto max-w-6xl px-5">
-        <p className="font-han text-[28px] text-dg-ink">
-          단골<span className="text-dg-green">팅</span>
-        </p>
-        <p className="mt-3 text-[15px] text-dg-ink">손님을 모으는 게 아니라 다시 오게 만듭니다</p>
-        <p className="mt-8 text-[13px] text-dg-ink-soft">게임형 재방문 마케팅</p>
-        <p className="mt-1 text-[13px] text-dg-ink-soft">광고 → 게임 → 단골 → 쿠폰 → 재방문</p>
-        <div className="mt-8 flex gap-5 text-[13px] text-dg-ink-soft">
-          <a href="/privacy" className="hover:text-dg-ink">개인정보처리방침</a>
-          <a href="/terms" className="hover:text-dg-ink">이용약관</a>
+        <div className="grid gap-10 sm:grid-cols-3">
+          <div>
+            <p className="font-han text-[28px] text-dg-ink">
+              단골<span className="text-dg-green">팅</span>
+            </p>
+            <p className="mt-3 max-w-[220px] text-[14px] leading-relaxed text-dg-ink-soft">
+              손님을 모으는 게 아니라 다시 오게 만듭니다
+            </p>
+            <p className="mt-4 text-[13px] text-dg-ink-soft">광고 → 게임 → 단골 → 쿠폰 → 재방문</p>
+          </div>
+
+          <div>
+            <p className="text-[13px] font-semibold text-dg-ink">서비스</p>
+            <ul className="mt-4 space-y-3 text-[14px] text-dg-ink-soft">
+              <li><a href="#service" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">단골팅 게임</a></li>
+              <li><a href="#process" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">작동 원리</a></li>
+              <li><a href="#pricing" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">요금제</a></li>
+              <li><a href="#proof" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">도입 성과</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[13px] font-semibold text-dg-ink">회사 정보</p>
+            <ul className="mt-4 space-y-2 text-[13px] leading-relaxed text-dg-ink-soft">
+              <li>상호명: 단골팅</li>
+              <li>대표: 대표자명</li>
+              <li>사업자등록번호: 000-00-00000</li>
+              <li>주소: 사업장 주소 입력</li>
+              <li>고객센터: 카카오톡 채널 문의</li>
+              <li>이메일: contact@dgting.co.kr</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col gap-4 border-t border-dg-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-5 text-[13px] text-dg-ink-soft">
+            <a href="/privacy" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">개인정보처리방침</a>
+            <a href="/terms" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">이용약관</a>
+          </div>
+          <p className="text-[12px] text-dg-ink-soft">© {new Date().getFullYear()} 단골팅. All rights reserved.</p>
         </div>
       </div>
     </footer>
