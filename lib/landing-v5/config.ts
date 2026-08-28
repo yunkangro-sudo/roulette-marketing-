@@ -87,7 +87,7 @@ export const NAV_LINKS = [
   { href: '#stories', label: '도입사례' },
 ] as const
 
-export type ScreenshotId = '01' | '02' | '04' | '05' | '06' | '08' | '09' | '10' | '12'
+export type ScreenshotId = '01' | '02' | '04' | '05' | '06' | '08' | '09' | '10' | '11' | '12'
 
 export type ScreenshotSlotConfig = {
   id: ScreenshotId
@@ -145,6 +145,12 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/07-wallet.webp',
     label: '당첨 쿠폰함',
     caption: '받은 혜택을 한눈에',
+  },
+  '11': {
+    id: '11',
+    src: '/landing-v5/screens/11-admin-dashboard.webp',
+    label: '관리자 대시보드',
+    caption: '실제 관리자 대시보드 (이번 주 기준)',
   },
   '12': {
     id: '12',
