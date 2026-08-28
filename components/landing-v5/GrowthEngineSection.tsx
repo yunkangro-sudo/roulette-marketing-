@@ -40,7 +40,7 @@ const TIER_SCALE = [
 
 export default function GrowthEngineSection() {
   return (
-    <section className="py-20 md:py-28">
+    <section className="bg-dg-green-tint py-20 md:py-28">
       <div className="mx-auto max-w-4xl px-5">
         <div
           className="rounded-[24px] border border-dg-green/15 bg-white p-6 shadow-[0_24px_56px_rgba(1,156,135,0.10)] sm:p-10 md:p-14"
