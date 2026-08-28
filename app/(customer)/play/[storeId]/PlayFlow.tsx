@@ -111,6 +111,8 @@ const LANDING_FOOTER_RIGHT = 864
 const LANDING_FOOTER_TOP = 1195 - LANDING_TOP_TRIM + 28
 const LANDING_FOOTER_BOTTOM = 1400 - LANDING_TOP_TRIM + 28
 const LANDING_FOOTER_FONT_SIZE = 40
+/** 상호명 폰트 크기 — 명판 안을 꽉 채우도록 기존(40) 대비 2배 */
+const LANDING_SIGN_FONT_SIZE = 80
 
 interface ContainLayout {
   scale: number
@@ -413,7 +415,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
             >
               <span
                 className="truncate px-2 text-center font-extrabold tracking-tight text-[#3A2A18]"
-                style={{ fontSize: 40 * landingLayout.scale, letterSpacing: 0.5 * landingLayout.scale }}
+                style={{ fontSize: LANDING_SIGN_FONT_SIZE * landingLayout.scale, letterSpacing: 0.5 * landingLayout.scale }}
               >
                 {storeName || event.name}
               </span>
@@ -432,7 +434,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
               }}
             >
               <span
-                className="truncate px-2 text-center font-bold tracking-tight text-[#00A98C]"
+                className="truncate px-2 text-center font-bold tracking-tight text-[#222222]"
                 style={{ fontSize: LANDING_FOOTER_FONT_SIZE * landingLayout.scale }}
               >
                 푸짐한 경품을 단 3초만에 받아가세요
