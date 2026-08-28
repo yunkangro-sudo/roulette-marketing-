@@ -61,7 +61,7 @@ function FlowPanel({
   const isGreen = tone === 'green'
   return (
     <div
-      className="flex h-full min-h-[440px] flex-col p-6 md:p-8"
+      className={`flex h-full min-h-[440px] flex-col p-6 md:p-8 ${isGreen ? 'items-start' : 'items-end'}`}
       style={{ backgroundColor: isGreen ? '#00C7A7' : '#F2EFE6' }}
     >
       <span
