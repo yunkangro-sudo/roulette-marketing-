@@ -21,23 +21,34 @@ const NODES: Node[] = [
 ]
 
 const TIER_SCALE = [1, 1.15, 1.3]
-const TIER_RADIUS = [96, 158, 220]
-const ANGLE_START = -160
-const ANGLE_STEP = 38
-const CX = 300
-const CY = 320
-const VIEW_W = 600
-const VIEW_H = 640
+const TIER_RADIUS = [70, 118, 165]
+// 반지름이 커질수록 각도 스텝을 줄여서, 같은 회차 내 노드 사이의 실제 거리(arc length)를
+// 서로 비슷하게 유지한다 — 안 그러면 바깥 회차일수록 노드 사이가 벌어져 가운데가 텅 비어 보인다.
+const STEP_WITHIN_TIER = [45, 27, 19]
+const TRANSITION_STEP = 30
+const ANGLE_START = -150
+const CX = 270
+const CY = 250
+const VIEW_W = 560
+const VIEW_H = 520
 
 function polar(radius: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180
   return { x: CX + radius * Math.cos(rad), y: CY + radius * Math.sin(rad) }
 }
 
+const angles: number[] = [ANGLE_START]
+for (let i = 1; i < NODES.length; i++) {
+  const prevTier = NODES[i - 1].tier
+  const curTier = NODES[i].tier
+  const step = curTier !== prevTier ? TRANSITION_STEP : STEP_WITHIN_TIER[prevTier]
+  angles.push(angles[i - 1] + step)
+}
+
 const positions = NODES.map((n, i) => ({
   ...n,
-  ...polar(TIER_RADIUS[n.tier], ANGLE_START + i * ANGLE_STEP),
-  angle: ANGLE_START + i * ANGLE_STEP,
+  ...polar(TIER_RADIUS[n.tier], angles[i]),
+  angle: angles[i],
   radius: TIER_RADIUS[n.tier],
 }))
 
@@ -75,7 +86,7 @@ export default function GrowthEngineSection() {
 
         {/* 데스크톱: 나선형 다이어그램 */}
         <div className="relative mt-14 hidden md:block">
-          <div className="relative mx-auto aspect-[600/640] w-full max-w-[600px]">
+          <div className="relative mx-auto aspect-[560/520] w-full max-w-[560px]">
             <svg
               viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
               className="absolute inset-0 h-full w-full"
@@ -108,8 +119,8 @@ export default function GrowthEngineSection() {
             </svg>
 
             {[0, 1, 2].map((tier) => {
-              const first = positions.find((p) => p.tier === tier)!
-              const labelPos = polar(TIER_RADIUS[tier] - 34, ANGLE_START + tier * 3 * ANGLE_STEP - 20)
+              const firstIdx = tier * 3
+              const labelPos = polar(TIER_RADIUS[tier] - 32, angles[firstIdx] - 14)
               return (
                 <span
                   key={tier}
