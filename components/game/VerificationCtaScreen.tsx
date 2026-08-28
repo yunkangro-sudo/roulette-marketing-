@@ -58,7 +58,7 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 280, damping: 14 }}
           >
-            <p className="text-[22px] font-bold leading-snug tracking-tight text-[#222222]">
+            <p className="text-[28px] font-black leading-tight tracking-tight text-[#00C7A7]">
               {storeName}
             </p>
           </motion.div>
@@ -92,6 +92,7 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
           >
             <CouponTicket
               amountLabel={result.label}
+              amountLabelClassName="text-[#00C7A7]"
               code={result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
               validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
               noteText="쿠폰함에서 쿠폰 사용가능"
@@ -129,7 +130,7 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
           {storeId && (
             <a
               href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-              className="block w-full rounded-full border border-[#222222]/15 bg-white/60 px-10 py-3.5 text-center text-sm font-bold text-[#222222]/70 backdrop-blur-sm transition-colors hover:bg-white/80"
+              className="block w-full rounded-full border border-[#00C7A7]/30 bg-[#00C7A7]/12 px-10 py-3.5 text-center text-sm font-bold text-[#00C7A7] backdrop-blur-sm transition-colors hover:bg-[#00C7A7]/20"
             >
               내 쿠폰함
             </a>
