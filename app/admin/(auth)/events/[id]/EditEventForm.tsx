@@ -495,6 +495,11 @@ export default function EditEventForm({ event }: { event: Event }) {
                         className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
                       <span className="text-xs text-gray-400">원</span>
                     </div>
+                    {Number(tier.amount) === 0 && !tier.label.includes('꽝') && (
+                      <p className="text-xs font-semibold text-red-500 mt-0.5">
+                        ⚠️ 0원이면 이 티어는 "꽝"으로 처리되어 쿠폰이 발급되지 않아요. 실제 경품이면 금액을 입력하세요.
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -325,6 +325,11 @@ export default function NewEventForm({ role, storeId }: Props) {
                     {Number(tier.amount) > 0 && (
                       <p className="text-xs text-gray-400 mt-0.5">일반적으로 객단가의 5~15% 수준 참고 (자유 설정)</p>
                     )}
+                    {(!tier.amount || Number(tier.amount) === 0) && !tier.label.includes('꽝') && (
+                      <p className="text-xs font-semibold text-red-500 mt-0.5">
+                        ⚠️ 0원이면 이 티어는 "꽝"으로 처리되어 쿠폰이 발급되지 않아요. 실제 경품이면 금액을 입력하세요.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-end gap-3">
