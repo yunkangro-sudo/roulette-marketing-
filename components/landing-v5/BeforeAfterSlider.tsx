@@ -7,7 +7,7 @@ const BEFORE_STEPS = ['광고 노출', '클릭', '매장 방문', '끝']
 const AFTER_STEPS = ['광고 노출', '게임 참여', '혜택', '단골 인증', '쿠폰 사용', '재방문']
 
 export default function BeforeAfterSlider() {
-  const [value, setValue] = useState(52)
+  const [value, setValue] = useState(50)
 
   return (
     <div className="mt-12">

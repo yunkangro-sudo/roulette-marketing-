@@ -224,7 +224,7 @@ export function HowItWorks({ onCta }: CtaProps) {
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">작동 원리</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2">
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
           {steps.map((step) => (
             <article key={step.n} className="border border-dg-line bg-white p-5" style={{ borderRadius: 6 }}>
               <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
@@ -235,32 +235,30 @@ export function HowItWorks({ onCta }: CtaProps) {
               </div>
             </article>
           ))}
-
-          <article
-            className="flex flex-col justify-between bg-dg-ink p-6 text-white"
-            style={{ borderRadius: 6 }}
-          >
-            <div>
-              <p className="text-[13px] font-semibold text-dg-green">이게 전부입니다</p>
-              <h3 className="mt-3 text-[26px] leading-snug">
-                이 세 걸음이면
-                <br />
-                단골이 만들어집니다
-              </h3>
-              <p className="mt-3 text-[14px] leading-relaxed text-white/60">
-                복잡한 앱 설치도, 어려운 세팅도 없습니다. QR 하나로 시작하는 가장 쉬운 재방문 설계입니다.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onCta}
-              className="mt-6 inline-flex min-h-[44px] w-fit items-center gap-2 rounded-full bg-dg-green px-6 py-3 text-[14px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green active:translate-y-0"
-            >
-              궁금하면, 단골팅
-              <span aria-hidden="true">→</span>
-            </button>
-          </article>
         </div>
+
+        {/* 프로세스 3단계를 요약하는 문구라 특정 단계 카드에 종속시키지 않고,
+            전체 폭을 쓰는 독립 배너로 분리 — 그리드 stretch로 옆 카드 높이에
+            억지로 맞춰지며 하단에 빈 공간이 생기던 문제를 근본적으로 없앤다 */}
+        <article className="mt-4 flex flex-col items-start justify-between gap-6 bg-dg-ink p-6 text-white sm:flex-row sm:items-center sm:p-8" style={{ borderRadius: 6 }}>
+          <div>
+            <p className="text-[13px] font-semibold text-dg-green">이게 전부입니다</p>
+            <h3 className="mt-3 text-[26px] leading-snug">
+              이 세 걸음이면 단골이 만들어집니다
+            </h3>
+            <p className="mt-3 max-w-md text-[14px] leading-relaxed text-white/60">
+              복잡한 앱 설치도, 어려운 세팅도 없습니다. QR 하나로 시작하는 가장 쉬운 재방문 설계입니다.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCta}
+            className="inline-flex min-h-[44px] w-fit shrink-0 items-center gap-2 rounded-full bg-dg-green px-6 py-3 text-[14px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green active:translate-y-0"
+          >
+            궁금하면, 단골팅
+            <span aria-hidden="true">→</span>
+          </button>
+        </article>
 
         <BeforeAfterSlider />
       </div>
