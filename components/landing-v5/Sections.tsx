@@ -266,35 +266,29 @@ export function HowItWorks({ onCta }: CtaProps) {
 export function DifferenceSection() {
   return (
     <section className="bg-white py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5">
-        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">무엇이 다른가</p>
-        <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
-          게임으로 끝내지 않습니다
-        </h2>
-
-        <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          <div>
-            <h3 className="text-[20px] text-dg-ink">게임이 목적이 아닙니다</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
-              게임은 고객을 움직이게 만드는 첫 번째 장치입니다.
-            </p>
-          </div>
-          <ScreenshotSlot shotId="01" caption="로그인 없이 바로 시작" />
-        </div>
-
-        <div className="mt-14 grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          {/* 모바일은 텍스트 우선, 데스크톱만 이미지를 좌측으로 옮겨 스크롤 리듬을 준다 */}
-          <div className="lg:order-2">
-            <h3 className="text-[20px] text-dg-ink">정보 수집으로 끝나지 않습니다</h3>
-            <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
-              카카오 로그인과 당근마켓 클릭까지, 참여 이후의 행동을 관리자 화면에서 그대로 확인합니다. &quot;누가
-              참여했는가&quot;가 아니라 &quot;누가 다시 오는가&quot;까지 봅니다.
-            </p>
-          </div>
-          <div className="lg:order-1">
-            <ScreenshotSlot shotId="11" />
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div>
+          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">무엇이 다른가</p>
+          <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
+            게임으로 끝내지 않습니다
+          </h2>
+          <div className="mt-8 space-y-6">
+            <div>
+              <h3 className="text-[20px] text-dg-ink">게임이 목적이 아닙니다</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
+                게임은 고객을 움직이게 만드는 첫 번째 장치입니다.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-[20px] text-dg-ink">정보 수집으로 끝나지 않습니다</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
+                카카오 로그인과 당근마켓 클릭까지, 참여 이후의 행동을 관리자 화면에서 그대로 확인합니다. &quot;누가
+                참여했는가&quot;가 아니라 &quot;누가 다시 오는가&quot;까지 봅니다.
+              </p>
+            </div>
           </div>
         </div>
+        <ScreenshotSlot shotId="11" />
       </div>
     </section>
   )
