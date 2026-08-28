@@ -1,77 +1,47 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { Repeat } from 'lucide-react'
 
-type Node = {
+type Round = {
   label: string
-  tier: 0 | 1 | 2
-  isFinal?: boolean
+  steps: string[]
 }
 
-const NODES: Node[] = [
-  { label: '게임 참여', tier: 0 },
-  { label: '데이터 축적', tier: 0 },
-  { label: '리워드 재방문', tier: 0 },
-  { label: '정교해진 혜택', tier: 1 },
-  { label: '재방문 증가', tier: 1 },
-  { label: '당근 소식·이벤트로 단골 재호출', tier: 1 },
-  { label: '누적 단골 + 신규 유입', tier: 2 },
-  { label: '재구매·객단가 상승', tier: 2 },
-  { label: '매출 증가', tier: 2, isFinal: true },
+const ROUNDS: Round[] = [
+  { label: '1회차', steps: ['게임 참여', '데이터 축적', '리워드 재방문'] },
+  { label: '2회차', steps: ['정교해진 혜택', '재방문 증가', '당근 소식·이벤트로 단골 재호출'] },
+  { label: '3회차', steps: ['누적 단골 + 신규 유입', '재구매·객단가 상승', '매출 증가'] },
 ]
 
-const TIER_SCALE = [1, 1.15, 1.3]
-const TIER_RADIUS = [70, 118, 165]
-// 반지름이 커질수록 각도 스텝을 줄여서, 같은 회차 내 노드 사이의 실제 거리(arc length)를
-// 서로 비슷하게 유지한다 — 안 그러면 바깥 회차일수록 노드 사이가 벌어져 가운데가 텅 비어 보인다.
-const STEP_WITHIN_TIER = [45, 27, 19]
-const TRANSITION_STEP = 30
-const ANGLE_START = -150
-const CX = 270
-const CY = 250
-const VIEW_W = 560
-const VIEW_H = 520
-
-function polar(radius: number, angleDeg: number) {
-  const rad = (angleDeg * Math.PI) / 180
-  return { x: CX + radius * Math.cos(rad), y: CY + radius * Math.sin(rad) }
-}
-
-const angles: number[] = [ANGLE_START]
-for (let i = 1; i < NODES.length; i++) {
-  const prevTier = NODES[i - 1].tier
-  const curTier = NODES[i].tier
-  const step = curTier !== prevTier ? TRANSITION_STEP : STEP_WITHIN_TIER[prevTier]
-  angles.push(angles[i - 1] + step)
-}
-
-const positions = NODES.map((n, i) => ({
-  ...n,
-  ...polar(TIER_RADIUS[n.tier], angles[i]),
-  angle: angles[i],
-  radius: TIER_RADIUS[n.tier],
-}))
-
-function curvePath(a: { x: number; y: number; angle: number; radius: number }, b: { x: number; y: number; angle: number; radius: number }) {
-  const midAngle = (a.angle + b.angle) / 2
-  const midRadius = ((a.radius + b.radius) / 2) * 1.08
-  const ctrl = polar(midRadius, midAngle)
-  return `M ${a.x} ${a.y} Q ${ctrl.x} ${ctrl.y} ${b.x} ${b.y}`
-}
-
-const TIER_LABELS = ['1회차', '2회차', '3회차']
-
-function tierNodeClass(tier: 0 | 1 | 2, isFinal?: boolean) {
-  if (isFinal) return 'bg-dg-gold text-dg-ink border-dg-gold-deep/30'
-  if (tier === 0) return 'bg-dg-green-tint text-dg-green-deep border-dg-green/20'
-  if (tier === 1) return 'bg-dg-green text-white border-transparent'
-  return 'bg-dg-green-deep text-white border-transparent'
-}
+const TIER_CARD_CLASS = [
+  'border border-dg-green/25 bg-dg-green-tint',
+  'border border-transparent bg-dg-green',
+  'border border-transparent bg-dg-green-deep',
+]
+const TIER_BADGE_CLASS = [
+  'bg-white text-dg-green-deep',
+  'bg-dg-ink/90 text-white',
+  'bg-dg-ink text-white',
+]
+const TIER_CHIP_CLASS = [
+  'border border-dg-green/25 bg-white text-dg-ink',
+  'border border-transparent bg-white text-dg-ink',
+  'border border-transparent bg-white text-dg-ink',
+]
+const TIER_ARROW_CLASS = ['text-dg-green-deep/50', 'text-white/70', 'text-white/70']
+const TIER_CAPTION = ['가장 작게 시작합니다', '데이터가 쌓이면서 커집니다', '누적된 단골이 매출로 이어집니다']
+const TIER_CAPTION_CLASS = ['text-dg-ink-soft', 'text-white/70', 'text-white/70']
+const TIER_SCALE = [
+  { pad: 'p-5 md:p-6', chip: 'px-3 py-2 text-[13px] md:text-[13.5px]', gap: 'gap-2' },
+  { pad: 'p-6 md:p-7', chip: 'px-3.5 py-2.5 text-[13.5px] md:text-[14.5px]', gap: 'gap-2.5' },
+  { pad: 'p-7 md:p-8', chip: 'px-4 py-3 text-[14px] md:text-[15.5px]', gap: 'gap-3' },
+]
 
 export default function GrowthEngineSection() {
   return (
     <section className="bg-dg-bg py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5">
+      <div className="mx-auto max-w-4xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">성장 엔진</p>
         <h2 className="mt-3 text-[28px] leading-tight text-dg-ink md:text-[40px]">
           이건 한 번 쓰고 끝나는 이벤트가 아닙니다.
@@ -84,119 +54,83 @@ export default function GrowthEngineSection() {
           없는 구조입니다.
         </p>
 
-        {/* 데스크톱: 나선형 다이어그램 */}
-        <div className="relative mt-14 hidden md:block">
-          <div className="relative mx-auto aspect-[560/520] w-full max-w-[560px]">
-            <svg
-              viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-              className="absolute inset-0 h-full w-full"
-              aria-hidden="true"
-            >
-              <defs>
-                <marker id="growth-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#019C87" />
-                </marker>
-              </defs>
-              {positions.slice(0, -1).map((node, i) => {
-                const next = positions[i + 1]
-                return (
-                  <motion.path
-                    key={`edge-${i}`}
-                    d={curvePath(node, next)}
-                    fill="none"
-                    stroke="#019C87"
-                    strokeWidth={2}
-                    strokeOpacity={0.45}
-                    strokeDasharray="4 5"
-                    markerEnd="url(#growth-arrow)"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    whileInView={{ pathLength: 1, opacity: 1 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.5, delay: 0.15 + i * 0.12 }}
-                  />
-                )
-              })}
-            </svg>
-
-            {[0, 1, 2].map((tier) => {
-              const firstIdx = tier * 3
-              const labelPos = polar(TIER_RADIUS[tier] - 32, angles[firstIdx] - 14)
-              return (
-                <span
-                  key={tier}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-dg-green-deep shadow-sm"
-                  style={{ left: `${(labelPos.x / VIEW_W) * 100}%`, top: `${(labelPos.y / VIEW_H) * 100}%` }}
+        <div className="mt-12 space-y-0">
+          {ROUNDS.map((round, tier) => {
+            const scale = TIER_SCALE[tier]
+            const isFinalRound = tier === ROUNDS.length - 1
+            return (
+              <div key={round.label}>
+                <motion.article
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.45, delay: tier * 0.1 }}
+                  className={`${scale.pad} ${TIER_CARD_CLASS[tier]}`}
+                  style={{ borderRadius: 10 }}
                 >
-                  {TIER_LABELS[tier]}
-                </span>
-              )
-            })}
+                  <span
+                    className={`inline-flex w-fit items-center px-3 py-1.5 text-[13px] font-extrabold ${TIER_BADGE_CLASS[tier]}`}
+                    style={{ borderRadius: 999 }}
+                  >
+                    {round.label}
+                  </span>
+                  <div className={`mt-4 flex flex-wrap items-center ${scale.gap}`}>
+                    {round.steps.map((step, i) => {
+                      const isFinalStep = isFinalRound && i === round.steps.length - 1
+                      return (
+                        <div key={step} className="flex items-center gap-2.5">
+                          <span
+                            className={`font-bold leading-snug ${scale.chip} ${
+                              isFinalStep
+                                ? 'border border-transparent bg-dg-gold text-dg-ink'
+                                : TIER_CHIP_CLASS[tier]
+                            }`}
+                            style={{ borderRadius: 6 }}
+                          >
+                            {step}
+                          </span>
+                          {i < round.steps.length - 1 && (
+                            <span className={TIER_ARROW_CLASS[tier]} aria-hidden="true">
+                              →
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <p className={`mt-4 text-[13px] ${TIER_CAPTION_CLASS[tier]}`}>{TIER_CAPTION[tier]}</p>
+                </motion.article>
 
-            {positions.map((node, i) => (
-              <motion.div
-                key={node.label}
-                className="absolute flex items-center justify-center"
-                style={{
-                  left: `${(node.x / VIEW_W) * 100}%`,
-                  top: `${(node.y / VIEW_H) * 100}%`,
-                  transform: `translate(-50%, -50%) scale(${TIER_SCALE[node.tier]})`,
-                }}
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.4, delay: i * 0.12, type: 'spring', stiffness: 220, damping: 18 }}
-              >
-                <span
-                  className={`inline-flex max-w-[132px] items-center justify-center rounded-full border px-3.5 py-2 text-center text-[12.5px] font-bold leading-snug shadow-[0_4px_14px_rgba(0,0,0,0.08)] ${tierNodeClass(node.tier, node.isFinal)}`}
-                >
-                  {node.label}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* 모바일: 세로 타임라인 */}
-        <div className="mt-12 space-y-8 md:hidden">
-          {[0, 1, 2].map((tier) => (
-            <div key={tier}>
-              <span className="inline-flex items-center rounded-full bg-dg-green-tint px-3 py-1 text-[12px] font-bold text-dg-green-deep">
-                {TIER_LABELS[tier]}
-              </span>
-              <div className="mt-3 space-y-2.5">
-                {positions
-                  .filter((n) => n.tier === tier)
-                  .map((node, idx) => (
-                    <motion.div
-                      key={node.label}
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: '-40px' }}
-                      transition={{ duration: 0.35, delay: idx * 0.08 }}
-                      className="flex items-center gap-2"
-                    >
-                      <span
-                        className={`inline-flex flex-1 items-center rounded-lg border font-bold leading-snug ${tierNodeClass(node.tier, node.isFinal)}`}
-                        style={{
-                          fontSize: 13 + tier * 1.5,
-                          padding: `${10 + tier * 2}px ${14 + tier * 2}px`,
-                        }}
-                      >
-                        {node.label}
-                      </span>
-                    </motion.div>
-                  ))}
+                {tier < ROUNDS.length - 1 && (
+                  <div className="flex justify-center py-2" aria-hidden="true">
+                    <span className="text-[18px] leading-none text-dg-green-deep/50">↓</span>
+                  </div>
+                )}
               </div>
-              {tier < 2 && (
-                <div className="mt-3 flex justify-center text-dg-green-deep/60" aria-hidden="true">
-                  ↓
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        <p className="mt-8 text-[12px] text-dg-ink-soft">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+          className="mt-6 flex items-center gap-3 border border-dg-line bg-white px-5 py-4"
+          style={{ borderRadius: 10 }}
+        >
+          <span
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dg-green-tint text-dg-green-deep"
+            aria-hidden="true"
+          >
+            <Repeat size={18} strokeWidth={2.5} />
+          </span>
+          <p className="text-[14px] leading-relaxed text-dg-ink-soft">
+            그리고 다음 달, 이 순환이 <span className="font-bold text-dg-ink">더 큰 1회차</span>로 다시 시작됩니다.
+          </p>
+        </motion.div>
+
+        <p className="mt-6 text-[12px] text-dg-ink-soft">
           ※ 위 순환 구조는 이해를 돕기 위한 예시이며, 실제 성과는 매장·업종·운영 방식에 따라 달라질 수 있습니다.
         </p>
       </div>
