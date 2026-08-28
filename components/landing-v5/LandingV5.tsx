@@ -5,6 +5,7 @@ import './landing-v5.css'
 import Navbar from './Navbar'
 import Hero from './Hero'
 import ClientLogoStrip from './ClientLogoStrip'
+import GrowthEngineSection from './GrowthEngineSection'
 import {
   ProductShowcase,
   ProblemSection,
@@ -37,6 +38,7 @@ export default function LandingV5() {
         <ProblemSection />
         <PositioningSection />
         <HowItWorks onCta={openDemo} />
+        <GrowthEngineSection />
         <DifferenceSection />
         <ProofSection />
         <RoiCalculator />

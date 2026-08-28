@@ -3,7 +3,6 @@
 import { useState, useRef, type TouchEvent } from 'react'
 import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
-import BeforeAfterSlider from './BeforeAfterSlider'
 import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
@@ -259,8 +258,6 @@ export function HowItWorks({ onCta }: CtaProps) {
             <span aria-hidden="true">→</span>
           </button>
         </article>
-
-        <BeforeAfterSlider />
       </div>
     </section>
   )
