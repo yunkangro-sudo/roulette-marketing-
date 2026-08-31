@@ -297,10 +297,9 @@ export function DifferenceSection() {
 export function ProofSection() {
   const funnel = [
     { label: '게임 참여', value: '1,000명' },
-    { label: '쿠폰 사용', value: '380명' },
-    { label: '2회 방문', value: '210명' },
-    { label: '3회 이상 방문', value: '126명' },
-    { label: '30일 재방문율', value: '32%' },
+    { label: '매장으로 돌아온 손님', value: '380명', percent: '38%' },
+    { label: '두 번째로 재방문한 손님', value: '218명', percent: '22%' },
+    { label: '완전한 단골이 된 손님', value: '126명', percent: '13%' },
   ]
 
   return (
@@ -308,40 +307,43 @@ export function ProofSection() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
         <div>
           <p className="text-[13px] font-semibold tracking-wide text-dg-green">데이터로 증명</p>
-          <h2 className="mt-3 text-[32px] md:text-[44px]">다시 오는 숫자가 남습니다</h2>
-
-          <div className="mt-8 flex flex-wrap items-center gap-2">
-            {funnel.map((item, i) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <span
-                  className="border border-white/15 bg-white/5 px-3 py-2 text-[13px]"
-                  style={{ borderRadius: 4 }}
-                >
-                  <span className="block text-[11px] text-white/45">{item.label}</span>
-                  <span className="font-num text-dg-green">{item.value}</span>
-                </span>
-                {i < funnel.length - 1 && <span className="text-white/25">→</span>}
-              </div>
-            ))}
-          </div>
+          <h2 className="mt-3 text-[32px] md:text-[44px]">게임 한 번이, 단골 한 명이 됩니다</h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-white/55">
+            참여자 10명 중 3명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
+          </p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
-              <p className="text-[12px] text-white/45">6개월 재방문율 변화</p>
-              <p className="mt-2 font-num text-[36px] font-bold">
+              <p className="text-[12px] text-white/45">재방문율</p>
+              <p className="mt-2 font-num text-[40px] font-bold md:text-[48px]">
                 12% → <span className="text-dg-green">32%</span>
               </p>
+              <p className="mt-2 text-[13px] text-white/55">게임 시작 6개월 만에, 거의 3배가 됐어요</p>
             </div>
             <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
               <p className="text-[12px] text-white/45">누적 추정 재방문 매출</p>
-              <p className="mt-2 font-num text-[36px] font-bold text-dg-green">2,100만원+</p>
+              <p className="mt-2 font-num text-[32px] font-bold text-dg-green">2,100만원+</p>
+              <p className="mt-2 text-[13px] text-white/55">구독료의 수십배 이득*</p>
             </div>
           </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-white/45">
+            {funnel.map((item, i) => (
+              <span key={item.label} className="flex items-center gap-2">
+                <span>
+                  {item.label} <span className="font-num text-white/80">{item.value}</span>
+                  {item.percent && <span className="text-dg-green"> ({item.percent})</span>}
+                </span>
+                {i < funnel.length - 1 && <span className="text-white/25">→</span>}
+              </span>
+            ))}
+          </div>
         </div>
-        <ScreenshotSlot shotId="10" tone="dark" />
+        <ScreenshotSlot shotId="10" tone="dark" fit="contain" />
       </div>
       <p className="mx-auto mt-8 max-w-6xl px-5 text-[12px] text-white/40">
-        ※ 실제 운영 데이터가 축적되기 전까지는 예시·시뮬레이션 수치로 표기합니다.
+        ※ 본 자료의 수치(재방문율, 매출 기여, 참여율 포함)는 이해를 돕기 위한 예시 데이터입니다. 실제 성과는
+        업종·매장 조건에 따라 달라질 수 있습니다.
       </p>
     </section>
   )

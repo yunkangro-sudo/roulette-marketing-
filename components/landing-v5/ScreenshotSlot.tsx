@@ -5,9 +5,12 @@ type Props = {
   caption?: string
   className?: string
   tone?: 'light' | 'dark'
+  /** 원본 이미지 비율이 폰 프레임(9:19.5)과 크게 다를 때 'contain'을 쓴다 —
+   *  'cover'는 실제 스크린샷이 아닌 이미지(예: 앱 화면 일부만 캡처된 것)에 쓰면 텍스트가 잘려나간다. */
+  fit?: 'cover' | 'contain'
 }
 
-export default function ScreenshotSlot({ shotId, caption, className = '', tone = 'light' }: Props) {
+export default function ScreenshotSlot({ shotId, caption, className = '', tone = 'light', fit = 'cover' }: Props) {
   const shot = SCREENSHOTS[shotId]
   const showCaption = caption ?? shot.caption
 
@@ -21,7 +24,7 @@ export default function ScreenshotSlot({ shotId, caption, className = '', tone =
           <img
             src={shot.src}
             alt={shot.label}
-            className="h-full w-full object-cover object-top"
+            className={`h-full w-full ${fit === 'contain' ? 'object-contain object-center' : 'object-cover object-top'}`}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-5 text-center">
