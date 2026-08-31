@@ -109,8 +109,11 @@ export default function ReviewGuidePage() {
                     📌 쿠폰 코드: AB3K7P<br />
                     📅 사용 기간: ~2026년 9월 13일<br /><br />
                     매장에서 직원에게 이 코드를 보여주세요.<br /><br />
-                    [매장에서 사용하기]
+                    [매장에서 사용하기]  [당근마켓 후기 남기고 쿠폰받기]
                   </div>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    ※ 두 번째 버튼은 매장에 당근마켓 URL이 등록된 경우에만 노출됩니다.
+                  </p>
                 </div>
               </div>
             </div>

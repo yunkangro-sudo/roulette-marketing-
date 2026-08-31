@@ -18,6 +18,8 @@ export interface CouponMsgPayload {
   label:        string
   validUntil:   string | null
   storeId:      string
+  /** 매장의 당근마켓 비즈프로필 URL. 없으면 후기 버튼을 넣지 않는다 */
+  daangnUrl?:   string | null
 }
 
 /**
@@ -36,6 +38,16 @@ export async function sendMeMessage(
     ? new Date(payload.validUntil).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
     : '기간 제한 없음'
 
+  // text 템플릿은 buttons 배열로 최대 2개까지 버튼을 지정할 수 있다.
+  // 당근 URL이 없는 매장(daangn_url 미설정)은 기존과 동일하게 버튼 1개만 노출한다.
+  const daangnUrl = payload.daangnUrl?.trim() || null
+  const buttons = [
+    { title: '매장에서 사용하기', link: { web_url: playUrl, mobile_web_url: playUrl } },
+    ...(daangnUrl
+      ? [{ title: '당근마켓 후기 남기고 쿠폰받기', link: { web_url: daangnUrl, mobile_web_url: daangnUrl } }]
+      : []),
+  ]
+
   const templateObject = {
     object_type: 'text',
     text: [
@@ -52,7 +64,7 @@ export async function sendMeMessage(
       web_url:        playUrl,
       mobile_web_url: playUrl,
     },
-    button_title: '매장에서 사용하기',
+    buttons,
   }
 
   try {

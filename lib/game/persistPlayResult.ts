@@ -299,11 +299,18 @@ export async function persistPendingPlay(params: {
       const session = await getCustomerSession()
       const accessToken = session.user?.accessToken
       if (!accessToken || !session.user?.hasTalkMsg) return
-      const { data: store } = await supabase
-        .from('store_settings')
-        .select('store_name')
-        .eq('store_id', pending.storeId)
-        .maybeSingle()
+      const [{ data: store }, { data: contract }] = await Promise.all([
+        supabase
+          .from('store_settings')
+          .select('store_name')
+          .eq('store_id', pending.storeId)
+          .maybeSingle(),
+        supabase
+          .from('store_contracts')
+          .select('daangn_url')
+          .eq('store_id', pending.storeId)
+          .maybeSingle(),
+      ])
       await sendMeMessage(accessToken, {
         storeName: store?.store_name || '매장',
         shortCode: coupon.short_code ?? coupon.id.slice(0, 8).toUpperCase(),
@@ -311,6 +318,7 @@ export async function persistPendingPlay(params: {
         label: pending.label,
         validUntil: coupon.valid_until,
         storeId: pending.storeId,
+        daangnUrl: contract?.daangn_url ?? null,
       })
     } catch { /* silent */ }
   })()
