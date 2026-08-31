@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSession, getAllowedStoreId } from '@/lib/admin/session'
-import { computeExpectedParticipants, computeTierProbabilities } from '@/lib/game-engine/probability'
+import {
+  computeExpectedParticipants,
+  computeTierProbabilities,
+  normalizeProbabilities,
+  UNLIMITED_TIER_QUANTITY,
+} from '@/lib/game-engine/probability'
+
+type PrizeTierMode = 'quantity' | 'percent'
 
 /**
  * GET /api/admin/events?store_id=xxx
@@ -54,6 +61,8 @@ export async function POST(request: Request) {
     tiers,
   } = body
 
+  const prizeTierMode: PrizeTierMode = body.prize_tier_mode === 'percent' ? 'percent' : 'quantity'
+
   const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
   if (challenge_frequency && !VALID_FREQUENCIES.includes(challenge_frequency)) {
     return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
@@ -61,6 +70,21 @@ export async function POST(request: Request) {
 
   if (!name || !display_start_date || !display_end_date || !expected_daily_participants || !tiers?.length) {
     return NextResponse.json({ error: '필수 항목이 누락됐습니다' }, { status: 400 })
+  }
+
+  if (prizeTierMode === 'percent') {
+    for (const t of tiers) {
+      const p = Number(t.probability_percent)
+      if (Number.isNaN(p) || p < 0 || p > 100) {
+        return NextResponse.json({ error: '모든 티어의 확률(%)을 0~100 사이로 입력해주세요' }, { status: 400 })
+      }
+    }
+  } else {
+    for (const t of tiers) {
+      if (!t.total_quantity || Number(t.total_quantity) <= 0) {
+        return NextResponse.json({ error: '모든 티어의 수량을 입력해주세요' }, { status: 400 })
+      }
+    }
   }
 
   // advertiser는 자기 store_id 고정, 그 외는 body.store_id 사용
@@ -90,13 +114,15 @@ export async function POST(request: Request) {
   // 시작일 기준 status 자동 결정
   const status = display_start_date <= today ? 'active' : 'scheduled'
 
-  // 확률 계산
+  // 확률 계산 — mode에 따라 "수량 기반 자동계산" 또는 "직접입력 확률 정규화" 중 하나
   const startDate = new Date(display_start_date)
   const endDate = new Date(display_end_date)
   const periodDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
   const expectedParticipants = computeExpectedParticipants(expected_daily_participants, periodDays)
-  const quantities = tiers.map((t: { total_quantity: number }) => t.total_quantity)
-  const probabilities = computeTierProbabilities(quantities, expectedParticipants)
+
+  const probabilities = prizeTierMode === 'percent'
+    ? normalizeProbabilities(tiers.map((t: { probability_percent: number }) => Number(t.probability_percent) || 0))
+    : computeTierProbabilities(tiers.map((t: { total_quantity: number }) => t.total_quantity), expectedParticipants)
 
   // events INSERT
   const { data: event, error: eventError } = await supabase
@@ -111,6 +137,7 @@ export async function POST(request: Request) {
       challenge_frequency: challenge_frequency ?? 'daily',
       coupon_validity_type: coupon_validity_type ?? 'relative_days',
       coupon_validity_value: String(coupon_validity_value ?? '14'),
+      prize_tier_mode: prizeTierMode,
     })
     .select('id')
     .single()
@@ -120,17 +147,24 @@ export async function POST(request: Request) {
   }
 
   // prize_tiers INSERT
+  // percent 모드에서 수량을 입력하지 않은 티어는 UNLIMITED_TIER_QUANTITY로 채워
+  // "재고 소진 → 꽝 강제 전환" 안전장치가 걸리지 않게 한다.
   const tierRows = tiers.map((t: {
-    label: string; amount: number; total_quantity: number; requires_verification: boolean
-  }, i: number) => ({
-    event_id: event.id,
-    label: t.label,
-    amount: t.amount,
-    total_quantity: t.total_quantity,
-    remaining_quantity: t.total_quantity,
-    computed_probability: probabilities[i],
-    requires_verification: true,
-  }))
+    label: string; amount: number; total_quantity?: number; requires_verification: boolean
+  }, i: number) => {
+    const qty = prizeTierMode === 'percent'
+      ? (Number(t.total_quantity) > 0 ? Number(t.total_quantity) : UNLIMITED_TIER_QUANTITY)
+      : Number(t.total_quantity)
+    return {
+      event_id: event.id,
+      label: t.label,
+      amount: t.amount,
+      total_quantity: qty,
+      remaining_quantity: qty,
+      computed_probability: probabilities[i],
+      requires_verification: true,
+    }
+  })
 
   const { error: tierError } = await supabase.from('prize_tiers').insert(tierRows)
 

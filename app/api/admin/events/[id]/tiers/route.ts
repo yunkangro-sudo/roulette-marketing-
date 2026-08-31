@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSession, getAllowedStoreId } from '@/lib/admin/session'
+import { normalizeProbabilities, UNLIMITED_TIER_QUANTITY } from '@/lib/game-engine/probability'
 
 type Params = { params: Promise<{ id: string }> }
+type PrizeTierMode = 'quantity' | 'percent'
 
 interface TierInput {
   /** 없으면 신규 등록 */
   id?: string
   label: string
   amount: number
-  total_quantity: number
+  /** percent 모드에서는 선택값 — 비우면 재고 무제한(UNLIMITED_TIER_QUANTITY) */
+  total_quantity?: number
+  /** percent 모드에서만 사용 — 관리자가 직접 입력한 확률(%) */
+  probability_percent?: number
   requires_verification?: boolean
 }
 
@@ -55,13 +60,18 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const { data: event } = await supabase
     .from('events')
-    .select('id, store_id, expected_daily_participants, display_start_date, display_end_date')
+    .select('id, store_id, expected_daily_participants, display_start_date, display_end_date, prize_tier_mode')
     .eq('id', eventId)
     .single()
 
   if (!event) {
     return NextResponse.json({ error: '이벤트를 찾을 수 없습니다' }, { status: 404 })
   }
+
+  // body.prize_tier_mode가 오면 이 저장 시점에 모드를 바꾸는 것으로 간주
+  const prizeTierMode: PrizeTierMode = body?.prize_tier_mode === 'percent' || body?.prize_tier_mode === 'quantity'
+    ? body.prize_tier_mode
+    : ((event.prize_tier_mode as PrizeTierMode) ?? 'quantity')
 
   const allowedStoreId = getAllowedStoreId(session.account)
   if (allowedStoreId && event.store_id !== allowedStoreId) {
@@ -100,9 +110,30 @@ export async function PATCH(req: Request, { params }: Params) {
     if (t.amount === undefined || t.amount === null || Number(t.amount) < 0) {
       return NextResponse.json({ error: '금액을 올바르게 입력해주세요 (꽝은 0)' }, { status: 400 })
     }
-    if (!Number.isInteger(Number(t.total_quantity)) || Number(t.total_quantity) <= 0) {
-      return NextResponse.json({ error: '수량은 1 이상의 정수여야 합니다' }, { status: 400 })
+    if (prizeTierMode === 'percent') {
+      const p = Number(t.probability_percent)
+      if (Number.isNaN(p) || p < 0 || p > 100) {
+        return NextResponse.json({ error: '모든 티어의 확률(%)을 0~100 사이로 입력해주세요' }, { status: 400 })
+      }
+      // 수량은 선택 — 입력했으면 1 이상의 정수여야 함 (재고 안전장치용)
+      if (t.total_quantity !== undefined && t.total_quantity !== null && Number(t.total_quantity) !== 0) {
+        if (!Number.isInteger(Number(t.total_quantity)) || Number(t.total_quantity) <= 0) {
+          return NextResponse.json({ error: '수량을 입력하는 경우 1 이상의 정수여야 합니다' }, { status: 400 })
+        }
+      }
+    } else {
+      if (!Number.isInteger(Number(t.total_quantity)) || Number(t.total_quantity) <= 0) {
+        return NextResponse.json({ error: '수량은 1 이상의 정수여야 합니다' }, { status: 400 })
+      }
     }
+  }
+
+  /** percent 모드에서 수량 미입력 시 "무제한"으로 취급할 실제 저장값 */
+  function resolveQuantity(t: TierInput): number {
+    if (prizeTierMode === 'percent') {
+      return t.total_quantity && Number(t.total_quantity) > 0 ? Number(t.total_quantity) : UNLIMITED_TIER_QUANTITY
+    }
+    return Number(t.total_quantity)
   }
 
   // 기존 티어는 이미 지급된 수량보다 적게 설정하지 못하도록 방지
@@ -110,7 +141,7 @@ export async function PATCH(req: Request, { params }: Params) {
     if (!t.id) continue
     const existing = existingMap.get(t.id)!
     const issued = existing.total_quantity - existing.remaining_quantity
-    if (Number(t.total_quantity) < issued) {
+    if (resolveQuantity(t) < issued) {
       return NextResponse.json(
         { error: `"${t.label}" 티어는 이미 ${issued}개가 지급되어 그보다 적은 수량으로 설정할 수 없습니다` },
         { status: 400 }
@@ -119,14 +150,28 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 
   // ── 확률 재계산 (삭제 후 남는 전체 티어 기준) ─────────────────
-  let totalParticipants = 0
-  if (event.expected_daily_participants && event.display_start_date && event.display_end_date) {
-    const start = new Date(event.display_start_date)
-    const end = new Date(event.display_end_date)
-    const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1)
-    totalParticipants = event.expected_daily_participants * days
+  let probabilities: number[]
+  if (prizeTierMode === 'percent') {
+    probabilities = normalizeProbabilities(tiersInput.map((t) => Number(t.probability_percent) || 0))
+  } else {
+    let totalParticipants = 0
+    if (event.expected_daily_participants && event.display_start_date && event.display_end_date) {
+      const start = new Date(event.display_start_date)
+      const end = new Date(event.display_end_date)
+      const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1)
+      totalParticipants = event.expected_daily_participants * days
+    }
+    probabilities = calcProbabilities(tiersInput.map((t) => Number(t.total_quantity)), totalParticipants)
   }
-  const probabilities = calcProbabilities(tiersInput.map((t) => Number(t.total_quantity)), totalParticipants)
+
+  // 이 요청으로 모드가 바뀌었으면 events.prize_tier_mode도 갱신
+  if (prizeTierMode !== event.prize_tier_mode) {
+    const { error: modeError } = await supabase
+      .from('events')
+      .update({ prize_tier_mode: prizeTierMode })
+      .eq('id', eventId)
+    if (modeError) console.warn('prize_tier_mode 갱신 실패:', modeError.message)
+  }
 
   // ── 수정 / 신규 등록 처리 ─────────────────────────────────────
   const updated: Array<{
@@ -140,7 +185,7 @@ export async function PATCH(req: Request, { params }: Params) {
       // 기존 티어 수정
       const existing = existingMap.get(t.id)!
       const issued = existing.total_quantity - existing.remaining_quantity
-      const newTotal = Number(t.total_quantity)
+      const newTotal = resolveQuantity(t)
       const newRemaining = newTotal - issued
 
       const { error: updateError } = await supabase
@@ -174,7 +219,7 @@ export async function PATCH(req: Request, { params }: Params) {
       updated.push({ id: t.id, total_quantity: newTotal, remaining_quantity: newRemaining, computed_probability: probabilities[i], is_new: false })
     } else {
       // 신규 티어 등록
-      const newTotal = Number(t.total_quantity)
+      const newTotal = resolveQuantity(t)
       const { data: inserted, error: insertError } = await supabase
         .from('prize_tiers')
         .insert({
@@ -220,5 +265,5 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
-  return NextResponse.json({ ok: true, tiers: updated, deleted_tier_ids: deletedTierIds })
+  return NextResponse.json({ ok: true, tiers: updated, deleted_tier_ids: deletedTierIds, prize_tier_mode: prizeTierMode })
 }

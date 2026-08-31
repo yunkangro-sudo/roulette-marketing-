@@ -92,6 +92,7 @@ function PointsContent() {
 
   const [needLogin, setNeedLogin] = useState(false)
   const [storeName, setStoreName] = useState('')
+  const [daangnUrl, setDaangnUrl] = useState<string | null>(null)
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
   const [pointPerVisit, setPointPerVisit] = useState(10)
@@ -121,6 +122,7 @@ function PointsContent() {
       }
       const data = await res.json()
       setStoreName(data.storeName ?? '')
+      setDaangnUrl(data.daangnUrl ?? null)
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
       setPointPerVisit(data.settings?.point_per_visit ?? 10)
@@ -220,6 +222,19 @@ function PointsContent() {
             <span className="text-white/80">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
           </div>
         </div>
+
+        {/* 당근 단골추가 바로가기 — 리워드 교환 위, 재방문 인증(당근 단골 추가)으로 자연스럽게 유도 */}
+        {daangnUrl && (
+          <a
+            href={daangnUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => { fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {}) }}
+            className="block text-sm font-bold text-orange-500 transition-colors hover:text-orange-600"
+          >
+            당근 단골추가 바로가기 →
+          </a>
+        )}
 
         {/* 리워드 교환 — 포인트 잔액 바로 아래, 이미지가 먼저 눈에 들어오는 카드형 */}
         <div>

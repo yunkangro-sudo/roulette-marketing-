@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getCustomerSession } from '@/lib/auth/session'
+import { safeHttpUrl } from '@/lib/store/profileUrls'
 
 /**
  * GET /api/me/points?store_id=xxx
@@ -77,7 +78,7 @@ export async function GET(req: Request) {
     // store_settings.store_name은 대부분 비어있어 store_id 원본값이 그대로 노출되는 버그가 있었다.
     supabase
       .from('store_contracts')
-      .select('store_name')
+      .select('store_name, daangn_url')
       .eq('store_id', storeId)
       .maybeSingle(),
   ])
@@ -123,6 +124,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     storeName,
+    daangnUrl: safeHttpUrl(storeRes.data?.daangn_url),
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },
     catalog:  catalogRes.data ?? [],

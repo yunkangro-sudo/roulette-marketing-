@@ -70,6 +70,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 045 | [`045_fix_delete_store_completely_permission.sql`](./045_fix_delete_store_completely_permission.sql) | `delete_store_completely` 실행 시 `permission denied for table tier_quantity_changes` 에러 수정 — 함수를 `SECURITY DEFINER`로 재정의해 호출자(service_role)의 테이블별 GRANT 여부와 무관하게 소유자(postgres) 권한으로 실행되게 함 |
 | 046 | [`046_signup_inquiries_source.sql`](./046_signup_inquiries_source.sql) | `signup_inquiries.source` 컬럼 추가 — 랜딩 요금제 섹션 "베이직 신청" 폼이 어느 경로로 들어온 리드인지 구분 (`landing_v5_pricing_basic`) |
 | 047 | [`047_aeo_waitlist.sql`](./047_aeo_waitlist.sql) | `aeo_waitlist` (AEO마케팅 출시 알림 대기자) 테이블 추가 — 랜딩 요금제 섹션 "AEO마케팅" 카드의 "출시 알림 받기" 리드를 베이직 신청과 분리 저장. service_role 전용, anon 정책 없음 |
+| 048 | [`048_prize_tier_probability_mode.sql`](./048_prize_tier_probability_mode.sql) | `events.prize_tier_mode` 컬럼 추가 (`quantity`\|`percent`, 기본값 `quantity`) — 경품 티어를 "총 수량 입력→자동계산" 또는 "확률(%) 직접입력" 중 골라서 설정할 수 있게 함 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

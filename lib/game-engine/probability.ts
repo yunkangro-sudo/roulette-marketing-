@@ -12,6 +12,13 @@
  * 정규화(normalize) 단계를 거쳐야 한다.
  */
 
+/**
+ * percent 모드에서 total_quantity를 입력하지 않은 티어에 쓰는 "무제한 재고" 값.
+ * applyStockSafetyNet()이 remaining_quantity > 0인 동안은 절대 꽝으로 강제 전환하지
+ * 않으므로, 이 값이면 실질적으로 재고 소진 안전장치가 작동하지 않는다.
+ */
+export const UNLIMITED_TIER_QUANTITY = 999_999_999
+
 /** 예상 참여자 수 = 하루 예상 참여자 수 × 이벤트 기간(일) */
 export function computeExpectedParticipants(
   expectedDailyParticipants: number,
