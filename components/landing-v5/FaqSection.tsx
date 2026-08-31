@@ -1,10 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { FAQ_ITEMS } from '@/lib/landing-v5/config'
+
+const VISIBLE_COUNT = 5
 
 export default function FaqSection() {
   const [open, setOpen] = useState<number | null>(0)
+  const [expanded, setExpanded] = useState(false)
+
+  const items = expanded ? FAQ_ITEMS : FAQ_ITEMS.slice(0, VISIBLE_COUNT)
+  const hiddenCount = FAQ_ITEMS.length - VISIBLE_COUNT
 
   return (
     <section id="faq" className="scroll-mt-20 py-20 md:py-28">
@@ -13,7 +20,7 @@ export default function FaqSection() {
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">자주 묻는 질문</h2>
 
         <div className="mt-10 divide-y divide-dg-line border-y border-dg-line">
-          {FAQ_ITEMS.map((item, i) => {
+          {items.map((item, i) => {
             const isOpen = open === i
             return (
               <div key={item.q}>
@@ -39,6 +46,18 @@ export default function FaqSection() {
             )
           })}
         </div>
+
+        {!expanded && hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="mx-auto mt-8 flex items-center gap-1.5 border border-dg-line px-6 py-3 text-[14px] font-semibold text-dg-ink transition-colors hover:border-dg-ink"
+            style={{ borderRadius: 6 }}
+          >
+            질문 {hiddenCount}개 더보기
+            <ChevronDown size={16} />
+          </button>
+        )}
       </div>
     </section>
   )
