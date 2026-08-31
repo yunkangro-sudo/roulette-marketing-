@@ -23,6 +23,7 @@ import ClientsSection from './ClientsSection'
 import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
 import DemoModal from './DemoModal'
+import { SHOW_CLIENT_SHOWCASE } from '@/lib/landing-v5/config'
 
 export default function LandingV5() {
   const [demoOpen, setDemoOpen] = useState(false)
@@ -43,7 +44,7 @@ export default function LandingV5() {
         <ProofSection />
         <CarrotChannelSection />
         <ChannelTrust />
-        <ClientsSection />
+        {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
         <PricingSection onCta={openDemo} />
         <FaqSection />
         <FinalCta onCta={openDemo} />

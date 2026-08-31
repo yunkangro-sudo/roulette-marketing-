@@ -17,7 +17,8 @@ export default function ClientsSection() {
   }
 
   return (
-    <section id="stories" className="scroll-mt-20 bg-white py-20 md:py-28">
+    // 바로 위 "채널과 운영" 섹션(bg-white)과 경계가 안 보이던 문제 — 아주 옅은 회색으로 톤 분리
+    <section id="stories" className="scroll-mt-20 bg-[#F5F5F5] py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">도입 매장</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">이미 단골팅과 함께하는 매장들</h2>

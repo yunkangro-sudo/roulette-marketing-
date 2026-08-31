@@ -82,11 +82,15 @@ export const HERO_ROTATOR_WORDS = [
   '예약률',
 ] as const
 
+/** 도입 매장 섹션 노출 여부 — 현재 매장 목록은 실제 로고 없는 플레이스홀더뿐이라
+ *  꺼둔다. 실제 도입 매장이 10곳 이상 확보되면 true로 전환. */
+export const SHOW_CLIENT_SHOWCASE = false
+
 export const NAV_LINKS = [
   { href: '#service', label: '서비스' },
   { href: '#process', label: '프로세스' },
   { href: '#pricing', label: '요금제' },
-  { href: '#stories', label: '도입사례' },
+  ...(SHOW_CLIENT_SHOWCASE ? [{ href: '#stories', label: '도입사례' }] : []),
 ] as const
 
 export type ScreenshotId = '01' | '02' | '04' | '05' | '06' | '08' | '09' | '10' | '11' | '12'
