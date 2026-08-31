@@ -442,19 +442,17 @@ export function CarrotChannelSection() {
   )
 }
 
-/** 유튜브 영상을 16:9 비율 카드로 재생하는 임베드 —
- *  이 섹션은 "지금까지 본 화면"이 아니라 실제 서비스가 쓰이는 모습을 보여주는 자리라
- *  세로 폰 목업(ScreenshotSlot)이 아닌 가로 영상 프레임을 쓴다. */
+/** 유튜브 쇼츠(세로 9:16)를 폰 프레임과 비슷한 비율로 재생하는 임베드. */
 function ChannelVideoEmbed() {
   return (
     <div
-      className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-dg-line bg-black shadow-[0_20px_48px_rgba(0,0,0,0.18)]"
-      style={{ aspectRatio: '16 / 9', borderRadius: 12 }}
+      className="relative mx-auto w-full max-w-[300px] overflow-hidden border border-dg-line bg-black shadow-[0_20px_48px_rgba(0,0,0,0.18)]"
+      style={{ aspectRatio: '9 / 16', borderRadius: 12 }}
     >
       <iframe
         className="absolute inset-0 h-full w-full"
-        src="https://www.youtube.com/embed/Wji-msCFXXU"
-        title="당근에서 시작해 단골이 되기까지"
+        src="https://www.youtube.com/embed/zASgln9XkCs?start=15"
+        title="당근 단골이 많으면 좋은 이유"
         loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
