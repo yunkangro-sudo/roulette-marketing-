@@ -10,7 +10,7 @@ import { createServerClient } from '@/lib/supabase/server'
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null)
 
-  const { storeName, ownerName, phone, email, businessType, message } = body ?? {}
+  const { storeName, ownerName, phone, email, businessType, message, source } = body ?? {}
 
   if (!storeName || !ownerName || !phone) {
     return NextResponse.json({ error: '업체명, 담당자명, 연락처는 필수입니다' }, { status: 400 })
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     email:         email  || null,
     business_type: businessType || null,
     message:       message || null,
+    source:        source || null,
     status:        'new',
   })
 

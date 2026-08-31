@@ -45,7 +45,7 @@ export default function LandingV5() {
         <CarrotChannelSection />
         <ChannelTrust />
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
-        <PricingSection onCta={openDemo} />
+        <PricingSection />
         <FaqSection />
         <FinalCta onCta={openDemo} />
       </main>

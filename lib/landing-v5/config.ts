@@ -13,23 +13,39 @@ export const PRICING = {
   basic: {
     id: 'basic',
     name: '베이직',
-    monthlyPrice: 50_000,
-    hint: '작게 시작하고 싶다면',
+    regularPrice: 39_000,
+    promoPrice: 19_000,
+    setupFee: 250_000,
+    badgeGold: '선착순 100개 한정',
+    badgeGreen: '지금 시작하면',
     features: ['게임 이벤트 1개', '기본 쿠폰·포인트', '기본 고객 데이터'],
-  },
-  full: {
-    id: 'full',
-    name: '풀서비스',
-    monthlyPrice: 290_000,
-    hint: '재방문 마케팅을 제대로 운영한다면',
-    features: [
-      '다중 게임 이벤트',
-      '포인트·리워드 전체',
-      '고객 데이터 분석',
-      '실시간 성과 리포트',
+    reassurance: [
+      '언제든 해지 가능 — 위약금 없음',
+      '숨겨진 비용 없음 — 표시된 가격이 전부',
+      'QR 하나로 시작 — 복잡한 세팅 없음',
     ],
   },
+  aeo: {
+    id: 'aeo',
+    name: 'AEO마케팅',
+    price: 270_000,
+    subheadline: 'AI 검색에도 우리 매장이 뜨게',
+    description:
+      '챗GPT, 퍼플렉시티 같은 AI 검색이 "우리 동네 맛집"을 물었을 때 매장이 답변에 등장하도록 만드는 홈페이지 제작 서비스입니다.',
+    launchNote: '약 1개월 후 출시 예정',
+  },
 } as const
+
+/** 베이직 신청 완료 화면에 표시하는 입금 계좌 정보 — 세팅비(1회) 수기 입금용. */
+export const BANK_ACCOUNT = {
+  bank: '신한은행',
+  account: '110-635-375949',
+  holder: '양경직(아크웍스)',
+} as const
+
+/** 베이직 신청 완료 후 "럭키박스" 웰컴 기프트 리빌에서 항상 보여주는 고정 결과 문구.
+ *  DemoModal(다른 CTA들의 랜덤 데모)과는 별개로, 여기서는 랜덤 요소가 없다. */
+export const WELCOME_GIFT_LABEL = '포인트 카탈로그 1개 무료 추가'
 
 export const ROI_ASSUMPTIONS = {
   revisitRate: 0.12,

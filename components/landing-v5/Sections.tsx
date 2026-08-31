@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, type TouchEvent } from 'react'
-import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake } from 'lucide-react'
+import { useState } from 'react'
+import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
+import { BasicApplyModal, AeoWaitlistModal } from './PricingModals'
+import { PRICING, formatMonthlyPrice, formatWon } from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
 
@@ -528,109 +529,129 @@ export function ChannelTrust() {
   )
 }
 
-export function PricingSection({ onCta }: CtaProps) {
-  const plans = [PRICING.basic, PRICING.full]
-  const [activeIdx, setActiveIdx] = useState(0)
-  const touchStartX = useRef<number | null>(null)
-
-  const goTo = (idx: number) => setActiveIdx((idx + plans.length) % plans.length)
-
-  const onTouchStart = (e: TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-  }
-  const onTouchEnd = (e: TouchEvent) => {
-    if (touchStartX.current === null) return
-    const delta = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(delta) > 40) {
-      goTo(activeIdx + (delta < 0 ? 1 : -1))
-    }
-    touchStartX.current = null
-  }
-
-  const plan = plans[activeIdx]
-  const featured = plan.id === 'full'
+export function PricingSection() {
+  const [applyOpen, setApplyOpen] = useState(false)
+  const [waitlistOpen, setWaitlistOpen] = useState(false)
+  const basic = PRICING.basic
+  const aeo = PRICING.aeo
 
   return (
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">매장 규모에 맞게 시작하세요</h2>
+        <p className="mt-3 text-[15px] text-dg-ink-soft">
+          <span className="font-bold text-dg-green-deep">지금 시작하는 매장은, 이 가격으로 시작합니다.</span>
+        </p>
 
-        {/* 탭 */}
-        <div
-          role="tablist"
-          aria-label="요금제 선택"
-          className="mt-10 inline-flex rounded-full border border-dg-line bg-white p-1"
-        >
-          {plans.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              role="tab"
-              aria-selected={i === activeIdx}
-              onClick={() => setActiveIdx(i)}
-              className={`min-h-[44px] rounded-full px-6 text-[14px] font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green ${
-                i === activeIdx ? 'bg-dg-ink text-white' : 'text-dg-ink-soft hover:text-dg-ink'
-              }`}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-
-        <div
-          className="mt-6 max-w-xl"
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-        >
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {/* 베이직 — 판매중, 강조 */}
           <article
-            key={plan.id}
-            className={`border p-7 ${featured ? 'border-dg-green bg-white' : 'border-dg-line bg-white'}`}
-            style={{ borderRadius: 6 }}
+            className="relative border-2 border-dg-green bg-white p-7 shadow-[0_20px_48px_rgba(0,199,167,0.12)]"
+            style={{ borderRadius: 10 }}
           >
-            <p className="text-[13px] font-semibold text-dg-ink-soft">{plan.hint}</p>
-            <h3 className="mt-2 text-[28px] text-dg-ink">{plan.name}</h3>
-            <p className="mt-4 font-num text-[36px] font-bold text-dg-ink">{formatMonthlyPrice(plan.monthlyPrice)}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className="inline-flex items-center bg-dg-gold px-2.5 py-1 text-[11px] font-bold text-white"
+                style={{ borderRadius: 999 }}
+              >
+                {basic.badgeGold}
+              </span>
+              <span
+                className="inline-flex items-center bg-dg-green px-2.5 py-1 text-[11px] font-bold text-dg-ink"
+                style={{ borderRadius: 999 }}
+              >
+                {basic.badgeGreen}
+              </span>
+            </div>
+
+            <h3 className="mt-4 text-[26px] font-bold text-dg-ink">{basic.name}</h3>
+
+            <div className="mt-4">
+              <p className="font-num text-[15px] text-dg-ink-soft line-through">
+                {formatMonthlyPrice(basic.regularPrice)}
+              </p>
+              <p className="mt-1 font-num text-[42px] font-bold leading-none text-dg-green-deep">
+                {formatMonthlyPrice(basic.promoPrice)}
+              </p>
+              <p className="mt-2.5 text-[14px] text-dg-ink">
+                + 초기 세팅비 {formatWon(basic.setupFee)} (1회)
+              </p>
+              <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 별도</p>
+            </div>
+
             <ul className="mt-6 space-y-3">
-              {plan.features.map((feature) => (
+              {basic.features.map((feature) => (
                 <li key={feature} className="flex gap-2 text-[15px] text-dg-ink">
                   <span className="text-dg-green">•</span>
                   {feature}
                 </li>
               ))}
             </ul>
+
+            {/* 안심 문구 블록 */}
+            <div className="mt-6 border border-dg-green/30 bg-dg-green-tint p-4" style={{ borderRadius: 8 }}>
+              <p className="text-[13px] font-bold text-dg-ink">이 가격에 뭐가 더 필요하냐고요? 없습니다.</p>
+              <ul className="mt-3 space-y-2">
+                {basic.reassurance.map((line) => (
+                  <li key={line} className="flex items-start gap-2 text-[13px] text-dg-ink">
+                    <Check size={15} className="mt-0.5 shrink-0 text-dg-green-deep" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <button
               type="button"
-              onClick={onCta}
-              className={`mt-8 min-h-[44px] w-full py-3.5 text-[14px] font-bold transition-opacity hover:opacity-90 ${
-                featured ? 'bg-dg-green text-dg-ink' : 'border border-dg-ink bg-white text-dg-ink'
-              }`}
-              style={{ borderRadius: 4 }}
+              onClick={() => setApplyOpen(true)}
+              className="mt-7 min-h-[52px] w-full py-3.5 text-[16px] font-bold text-dg-ink transition-opacity hover:opacity-90"
+              style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
             >
-              우리 매장 재방문 설계하기
+              지금 신청하기
             </button>
           </article>
-        </div>
 
-        {/* 페이지네이션 점 */}
-        <div className="mt-6 flex items-center gap-2">
-          {plans.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              aria-label={`${p.name} 요금제 보기`}
-              onClick={() => setActiveIdx(i)}
-              className="flex h-11 w-11 items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green"
-            >
+          {/* AEO마케팅 — 준비중, 톤다운 */}
+          <article
+            className="relative overflow-hidden border border-dg-line bg-dg-bg/60 p-7 opacity-90"
+            style={{ borderRadius: 10 }}
+          >
+            <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`block h-2 rounded-full transition-all ${
-                  i === activeIdx ? 'w-6 bg-dg-ink' : 'w-2 bg-dg-line'
-                }`}
-              />
+                className="inline-flex items-center border border-dg-ink-soft/30 bg-white px-2.5 py-1 text-[11px] font-bold text-dg-ink-soft"
+                style={{ borderRadius: 999 }}
+              >
+                준비중 · Coming Soon
+              </span>
+            </div>
+
+            <h3 className="mt-4 text-[26px] font-bold text-dg-ink-soft">{aeo.name}</h3>
+
+            <p className="mt-4 text-[15px] font-bold text-dg-ink-soft">{aeo.subheadline}</p>
+            <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{aeo.description}</p>
+
+            <p className="mt-6 font-num text-[26px] font-bold text-dg-ink-soft">
+              {formatWon(aeo.price)} <span className="text-[14px] font-normal">(1회) · 출시 예정</span>
+            </p>
+            <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 별도</p>
+
+            <button
+              type="button"
+              onClick={() => setWaitlistOpen(true)}
+              className="mt-7 min-h-[52px] w-full border border-dg-ink-soft/40 bg-white py-3.5 text-[15px] font-bold text-dg-ink-soft transition-colors hover:border-dg-ink hover:text-dg-ink"
+              style={{ borderRadius: 6 }}
+            >
+              출시 알림 받기
             </button>
-          ))}
+
+            <p className="mt-4 text-center text-[12px] text-dg-ink-soft">{aeo.launchNote}</p>
+          </article>
         </div>
       </div>
+
+      {applyOpen && <BasicApplyModal onClose={() => setApplyOpen(false)} />}
+      {waitlistOpen && <AeoWaitlistModal onClose={() => setWaitlistOpen(false)} />}
     </section>
   )
 }
