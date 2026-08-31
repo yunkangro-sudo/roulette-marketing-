@@ -442,6 +442,27 @@ export function CarrotChannelSection() {
   )
 }
 
+/** 유튜브 영상을 16:9 비율 카드로 재생하는 임베드 —
+ *  이 섹션은 "지금까지 본 화면"이 아니라 실제 서비스가 쓰이는 모습을 보여주는 자리라
+ *  세로 폰 목업(ScreenshotSlot)이 아닌 가로 영상 프레임을 쓴다. */
+function ChannelVideoEmbed() {
+  return (
+    <div
+      className="relative mx-auto w-full max-w-[440px] overflow-hidden border border-dg-line bg-black shadow-[0_20px_48px_rgba(0,0,0,0.18)]"
+      style={{ aspectRatio: '16 / 9', borderRadius: 12 }}
+    >
+      <iframe
+        className="absolute inset-0 h-full w-full"
+        src="https://www.youtube.com/embed/Wji-msCFXXU"
+        title="당근에서 시작해 단골이 되기까지"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
+    </div>
+  )
+}
+
 export function ChannelTrust() {
   const roles = [
     { name: '당근', role: '지역 고객 유입' },
@@ -463,7 +484,10 @@ export function ChannelTrust() {
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">채널과 운영</p>
-            <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">흩어지지 않고 한 흐름으로</h2>
+            <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">단골팅 시스템 소개</h2>
+            <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-dg-ink-soft">
+              당근, 카카오, 게임, 쿠폰, 데이터 — 앞서 하나씩 살펴본 요소들이 이렇게 하나로 연결됩니다.
+            </p>
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {roles.map((row) => (
                 <div
@@ -484,10 +508,11 @@ export function ChannelTrust() {
               </div>
             </div>
           </div>
-          <ScreenshotSlot shotId="12" />
+          <ChannelVideoEmbed />
         </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        <p className="mt-14 text-[13px] font-semibold tracking-wide text-dg-green-deep">전체 흐름 요약</p>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           {ops.map((item) => (
             <article key={item.n} className="border border-dg-line bg-dg-bg p-6" style={{ borderRadius: 6 }}>
               <p className="font-num text-[12px] text-dg-green-deep">{item.n}</p>
