@@ -39,12 +39,20 @@ export async function sendMeMessage(
     : '기간 제한 없음'
 
   // text 템플릿은 buttons 배열로 최대 2개까지 버튼을 지정할 수 있다.
+  // ⚠️ 카카오 기본 템플릿의 웹 링크는 [앱 관리 > 제품 링크 관리]에 등록된
+  // 도메인만 허용된다. daangn.com은 등록할 수 없는 외부 도메인이라
+  // 버튼에 직접 넣으면 메시지 발송 전체가 실패한다(카카오 API가 거부).
+  // 그래서 항상 우리 도메인의 리다이렉트 경로(/api/go/daangn)로 연결하고,
+  // 서버에서 실제 당근 URL로 302 리다이렉트한다.
   // 당근 URL이 없는 매장(daangn_url 미설정)은 기존과 동일하게 버튼 1개만 노출한다.
   const daangnUrl = payload.daangnUrl?.trim() || null
+  const daangnRedirectUrl = daangnUrl
+    ? `${appUrl}/api/go/daangn?store=${encodeURIComponent(payload.storeId)}`
+    : null
   const buttons = [
     { title: '매장에서 사용하기', link: { web_url: playUrl, mobile_web_url: playUrl } },
-    ...(daangnUrl
-      ? [{ title: '당근마켓 후기 남기고 쿠폰받기', link: { web_url: daangnUrl, mobile_web_url: daangnUrl } }]
+    ...(daangnRedirectUrl
+      ? [{ title: '당근마켓 후기 남기고 쿠폰받기', link: { web_url: daangnRedirectUrl, mobile_web_url: daangnRedirectUrl } }]
       : []),
   ]
 
