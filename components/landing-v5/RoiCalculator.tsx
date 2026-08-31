@@ -49,8 +49,8 @@ export default function RoiCalculator() {
               </li>
             </ul>
             <div className="mt-6 border-t border-dg-line pt-5">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">이번 달 예상으로 남는 순이익</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold">재방문으로 인한 예상 추가 매출</span>
                 <span className="font-num text-[28px] font-bold text-dg-green-deep">
                   +{formatWon(example.profit)}
                 </span>
@@ -62,7 +62,7 @@ export default function RoiCalculator() {
           </article>
 
           <article className="border border-white/10 bg-[#171717] p-6 text-white md:p-8" style={{ borderRadius: 6 }}>
-            <p className="text-[13px] font-semibold text-white/55">우리 매장 예상 손익 (월간)</p>
+            <p className="text-[13px] font-semibold text-white/55">단골 추가 매출 예상</p>
             <label className="mt-6 block">
               <span className="text-[14px] text-white/70">우리 매장 하루 평균 손님 수</span>
               <div className="mt-3 flex items-end justify-between">
@@ -85,7 +85,7 @@ export default function RoiCalculator() {
               <Row label="월 예상 혜택 비용" value={formatWon(live.cost)} muted />
               <Row label="월 예상 재방문 매출" value={formatWon(live.revenue)} />
               <div className="border-t border-white/10 pt-4">
-                <Row label="월 예상 순이익" value={formatWon(live.profit)} accent />
+                <Row label="재방문으로 인한 예상 추가 매출" value={formatWon(live.profit)} accent />
               </div>
             </dl>
 
