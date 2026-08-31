@@ -18,7 +18,6 @@ import {
   FinalCta,
   Footer,
 } from './Sections'
-import RoiCalculator from './RoiCalculator'
 import ClientsSection from './ClientsSection'
 import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
@@ -41,7 +40,6 @@ export default function LandingV5() {
         <GrowthEngineSection />
         <DifferenceSection />
         <ProofSection />
-        <RoiCalculator />
         <ChannelTrust />
         <ClientsSection />
         <PricingSection onCta={openDemo} />

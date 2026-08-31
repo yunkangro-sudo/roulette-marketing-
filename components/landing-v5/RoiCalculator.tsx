@@ -3,24 +3,33 @@
 import { useMemo, useState } from 'react'
 import { ROI_ASSUMPTIONS, formatWon } from '@/lib/landing-v5/config'
 
+/** "데이터로 증명" 섹션 하단에 이어붙는 손익 계산 블록.
+ *  PC에서는 항상 펼쳐져 있고, 모바일에서는 "직접 계산해보기" 버튼을 눌러야 펼쳐진다
+ *  (모바일에서 섹션이 과도하게 길어져 스크롤 피로감을 주는 것을 방지). */
 export default function RoiCalculator() {
   const { sliderMin, sliderMax, sliderStep, sliderDefault, exampleGuests } = ROI_ASSUMPTIONS
   const [dailyGuests, setDailyGuests] = useState<number>(sliderDefault)
+  const [expanded, setExpanded] = useState(false)
 
   const live = useMemo(() => calc(dailyGuests), [dailyGuests])
   const example = useMemo(() => calc(exampleGuests), [exampleGuests])
 
   return (
-    <section id="profit" className="scroll-mt-20 py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5">
-        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">매장 손익</p>
-        <h2 className="mt-3 max-w-3xl text-[32px] leading-tight text-dg-ink md:text-[44px]">
-          손님이 다시 오면,
-          <br />
-          계산이 달라집니다
-        </h2>
+    <>
+      {!expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-center gap-2 border border-dg-line bg-white py-4 text-[15px] font-semibold text-dg-ink-soft transition hover:border-dg-green-deep hover:text-dg-green-deep lg:hidden"
+          style={{ borderRadius: 6 }}
+        >
+          우리 매장은 얼마나 남을지 직접 계산해보기
+          <span aria-hidden>↓</span>
+        </button>
+      )}
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-2">
+      <div className={expanded ? 'block' : 'hidden lg:block'}>
+        <div className="grid gap-6 lg:grid-cols-2">
           <article className="border border-dg-line bg-white p-6 md:p-8" style={{ borderRadius: 6 }}>
             <p className="text-[13px] font-semibold text-dg-ink-soft">
               게임 참여 {exampleGuests}명 기준 예시
@@ -85,12 +94,8 @@ export default function RoiCalculator() {
             </p>
           </article>
         </div>
-
-        <p className="mt-6 text-[12px] text-dg-ink-soft">
-          ※ 위 수치는 이해를 돕기 위한 예시 데이터이며, 실제 성과는 매장·업종 조건에 따라 달라질 수 있습니다.
-        </p>
       </div>
-    </section>
+    </>
   )
 }
 

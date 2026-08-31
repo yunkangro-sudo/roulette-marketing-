@@ -3,6 +3,7 @@
 import { useState, useRef, type TouchEvent } from 'react'
 import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
+import RoiCalculator from './RoiCalculator'
 import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
@@ -303,48 +304,68 @@ export function ProofSection() {
   ]
 
   return (
-    <section id="proof" className="scroll-mt-20 bg-[#141414] py-20 text-white md:py-28">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
-        <div>
-          <p className="text-[13px] font-semibold tracking-wide text-dg-green">데이터로 증명</p>
-          <h2 className="mt-3 text-[32px] md:text-[44px]">게임 한 번이, 단골 한 명이 됩니다</h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-white/55">
-            참여자 10명 중 3명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
-          </p>
+    <section id="proof" className="scroll-mt-20">
+      {/* 상단 블록 — 데이터로 증명 (어두운 톤) */}
+      <div className="bg-[#141414] pb-16 pt-20 text-white md:pb-20 md:pt-28">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green">데이터로 증명</p>
+            <h2 className="mt-3 text-[32px] md:text-[44px]">게임 한 번이, 단골 한 명이 됩니다</h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-white/55">
+              참여자 10명 중 3명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
+            </p>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
               <p className="text-[12px] text-white/45">재방문율</p>
-              <p className="mt-2 font-num text-[40px] font-bold md:text-[48px]">
+              <p className="mt-2 whitespace-nowrap font-num text-[32px] font-bold sm:text-[36px] md:text-[44px]">
                 12% → <span className="text-dg-green">32%</span>
               </p>
-              <p className="mt-2 text-[13px] text-white/55">게임 시작 6개월 만에, 거의 3배가 됐어요</p>
-            </div>
-            <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
+                <p className="mt-2 text-[13px] text-white/55">게임 시작 6개월 만에, 거의 3배가 됐어요</p>
+              </div>
+              <div className="border border-white/10 p-5" style={{ borderRadius: 6 }}>
               <p className="text-[12px] text-white/45">누적 추정 재방문 매출</p>
-              <p className="mt-2 font-num text-[32px] font-bold text-dg-green">2,100만원+</p>
-              <p className="mt-2 text-[13px] text-white/55">구독료의 수십배 이득*</p>
+              <p className="mt-2 whitespace-nowrap font-num text-[28px] font-bold text-dg-green sm:text-[32px]">
+                2,100만원+
+              </p>
+                <p className="mt-2 text-[13px] text-white/55">구독료의 수십배 이득*</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-white/45">
+              {funnel.map((item, i) => (
+                <span key={item.label} className="flex items-center gap-2">
+                  <span>
+                    {item.label} <span className="font-num text-white/80">{item.value}</span>
+                    {item.percent && <span className="text-dg-green"> ({item.percent})</span>}
+                  </span>
+                  {i < funnel.length - 1 && <span className="text-white/25">→</span>}
+                </span>
+              ))}
             </div>
           </div>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[13px] text-white/45">
-            {funnel.map((item, i) => (
-              <span key={item.label} className="flex items-center gap-2">
-                <span>
-                  {item.label} <span className="font-num text-white/80">{item.value}</span>
-                  {item.percent && <span className="text-dg-green"> ({item.percent})</span>}
-                </span>
-                {i < funnel.length - 1 && <span className="text-white/25">→</span>}
-              </span>
-            ))}
-          </div>
+          <ScreenshotSlot shotId="10" tone="dark" fit="contain" />
         </div>
-        <ScreenshotSlot shotId="10" tone="dark" fit="contain" />
       </div>
-      <p className="mx-auto mt-8 max-w-6xl px-5 text-[12px] text-white/40">
-        ※ 본 자료의 수치(재방문율, 매출 기여, 참여율 포함)는 이해를 돕기 위한 예시 데이터입니다. 실제 성과는
-        업종·매장 조건에 따라 달라질 수 있습니다.
-      </p>
+
+      {/* 전환 구간 — 증명(어두운 톤) → 손익 계산(밝은 톤)으로 자연스럽게 이어지도록 */}
+      <div className="h-16 bg-gradient-to-b from-[#141414] to-white md:h-20" aria-hidden />
+
+      {/* 하단 블록 — 매장 손익 계산 (밝은 톤) */}
+      <div className="bg-white pb-20 md:pb-28">
+        <div className="mx-auto max-w-6xl px-5">
+          <h3 className="text-center text-[22px] font-bold text-dg-ink md:text-[26px]">
+            그래서, 우리 매장은 얼마나 남을까요?
+          </h3>
+          <div className="mt-8">
+            <RoiCalculator />
+          </div>
+          <p className="mt-6 text-[12px] text-dg-ink-soft">
+            ※ 본 자료의 수치(재방문율, 매출 기여, 참여율, 손익 계산 포함)는 이해를 돕기 위한 예시 데이터입니다.
+            실제 성과는 업종·매장 조건에 따라 달라질 수 있습니다.
+          </p>
+        </div>
+      </div>
     </section>
   )
 }
