@@ -103,7 +103,7 @@ function Field({
   )
 }
 
-function BankRow({
+export function BankRow({
   label,
   value,
   copied,
@@ -242,7 +242,7 @@ export function BasicApplyModal({ onClose }: Props) {
 
           <p className="mt-4 font-num text-[22px] font-bold text-dg-ink">
             {formatWon(PRICING.basic.setupFee)}
-            <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">(초기 세팅비, VAT 별도)</span>
+            <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">(초기 세팅비, VAT 포함)</span>
           </p>
 
           <div className="mt-4 space-y-1.5 text-[13px] text-dg-ink-soft">

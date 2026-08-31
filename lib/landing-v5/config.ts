@@ -15,10 +15,10 @@ export const PRICING = {
     name: '베이직',
     regularPrice: 39_000,
     promoPrice: 19_000,
-    setupFee: 250_000,
-    badgeGold: '선착순 100개 한정',
-    badgeGreen: '지금 시작하면',
+    setupFee: 275_000,
+    ribbonLabel: '선착순 100개 업체 한정',
     features: ['게임 이벤트 1개', '기본 쿠폰·포인트', '기본 고객 데이터'],
+    qrPrintNote: 'QR 코드 인쇄물 10개까지 무료 제공 (10개 초과 시 추가 요금 발생)',
     reassurance: [
       '언제든 해지 가능 — 위약금 없음',
       '숨겨진 비용 없음 — 표시된 가격이 전부',
@@ -34,6 +34,32 @@ export const PRICING = {
       '챗GPT, 퍼플렉시티 같은 AI 검색이 "우리 동네 맛집"을 물었을 때 매장이 답변에 등장하도록 만드는 홈페이지 제작 서비스입니다.',
     launchNote: '약 1개월 후 출시 예정',
   },
+} as const
+
+/** 정가 대비 프로모션가 할인율(%) — 반올림해서 배지에 그대로 노출 ("51% 할인"). */
+export const PRICING_BASIC_DISCOUNT_PERCENT = Math.round(
+  (1 - PRICING.basic.promoPrice / PRICING.basic.regularPrice) * 100
+)
+
+/** 베이직 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료(프로모션가). */
+export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.promoPrice
+
+/** 요금제 섹션 — 요금제 카드와 최종 CTA 사이에 배치하는 런칭 경품 이벤트 블록.
+ *  ctaUrl은 단골팅 자체 게임 엔진에 등록된 실제 이벤트 페이지. */
+export const LAUNCH_EVENT = {
+  headline: '결정하기 전에, 먼저 체험해보세요',
+  subcopy: '우리 서비스가 실제로 어떤 경험인지, 사장님이 직접 손님이 되어보세요.',
+  cardTitle: '단골팅 런칭 경품 이벤트',
+  prizes: [
+    '5천원 무료 쿠폰',
+    '1만원 무료 쿠폰',
+    '구독료 1개월 무료 쿠폰',
+    '구독료 3개월 무료 쿠폰',
+    'AEO 홈페이지 제작 서비스 무료 쿠폰',
+  ],
+  note: '참여하신 모든 분께 경품이 있습니다',
+  ctaLabel: '이벤트 참여하기',
+  ctaUrl: 'https://www.dgting.co.kr/play/dgting',
 } as const
 
 /** 베이직 신청 완료 화면에 표시하는 입금 계좌 정보 — 세팅비(1회) 수기 입금용. */

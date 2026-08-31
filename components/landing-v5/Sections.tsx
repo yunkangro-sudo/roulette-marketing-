@@ -1,11 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { BasicApplyModal, AeoWaitlistModal } from './PricingModals'
-import { PRICING, formatMonthlyPrice, formatWon } from '@/lib/landing-v5/config'
+import { BasicApplyModal, AeoWaitlistModal, BankRow } from './PricingModals'
+import {
+  PRICING,
+  PRICING_BASIC_DISCOUNT_PERCENT,
+  PRICING_BASIC_TODAY_TOTAL,
+  LAUNCH_EVENT,
+  BANK_ACCOUNT,
+  formatMonthlyPrice,
+  formatWon,
+} from '@/lib/landing-v5/config'
 
 type CtaProps = { onCta: () => void }
 
@@ -532,52 +541,68 @@ export function ChannelTrust() {
 export function PricingSection() {
   const [applyOpen, setApplyOpen] = useState(false)
   const [waitlistOpen, setWaitlistOpen] = useState(false)
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const basic = PRICING.basic
   const aeo = PRICING.aeo
+
+  function copyBank(text: string, key: string) {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopiedKey(key)
+      window.setTimeout(() => setCopiedKey((c) => (c === key ? null : c)), 1500)
+    })
+  }
 
   return (
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
-        <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">매장 규모에 맞게 시작하세요</h2>
-        <p className="mt-3 text-[15px] text-dg-ink-soft">
-          <span className="font-bold text-dg-green-deep">지금 시작하는 매장은, 이 가격으로 시작합니다.</span>
-        </p>
+        <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">지금 가입하면, 이 가격입니다</h2>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {/* 베이직 — 판매중, 강조 */}
-          <article
-            className="relative border-2 border-dg-green bg-white p-7 shadow-[0_20px_48px_rgba(0,199,167,0.12)]"
+          <motion.article
+            className="relative overflow-visible border-2 border-dg-green bg-white p-7"
             style={{ borderRadius: 10 }}
+            animate={{
+              boxShadow: [
+                '0 0 0px 0px rgba(0,199,167,0)',
+                '0 0 28px 4px rgba(0,199,167,0.35)',
+                '0 0 0px 0px rgba(0,199,167,0)',
+              ],
+            }}
+            transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <div className="flex flex-wrap items-center gap-2">
+            {/* 리본형 배지 — 카드 좌측 상단 코너 */}
+            <div className="absolute -left-2 -top-2 z-10 h-[86px] w-[86px] overflow-hidden">
               <span
-                className="inline-flex items-center bg-dg-gold px-2.5 py-1 text-[11px] font-bold text-white"
-                style={{ borderRadius: 999 }}
+                className="absolute left-[-38px] top-[16px] block w-[160px] -rotate-45 bg-dg-gold py-1.5 text-center text-[10.5px] font-bold text-white shadow-[0_4px_10px_rgba(184,134,47,0.4)]"
               >
-                {basic.badgeGold}
-              </span>
-              <span
-                className="inline-flex items-center bg-dg-green px-2.5 py-1 text-[11px] font-bold text-dg-ink"
-                style={{ borderRadius: 999 }}
-              >
-                {basic.badgeGreen}
+                {basic.ribbonLabel}
               </span>
             </div>
 
-            <h3 className="mt-4 text-[26px] font-bold text-dg-ink">{basic.name}</h3>
+            <h3 className="mt-10 text-[26px] font-bold text-dg-ink">{basic.name}</h3>
 
             <div className="mt-4">
-              <p className="font-num text-[15px] text-dg-ink-soft line-through">
-                {formatMonthlyPrice(basic.regularPrice)}
-              </p>
-              <p className="mt-1 font-num text-[42px] font-bold leading-none text-dg-green-deep">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-num text-[16px] font-medium text-dg-ink-soft line-through decoration-2 decoration-dg-danger">
+                  {formatMonthlyPrice(basic.regularPrice)}
+                </p>
+                <span className="text-dg-ink-soft">→</span>
+                <span
+                  className="inline-flex items-center bg-dg-green px-2 py-0.5 text-[12px] font-extrabold text-dg-ink"
+                  style={{ borderRadius: 4 }}
+                >
+                  {PRICING_BASIC_DISCOUNT_PERCENT}% 할인
+                </span>
+              </div>
+              <p className="mt-1 font-num text-[54px] font-bold leading-none text-dg-green-deep">
                 {formatMonthlyPrice(basic.promoPrice)}
               </p>
               <p className="mt-2.5 text-[14px] text-dg-ink">
-                + 초기 세팅비 {formatWon(basic.setupFee)} (1회)
+                + 초기 세팅비 {formatWon(basic.setupFee)} (최초 1회)
               </p>
-              <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 별도</p>
+              <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 포함</p>
             </div>
 
             <ul className="mt-6 space-y-3">
@@ -588,6 +613,7 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-[12px] leading-relaxed text-dg-ink-soft">{basic.qrPrintNote}</p>
 
             {/* 안심 문구 블록 */}
             <div className="mt-6 border border-dg-green/30 bg-dg-green-tint p-4" style={{ borderRadius: 8 }}>
@@ -602,15 +628,17 @@ export function PricingSection() {
               </ul>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setApplyOpen(true)}
-              className="mt-7 min-h-[52px] w-full py-3.5 text-[16px] font-bold text-dg-ink transition-opacity hover:opacity-90"
-              style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
-            >
-              지금 신청하기
-            </button>
-          </article>
+            {/* 오늘 결제하실 금액 — 총 결제 안내 */}
+            <div className="mt-5 border border-dg-ink/15 bg-dg-bg p-4" style={{ borderRadius: 8 }}>
+              <p className="text-[12px] font-semibold text-dg-ink-soft">오늘 결제하실 금액</p>
+              <p className="mt-1 text-[13px] text-dg-ink-soft">
+                초기 세팅비 {formatWon(basic.setupFee)} + 첫 달 이용료 {formatWon(basic.promoPrice)}
+              </p>
+              <p className="mt-1.5 font-num text-[24px] font-bold text-dg-ink">
+                {formatWon(PRICING_BASIC_TODAY_TOTAL)}
+              </p>
+            </div>
+          </motion.article>
 
           {/* AEO마케팅 — 준비중, 톤다운 */}
           <article
@@ -647,6 +675,97 @@ export function PricingSection() {
 
             <p className="mt-4 text-center text-[12px] text-dg-ink-soft">{aeo.launchNote}</p>
           </article>
+        </div>
+
+        {/* 구분 — 요금제 안내와 별도 이벤트 참여는 다른 성격의 콘텐츠임을 명확히 */}
+        <div className="mt-14 border-t border-dg-line pt-14">
+          <div className="text-center">
+            <h3 className="text-[24px] font-bold text-dg-ink md:text-[28px]">{LAUNCH_EVENT.headline}</h3>
+            <p className="mt-2 text-[14px] text-dg-ink-soft">{LAUNCH_EVENT.subcopy}</p>
+          </div>
+
+          <div
+            className="mx-auto mt-7 max-w-xl border-2 border-dg-gold bg-gradient-to-b from-dg-cream to-white p-7 text-center shadow-[0_20px_48px_rgba(217,169,79,0.18)]"
+            style={{ borderRadius: 12 }}
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center bg-dg-gold" style={{ borderRadius: 999 }}>
+              <Gift size={22} className="text-white" />
+            </div>
+            <p className="mt-3 text-[19px] font-bold text-dg-ink">{LAUNCH_EVENT.cardTitle}</p>
+
+            <ul className="mt-5 space-y-2 text-left">
+              {LAUNCH_EVENT.prizes.map((prize) => (
+                <li key={prize} className="flex items-center gap-2 text-[14px] text-dg-ink">
+                  <span className="text-dg-gold-deep">🎁</span>
+                  {prize}
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-4 text-[12px] font-semibold text-dg-green-deep">{LAUNCH_EVENT.note}</p>
+
+            <a
+              href={LAUNCH_EVENT.ctaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 flex min-h-[52px] w-full items-center justify-center bg-dg-gold text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+              style={{ borderRadius: 6 }}
+            >
+              {LAUNCH_EVENT.ctaLabel}
+            </a>
+          </div>
+
+          {/* 최종 CTA */}
+          <div className="mx-auto mt-10 max-w-xl">
+            <button
+              type="button"
+              onClick={() => setApplyOpen(true)}
+              className="min-h-[56px] w-full py-4 text-[17px] font-bold text-dg-ink transition-opacity hover:opacity-90"
+              style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
+            >
+              지금 신청하기
+            </button>
+          </div>
+
+          {/* 입금 계좌 안내 — 폼을 거치지 않아도 바로 확인 가능하도록 섹션 하단에 상시 노출 */}
+          <div
+            className="mx-auto mt-10 max-w-xl border border-dg-line bg-white p-6"
+            style={{ borderRadius: 10 }}
+          >
+            <p className="text-[14px] font-bold text-dg-ink">입금 계좌 안내</p>
+            <div className="mt-4 space-y-3">
+              <BankRow
+                label="은행"
+                value={BANK_ACCOUNT.bank}
+                copied={copiedKey === 'section-bank'}
+                onCopy={() => copyBank(BANK_ACCOUNT.bank, 'section-bank')}
+              />
+              <BankRow
+                label="계좌번호"
+                value={BANK_ACCOUNT.account}
+                copied={copiedKey === 'section-account'}
+                onCopy={() => copyBank(BANK_ACCOUNT.account, 'section-account')}
+              />
+              <BankRow
+                label="예금주"
+                value={BANK_ACCOUNT.holder}
+                copied={copiedKey === 'section-holder'}
+                onCopy={() => copyBank(BANK_ACCOUNT.holder, 'section-holder')}
+              />
+            </div>
+            <div className="mt-4 border-t border-dg-line pt-4">
+              <p className="text-[13px] text-dg-ink-soft">첫 달 결제 금액</p>
+              <p className="mt-1 font-num text-[20px] font-bold text-dg-ink">
+                {formatWon(PRICING_BASIC_TODAY_TOTAL)}
+                <span className="ml-1.5 text-[12px] font-normal text-dg-ink-soft">
+                  (설치비 {formatWon(basic.setupFee)} + 1개월 구독료 {formatWon(basic.promoPrice)})
+                </span>
+              </p>
+            </div>
+            <p className="mt-3 text-[13px] text-dg-ink-soft">
+              입금자명은 <b className="font-semibold text-dg-ink">매장명</b>으로 해주세요
+            </p>
+          </div>
         </div>
       </div>
 
