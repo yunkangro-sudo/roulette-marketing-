@@ -33,13 +33,15 @@ export const PRICING = {
 
 export const ROI_ASSUMPTIONS = {
   revisitRate: 0.12,
-  benefitPerGuest: 10_000,
-  spendPerGuest: 18_000,
+  benefitPerGuest: 2_000,
+  spendPerGuest: 19_000,
   sliderMin: 20,
   sliderMax: 300,
   sliderStep: 10,
   sliderDefault: 100,
   exampleGuests: 100,
+  /** 하루 단위 입력값을 월간 예상치로 환산할 때 쓰는 기준 일수 */
+  daysPerMonth: 30,
 } as const
 
 export const DEMO_PRIZES = [10_000, 2_000, 1_000] as const

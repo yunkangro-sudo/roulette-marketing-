@@ -32,15 +32,15 @@ export default function RoiCalculator() {
         <div className="grid gap-6 lg:grid-cols-2">
           <article className="border border-dg-line bg-white p-6 md:p-8" style={{ borderRadius: 6 }}>
             <p className="text-[13px] font-semibold text-dg-ink-soft">
-              게임 참여 {exampleGuests}명 기준 예시
+              하루 게임 참여 {exampleGuests}명 기준, 한 달 예상
             </p>
             <ul className="mt-6 space-y-4 text-[15px]">
               <li className="flex items-start justify-between gap-4">
-                <span>재방문한 손님</span>
-                <span className="font-num font-semibold">{example.revisits}명</span>
+                <span>한 달 재방문한 손님</span>
+                <span className="font-num font-semibold">{example.revisits.toLocaleString('ko-KR')}명</span>
               </li>
               <li className="flex items-start justify-between gap-4 text-dg-danger">
-                <span>그 {example.revisits}명에게 나간 비용</span>
+                <span>그 {example.revisits.toLocaleString('ko-KR')}명에게 나간 비용</span>
                 <span className="font-num">-{formatWon(example.cost)}</span>
               </li>
               <li className="flex items-start justify-between gap-4">
@@ -50,7 +50,7 @@ export default function RoiCalculator() {
             </ul>
             <div className="mt-6 border-t border-dg-line pt-5">
               <div className="flex items-center justify-between">
-                <span className="font-semibold">이번 이벤트로 실제로 남은 이익</span>
+                <span className="font-semibold">이번 달 예상으로 남는 순이익</span>
                 <span className="font-num text-[28px] font-bold text-dg-green-deep">
                   +{formatWon(example.profit)}
                 </span>
@@ -62,7 +62,7 @@ export default function RoiCalculator() {
           </article>
 
           <article className="border border-white/10 bg-[#171717] p-6 text-white md:p-8" style={{ borderRadius: 6 }}>
-            <p className="text-[13px] font-semibold text-white/55">우리 매장 예상 손익</p>
+            <p className="text-[13px] font-semibold text-white/55">우리 매장 예상 손익 (월간)</p>
             <label className="mt-6 block">
               <span className="text-[14px] text-white/70">우리 매장 하루 평균 손님 수</span>
               <div className="mt-3 flex items-end justify-between">
@@ -81,16 +81,18 @@ export default function RoiCalculator() {
             </label>
 
             <dl className="mt-8 space-y-4 text-[15px]">
-              <Row label="예상 재방문 손님" value={`${live.revisits}명`} />
-              <Row label="예상 혜택 비용" value={formatWon(live.cost)} muted />
-              <Row label="예상 재방문 매출" value={formatWon(live.revenue)} />
+              <Row label="월 예상 재방문 손님" value={`${live.revisits.toLocaleString('ko-KR')}명`} />
+              <Row label="월 예상 혜택 비용" value={formatWon(live.cost)} muted />
+              <Row label="월 예상 재방문 매출" value={formatWon(live.revenue)} />
               <div className="border-t border-white/10 pt-4">
-                <Row label="예상 순이익" value={formatWon(live.profit)} accent />
+                <Row label="월 예상 순이익" value={formatWon(live.profit)} accent />
               </div>
             </dl>
 
             <p className="mt-6 text-[12px] leading-relaxed text-white/40">
-              재방문율 {(ROI_ASSUMPTIONS.revisitRate * 100).toFixed(0)}%, 1인당 평균 혜택 {formatWon(ROI_ASSUMPTIONS.benefitPerGuest)}, 평균 결제 {formatWon(ROI_ASSUMPTIONS.spendPerGuest)} 가정
+              재방문율 {(ROI_ASSUMPTIONS.revisitRate * 100).toFixed(0)}%, 1인당 평균 혜택{' '}
+              {formatWon(ROI_ASSUMPTIONS.benefitPerGuest)}, 평균 결제 {formatWon(ROI_ASSUMPTIONS.spendPerGuest)},
+              한 달 {ROI_ASSUMPTIONS.daysPerMonth}일 운영 가정
             </p>
           </article>
         </div>
@@ -99,11 +101,19 @@ export default function RoiCalculator() {
   )
 }
 
+/** dailyGuests(하루 평균 손님 수) 기준으로 한 달(daysPerMonth) 예상 손익을 계산한다. */
 function calc(dailyGuests: number) {
-  const revisits = Math.round(dailyGuests * ROI_ASSUMPTIONS.revisitRate)
-  const cost = revisits * ROI_ASSUMPTIONS.benefitPerGuest
-  const revenue = revisits * ROI_ASSUMPTIONS.spendPerGuest
-  return { revisits, cost, revenue, profit: revenue - cost }
+  const dailyRevisits = Math.round(dailyGuests * ROI_ASSUMPTIONS.revisitRate)
+  const dailyCost = dailyRevisits * ROI_ASSUMPTIONS.benefitPerGuest
+  const dailyRevenue = dailyRevisits * ROI_ASSUMPTIONS.spendPerGuest
+  const days = ROI_ASSUMPTIONS.daysPerMonth
+
+  return {
+    revisits: dailyRevisits * days,
+    cost: dailyCost * days,
+    revenue: dailyRevenue * days,
+    profit: (dailyRevenue - dailyCost) * days,
+  }
 }
 
 function Row({
