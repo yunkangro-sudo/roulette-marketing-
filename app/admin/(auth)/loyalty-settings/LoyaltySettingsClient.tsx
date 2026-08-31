@@ -11,6 +11,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [usageThreshold, setUsageThreshold] = useState(5000)
   const [expiryDays, setExpiryDays] = useState('')
   const [revisitInterval, setRevisitInterval] = useState('7')
+  const [avgOrderValue, setAvgOrderValue] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -26,6 +27,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       setExpiryDays(data.point_expiry_days ? String(data.point_expiry_days) : '')
       setRevisitInterval(data.default_revisit_interval_days ? String(data.default_revisit_interval_days) : '7')
       setPointsEnabled(data.points_enabled !== false)
+      setAvgOrderValue(data.average_order_value ? String(data.average_order_value) : '')
     }
     setLoaded(true)
   }, [])
@@ -56,6 +58,7 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
           point_expiry_days: expiryDays ? Number(expiryDays) : null,
           default_revisit_interval_days: revisitInterval ? Number(revisitInterval) : 7,
           points_enabled: pointsEnabled,
+          average_order_value: avgOrderValue ? Number(avgOrderValue) : 0,
         }),
       })
       const data = await res.json()
@@ -186,6 +189,25 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
             <p className="text-xs text-gray-400 mt-1">
               손님별 방문 이력이 3회 미만일 때 세그먼트(이탈 위험·휴면) 판정에 사용하는 기준값이에요.
               업종 특성에 맞게 조정하세요 (기본값 7일).
+            </p>
+          </div>
+
+          {/* 평균 결제금액(객단가) */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">평균 결제금액 (객단가)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={avgOrderValue}
+                onChange={(e) => setAvgOrderValue(e.target.value)}
+                min={0}
+                placeholder="0"
+                className="w-40 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm placeholder:text-gray-300 focus:outline-none focus:border-orange-500"
+              />
+              <span className="text-sm text-gray-500">원</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              재방문 손님이 평균적으로 얼마 정도 결제하는지 입력해주세요. 성과 리포트의 추가매출 추정에 사용돼요.
             </p>
           </div>
 

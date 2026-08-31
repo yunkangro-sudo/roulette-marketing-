@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const supabase = createServerClient()
   const [loyaltyRes, settingsRes] = await Promise.all([
     supabase.from('loyalty_settings').select('*').eq('store_id', storeId).maybeSingle(),
-    supabase.from('store_settings').select('points_enabled').eq('store_id', storeId).maybeSingle(),
+    supabase.from('store_settings').select('points_enabled, average_order_value').eq('store_id', storeId).maybeSingle(),
   ])
 
   if (loyaltyRes.error) return NextResponse.json({ error: loyaltyRes.error.message }, { status: 500 })
@@ -40,6 +40,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ...loyalty,
     points_enabled: settingsRes.data?.points_enabled !== false,
+    average_order_value: settingsRes.data?.average_order_value ?? 0,
   })
 }
 
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null)
-  const { store_id, point_per_visit, usage_threshold, point_expiry_days, default_revisit_interval_days, points_enabled } = body ?? {}
+  const { store_id, point_per_visit, usage_threshold, point_expiry_days, default_revisit_interval_days, points_enabled, average_order_value } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) {
@@ -69,27 +70,28 @@ export async function POST(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  if (typeof points_enabled === 'boolean') {
+  const hasPointsEnabled = typeof points_enabled === 'boolean'
+  const hasAvgOrderValue = average_order_value !== undefined
+
+  if (hasPointsEnabled || hasAvgOrderValue) {
     const { data: existing } = await supabase
       .from('store_settings')
       .select('store_id')
       .eq('store_id', storeId)
       .maybeSingle()
 
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    if (hasPointsEnabled) patch.points_enabled = points_enabled
+    if (hasAvgOrderValue) patch.average_order_value = Number(average_order_value) || 0
+
     const settingsError = existing
-      ? (await supabase.from('store_settings').update({
-          points_enabled,
-          updated_at: new Date().toISOString(),
-        }).eq('store_id', storeId)).error
-      : (await supabase.from('store_settings').insert({
-          store_id: storeId,
-          points_enabled,
-        })).error
+      ? (await supabase.from('store_settings').update(patch).eq('store_id', storeId)).error
+      : (await supabase.from('store_settings').insert({ store_id: storeId, ...patch })).error
 
     if (settingsError) {
-      console.error('[loyalty-settings] points_enabled 저장 실패:', settingsError)
+      console.error('[loyalty-settings] store_settings 저장 실패:', settingsError)
       return NextResponse.json({
-        error: '포인트 스위치 저장에 실패했습니다. Migration 029를 실행했는지 확인해주세요.',
+        error: '매장 설정 저장에 실패했습니다. Migration 029를 실행했는지 확인해주세요.',
       }, { status: 500 })
     }
   }
