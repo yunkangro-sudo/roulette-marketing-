@@ -23,11 +23,21 @@ import ClientsSection from './ClientsSection'
 import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
 import DemoModal from './DemoModal'
+import AdminPreviewModal from './AdminPreviewModal'
 import { SHOW_CLIENT_SHOWCASE } from '@/lib/landing-v5/config'
 
 export default function LandingV5() {
   const [demoOpen, setDemoOpen] = useState(false)
+  const [adminPreviewOpen, setAdminPreviewOpen] = useState(false)
   const openDemo = () => setDemoOpen(true)
+
+  function goToPricing() {
+    setAdminPreviewOpen(false)
+    // 모달이 실제로 닫혀 body 스크롤 잠금이 풀린 뒤에 스크롤해야 정상 동작한다.
+    window.setTimeout(() => {
+      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 60)
+  }
 
   return (
     <div className="landing-v5 min-h-screen">
@@ -47,11 +57,14 @@ export default function LandingV5() {
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
         <PricingSection />
         <FaqSection />
-        <FinalCta onCta={openDemo} />
+        <FinalCta onCta={() => setAdminPreviewOpen(true)} />
       </main>
       <Footer />
       <BottomBar onDemo={openDemo} />
       {demoOpen && <DemoModal onClose={() => setDemoOpen(false)} />}
+      {adminPreviewOpen && (
+        <AdminPreviewModal onClose={() => setAdminPreviewOpen(false)} onApply={goToPricing} />
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
@@ -801,6 +801,15 @@ export function FinalCta({ onCta }: CtaProps) {
   )
 }
 
+function FooterInfoRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <li className="flex gap-2">
+      <span className="shrink-0 text-dg-ink-soft">{label}</span>
+      <span className="text-dg-ink/80">{children}</span>
+    </li>
+  )
+}
+
 export function Footer() {
   return (
     <footer className="border-t border-dg-line bg-dg-bg pb-8 pt-14">
@@ -828,13 +837,18 @@ export function Footer() {
 
           <div>
             <p className="text-[13px] font-semibold text-dg-ink">회사 정보</p>
-            <ul className="mt-4 space-y-2 text-[13px] leading-relaxed text-dg-ink-soft">
-              <li>상호명: 단골팅</li>
-              <li>대표: 대표자명</li>
-              <li>사업자등록번호: 000-00-00000</li>
-              <li>주소: 사업장 주소 입력</li>
-              <li>고객센터: 카카오톡 채널 문의</li>
-              <li>이메일: contact@dgting.co.kr</li>
+            <ul className="mt-4 space-y-2 text-[13px] leading-relaxed">
+              <FooterInfoRow label="상호">아크웍스(ARK WORKS)</FooterInfoRow>
+              <FooterInfoRow label="대표">양경직</FooterInfoRow>
+              <FooterInfoRow label="사업자등록번호">628-33-01601</FooterInfoRow>
+              <FooterInfoRow label="통신판매업신고번호">제 2026-충남천안-1482호</FooterInfoRow>
+              <FooterInfoRow label="주소">충남 천안시 서북구 2공단5로 52, 룩소르비즈타워 863호</FooterInfoRow>
+              <FooterInfoRow label="대표전화">
+                <a href="tel:16883893" className="hover:text-dg-ink hover:underline">1688-3893</a>
+              </FooterInfoRow>
+              <FooterInfoRow label="이메일">
+                <a href="mailto:yangpro03@gmail.com" className="hover:text-dg-ink hover:underline">yangpro03@gmail.com</a>
+              </FooterInfoRow>
             </ul>
           </div>
         </div>
@@ -844,7 +858,7 @@ export function Footer() {
             <a href="/privacy" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">개인정보처리방침</a>
             <a href="/terms" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">이용약관</a>
           </div>
-          <p className="text-[12px] text-dg-ink-soft">© {new Date().getFullYear()} 단골팅. All rights reserved.</p>
+          <p className="text-[12px] text-dg-ink-soft">© {new Date().getFullYear()} 아크웍스(단골팅). All rights reserved.</p>
         </div>
       </div>
     </footer>
