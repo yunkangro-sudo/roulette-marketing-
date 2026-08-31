@@ -27,10 +27,20 @@ type Step =
   | 'channel_cta'
   | 'verification_cta'
 
+type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
+
 interface Event {
   id: string
   name: string
   status: string
+  challenge_frequency?: ChallengeFrequency | null
+}
+
+const CHALLENGE_FREQUENCY_LABEL: Record<ChallengeFrequency, string> = {
+  daily: '1일 1회 응모 가능',
+  weekly: '1주 1회 응모 가능',
+  monthly: '1개월 1회 응모 가능',
+  unlimited: '횟수 제한 없이 응모 가능',
 }
 
 interface Props {
@@ -506,7 +516,9 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
                 뽑기 시작
               </motion.span>
             </button>
-            <p className="mt-3 text-center text-xs text-[#222222]/45">1일 1회 응모 가능</p>
+            <p className="mt-3 text-center text-xs text-[#222222]/45">
+              {CHALLENGE_FREQUENCY_LABEL[event?.challenge_frequency ?? 'daily']}
+            </p>
             <style>{`
               @keyframes shimmerText {
                 0% { background-position: 200% 0%; }

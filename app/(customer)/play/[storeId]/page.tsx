@@ -36,7 +36,7 @@ export default async function PlayPage({ params, searchParams }: Props) {
 
   const { data: event, error } = await supabase
     .from('events')
-    .select('id, name, status')
+    .select('id, name, status, challenge_frequency')
     .eq('store_id', storeId)
     .eq('status', 'active')
     .maybeSingle()
