@@ -5,10 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import type { AdminRole } from '@/lib/admin/session'
 import StoreSelector from '../../components/StoreSelector'
 
+type PrizeTierMode = 'quantity' | 'percent'
+
 interface Tier {
   label: string
   amount: number | ''
   total_quantity: number | ''
+  /** percent 모드에서만 사용 — 관리자가 직접 입력하는 확률(%) */
+  probability_percent: number | ''
 }
 
 type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
@@ -26,11 +30,12 @@ interface Props {
 }
 
 const DEFAULT_TIERS: Tier[] = [
-  { label: '꽝', amount: 0, total_quantity: '' },
-  { label: '소액권', amount: 2000, total_quantity: '' },
-  { label: '고액권', amount: 10000, total_quantity: '' },
+  { label: '꽝', amount: 0, total_quantity: '', probability_percent: '' },
+  { label: '소액권', amount: 2000, total_quantity: '', probability_percent: '' },
+  { label: '고액권', amount: 10000, total_quantity: '', probability_percent: '' },
 ]
 
+/** quantity 모드 — 수량 비율로 확률 계산 후 합계 100%로 정규화 (저장값과 동일한 공식) */
 function calcProbabilities(tiers: Tier[], dailyParticipants: number, startDate: string, endDate: string): number[] {
   if (!startDate || !endDate || dailyParticipants <= 0) return tiers.map(() => 0)
   const start = new Date(startDate)
@@ -70,12 +75,14 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [validityValue, setValidityValue] = useState('14')
   const [fixedValidityStart, setFixedValidityStart] = useState('')
   const [fixedValidityEnd, setFixedValidityEnd] = useState('')
+  const [tierMode, setTierMode] = useState<PrizeTierMode>('quantity')
   const [tiers, setTiers] = useState<Tier[]>(
     copyData?.tiers?.length
       ? copyData.tiers.map((t: Omit<Tier, 'amount'> & { amount: number }) => ({
           label: t.label,
           amount: t.amount,
           total_quantity: t.total_quantity,
+          probability_percent: '',
         }))
       : DEFAULT_TIERS
   )
@@ -86,7 +93,9 @@ export default function NewEventForm({ role, storeId }: Props) {
     () => calcProbabilities(tiers, Number(dailyParticipants) || 0, startDate, endDate),
     [tiers, dailyParticipants, startDate, endDate]
   )
-  const totalProb = probabilities.reduce((a, b) => a + b, 0)
+  // percent 모드에서는 관리자가 입력한 값의 합계를 그대로 보여준다 (저장 시 100%로 자동 보정)
+  const percentSum = tiers.reduce((a, t) => a + (Number(t.probability_percent) || 0), 0)
+  const totalProb = tierMode === 'percent' ? percentSum : probabilities.reduce((a, b) => a + b, 0)
   const durationDays = useMemo(() => {
     if (!startDate || !endDate) return 0
     return Math.max(0, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1)
@@ -95,7 +104,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   function updateTier(i: number, field: keyof Tier, value: unknown) {
     setTiers((prev) => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t))
   }
-  function addTier() { setTiers((prev) => [...prev, { label: '', amount: '', total_quantity: '' }]) }
+  function addTier() { setTiers((prev) => [...prev, { label: '', amount: '', total_quantity: '', probability_percent: '' }]) }
   function removeTier(i: number) { setTiers((prev) => prev.filter((_, idx) => idx !== i)) }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -119,7 +128,13 @@ export default function NewEventForm({ role, storeId }: Props) {
     for (const t of tiers) {
       if (!t.label.trim()) { setError('모든 티어의 등급명을 입력해주세요'); return }
       if (t.amount === '' || Number(t.amount) < 0) { setError('금액을 올바르게 입력해주세요 (꽝은 0)'); return }
-      if (!t.total_quantity || Number(t.total_quantity) <= 0) { setError('모든 티어의 수량을 입력해주세요'); return }
+      if (tierMode === 'quantity') {
+        if (!t.total_quantity || Number(t.total_quantity) <= 0) { setError('모든 티어의 수량을 입력해주세요'); return }
+      } else {
+        if (t.probability_percent === '' || Number(t.probability_percent) < 0 || Number(t.probability_percent) > 100) {
+          setError('모든 티어의 확률(%)을 0~100 사이로 입력해주세요'); return
+        }
+      }
     }
 
     setLoading(true)
@@ -138,10 +153,12 @@ export default function NewEventForm({ role, storeId }: Props) {
           coupon_validity_value: validityType === 'fixed_date'
             ? `${fixedValidityStart}~${fixedValidityEnd}`
             : validityValue,
+          prize_tier_mode: tierMode,
           tiers: tiers.map((t) => ({
             label: t.label,
             amount: Number(t.amount),
-            total_quantity: Number(t.total_quantity),
+            total_quantity: t.total_quantity ? Number(t.total_quantity) : 0,
+            probability_percent: t.probability_percent === '' ? undefined : Number(t.probability_percent),
           })),
         }),
       })
@@ -296,13 +313,33 @@ export default function NewEventForm({ role, storeId }: Props) {
 
         {/* 경품 티어 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-3">
             <label className="text-sm font-bold text-gray-900">경품 티어</label>
             <span className={`text-xs font-bold ${Math.abs(totalProb - 100) < 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
               합계: {totalProb.toFixed(1)}%
             </span>
           </div>
-          <p className="text-xs text-gray-400 mb-4">수량을 입력하면 확률이 자동으로 계산됩니다 (합계 100% 자동 보장)</p>
+
+          {/* 입력 방식 토글 */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <button type="button" onClick={() => setTierMode('quantity')}
+              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                tierMode === 'quantity' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}>
+              수량으로 입력
+            </button>
+            <button type="button" onClick={() => setTierMode('percent')}
+              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                tierMode === 'percent' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}>
+              확률로 직접 입력
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mb-4">
+            {tierMode === 'quantity'
+              ? '수량을 입력하면 확률이 자동으로 계산됩니다 (합계 100% 자동 보장)'
+              : '티어별 확률(%)을 직접 입력합니다. 합계가 100%가 아니어도 저장 시 비율대로 자동 보정됩니다.'}
+          </p>
           <div className="space-y-3">
             {tiers.map((tier, i) => (
               <div key={i} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -332,24 +369,51 @@ export default function NewEventForm({ role, storeId }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="text-xs text-gray-500 mb-1 block">총 준비 수량</label>
-                    <div className="flex items-center gap-1">
-                      <input type="number" min={1} value={tier.total_quantity}
-                        onChange={(e) => updateTier(i, 'total_quantity', e.target.value ? Number(e.target.value) : '')}
-                        placeholder="100"
-                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
-                      <span className="text-xs text-gray-400">개</span>
+
+                {tierMode === 'quantity' ? (
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1">
+                      <label className="text-xs text-gray-500 mb-1 block">총 준비 수량</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={1} value={tier.total_quantity}
+                          onChange={(e) => updateTier(i, 'total_quantity', e.target.value ? Number(e.target.value) : '')}
+                          placeholder="100"
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">개</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-center">
+                      <p className="text-xs text-gray-400 mb-1">확률</p>
+                      <p className={`text-lg font-black ${probabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
+                        {probabilities[i].toFixed(1)}%
+                      </p>
                     </div>
                   </div>
-                  <div className="shrink-0 text-center">
-                    <p className="text-xs text-gray-400 mb-1">확률</p>
-                    <p className={`text-lg font-black ${probabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
-                      {probabilities[i].toFixed(1)}%
-                    </p>
+                ) : (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">확률</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={0} max={100} step={0.1} value={tier.probability_percent}
+                          onChange={(e) => updateTier(i, 'probability_percent', e.target.value ? Number(e.target.value) : '')}
+                          placeholder="예: 15"
+                          className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">재고 수량 (선택 — 비우면 무제한)</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={1} value={tier.total_quantity}
+                          onChange={(e) => updateTier(i, 'total_quantity', e.target.value ? Number(e.target.value) : '')}
+                          placeholder="비우면 무제한"
+                          className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">개</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">실물 경품처럼 재고 한도가 있으면 입력하세요. 소진되면 이 티어는 더 이상 당첨되지 않습니다.</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 {tiers.length > 1 && (
                   <button type="button" onClick={() => removeTier(i)} className="mt-2 text-xs text-red-400 hover:text-red-600">
                     이 티어 삭제

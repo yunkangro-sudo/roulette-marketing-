@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { UNLIMITED_TIER_QUANTITY } from '@/lib/game-engine/probability'
+
+type PrizeTierMode = 'quantity' | 'percent'
 
 interface PrizeTier {
   id: string
@@ -19,6 +22,8 @@ interface EditableTier extends Omit<PrizeTier, 'id'> {
   id: string | null
   /** React key + 로컬 상태 식별용. 기존 티어는 서버 id, 신규 티어는 임시 문자열 */
   tempKey: string
+  /** percent 모드 입력용. 초기값은 현재 computed_probability로 채워서 보여준다 */
+  probability_percent: number | ''
 }
 
 interface HistoryEntry {
@@ -49,6 +54,7 @@ interface Event {
   challenge_frequency: ChallengeFrequency
   coupon_validity_type: string
   coupon_validity_value: string
+  prize_tier_mode?: PrizeTierMode
   prize_tiers: PrizeTier[]
 }
 
@@ -87,8 +93,9 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [statusLoading, setStatusLoading] = useState(false)
 
   // 경품 티어 편집 상태 (등급명 · 금액 · 총수량 수정 + 티어 추가/삭제)
+  const [tierMode, setTierMode] = useState<PrizeTierMode>(event.prize_tier_mode ?? 'quantity')
   const [tiers, setTiers] = useState<EditableTier[]>(
-    (event.prize_tiers ?? []).map((t) => ({ ...t, tempKey: t.id }))
+    (event.prize_tiers ?? []).map((t) => ({ ...t, tempKey: t.id, probability_percent: t.computed_probability }))
   )
   const [deletedTierIds, setDeletedTierIds] = useState<string[]>([])
   const [tiersError, setTiersError] = useState('')
@@ -102,7 +109,7 @@ export default function EditEventForm({ event }: { event: Event }) {
 
   function updateTierField(
     tempKey: string,
-    field: 'label' | 'amount' | 'total_quantity' | 'requires_verification',
+    field: 'label' | 'amount' | 'total_quantity' | 'requires_verification' | 'probability_percent',
     value: string | number | boolean
   ) {
     setTiers((prev) => prev.map((t) => {
@@ -128,6 +135,7 @@ export default function EditEventForm({ event }: { event: Event }) {
         remaining_quantity: 0,
         computed_probability: 0,
         requires_verification: false,
+        probability_percent: '',
       },
     ])
     setTiersError('')
@@ -155,17 +163,20 @@ export default function EditEventForm({ event }: { event: Event }) {
   }
 
   // 저장 전 확률 미리보기 (새 이벤트 등록과 동일한 공식: 하루 예상 참여자 수 × 노출 기간)
-  const previewProbabilities = (() => {
-    const days = startDate && endDate
-      ? Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1)
-      : 0
-    const totalParticipants = (Number(dailyParticipants) || 0) * days
-    if (totalParticipants <= 0) return tiers.map(() => 0)
-    const raw = tiers.map((t) => ((Number(t.total_quantity) || 0) / totalParticipants) * 100)
-    const sum = raw.reduce((a, b) => a + b, 0)
-    if (sum <= 0) return tiers.map(() => 0)
-    return raw.map((p) => Math.round((p / sum) * 100 * 10) / 10)
-  })()
+  const previewProbabilities = tierMode === 'percent'
+    ? tiers.map((t) => Number(t.probability_percent) || 0)
+    : (() => {
+        const days = startDate && endDate
+          ? Math.max(1, Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / 86400000) + 1)
+          : 0
+        const totalParticipants = (Number(dailyParticipants) || 0) * days
+        if (totalParticipants <= 0) return tiers.map(() => 0)
+        const raw = tiers.map((t) => ((Number(t.total_quantity) || 0) / totalParticipants) * 100)
+        const sum = raw.reduce((a, b) => a + b, 0)
+        if (sum <= 0) return tiers.map(() => 0)
+        return raw.map((p) => Math.round((p / sum) * 100 * 10) / 10)
+      })()
+  const previewSum = previewProbabilities.reduce((a, b) => a + b, 0)
 
   async function handleSaveTiers() {
     setTiersError('')
@@ -174,7 +185,13 @@ export default function EditEventForm({ event }: { event: Event }) {
     for (const t of tiers) {
       if (!t.label.trim()) { setTiersError('모든 티어의 등급명을 입력해주세요'); return }
       if (Number(t.amount) < 0) { setTiersError('금액은 0 이상이어야 합니다 (꽝은 0)'); return }
-      if (!t.total_quantity || Number(t.total_quantity) <= 0) { setTiersError('모든 티어의 총 수량을 1 이상 입력해주세요'); return }
+      if (tierMode === 'quantity') {
+        if (!t.total_quantity || Number(t.total_quantity) <= 0) { setTiersError('모든 티어의 총 수량을 1 이상 입력해주세요'); return }
+      } else {
+        if (t.probability_percent === '' || Number(t.probability_percent) < 0 || Number(t.probability_percent) > 100) {
+          setTiersError('모든 티어의 확률(%)을 0~100 사이로 입력해주세요'); return
+        }
+      }
     }
 
     setTiersLoading(true)
@@ -183,11 +200,13 @@ export default function EditEventForm({ event }: { event: Event }) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          prize_tier_mode: tierMode,
           tiers: tiers.map((t) => ({
             id: t.id ?? undefined,
             label: t.label,
             amount: Number(t.amount),
-            total_quantity: Number(t.total_quantity),
+            total_quantity: t.total_quantity ? Number(t.total_quantity) : 0,
+            probability_percent: t.probability_percent === '' ? undefined : Number(t.probability_percent),
             requires_verification: t.requires_verification,
           })),
           deleted_tier_ids: deletedTierIds,
@@ -200,7 +219,7 @@ export default function EditEventForm({ event }: { event: Event }) {
       setTiers((prev) => prev.map((t, i) => {
         const upd = results[i]
         return upd
-          ? { ...t, id: upd.id, total_quantity: upd.total_quantity, remaining_quantity: upd.remaining_quantity, computed_probability: upd.computed_probability }
+          ? { ...t, id: upd.id, total_quantity: upd.total_quantity, remaining_quantity: upd.remaining_quantity, computed_probability: upd.computed_probability, probability_percent: upd.computed_probability }
           : t
       }))
       setDeletedTierIds([])
@@ -448,13 +467,37 @@ export default function EditEventForm({ event }: { event: Event }) {
 
       {/* 경품 티어 */}
       <div className="mt-8">
-        <h2 className="text-sm font-bold text-gray-900 mb-1">경품 티어 관리</h2>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-bold text-gray-900">경품 티어 관리</h2>
+          <span className={`text-xs font-bold ${Math.abs(previewSum - 100) < 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
+            합계: {previewSum.toFixed(1)}%
+          </span>
+        </div>
+
+        {/* 입력 방식 토글 */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button type="button" onClick={() => setTierMode('quantity')}
+            className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              tierMode === 'quantity' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+            }`}>
+            수량으로 입력
+          </button>
+          <button type="button" onClick={() => setTierMode('percent')}
+            className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              tierMode === 'percent' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'
+            }`}>
+            확률로 직접 입력
+          </button>
+        </div>
 
         {/* 안내 */}
         <p className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-4">
-          등급명 · 금액 · 총 수량을 자유롭게 수정할 수 있고, 티어를 추가하거나 삭제할 수도 있습니다.
-          저장하면 위 &quot;하루 예상 참여자 수&quot;와 노출 기간을 기준으로 확률이 자동 재계산됩니다.
-          기존 티어의 총 수량은 이미 지급된 개수보다 적게 설정할 수 없습니다.
+          {tierMode === 'quantity'
+            ? <>등급명 · 금액 · 총 수량을 자유롭게 수정할 수 있고, 티어를 추가하거나 삭제할 수도 있습니다.
+              저장하면 위 &quot;하루 예상 참여자 수&quot;와 노출 기간을 기준으로 확률이 자동 재계산됩니다.
+              기존 티어의 총 수량은 이미 지급된 개수보다 적게 설정할 수 없습니다.</>
+            : <>티어별 확률(%)을 직접 입력합니다. 합계가 100%가 아니어도 저장 시 비율대로 자동 보정됩니다.
+              재고 수량은 선택사항이며, 비워두면 무제한으로 처리됩니다(실물 경품이면 입력하세요).</>}
         </p>
 
         {tiersError && <div className="mb-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{tiersError}</div>}
@@ -503,29 +546,63 @@ export default function EditEventForm({ event }: { event: Event }) {
                   </div>
                 </div>
 
-                {/* 총 수량 / 확률 미리보기 */}
-                <div className="flex items-end gap-3 mb-3">
-                  <div className="flex-1">
-                    <label className="text-xs text-gray-500 mb-1 block">총 수량</label>
-                    <div className="flex items-center gap-1">
-                      <input type="number" min={Math.max(1, issued)} value={tier.total_quantity}
-                        onChange={(e) => updateTierField(tier.tempKey, 'total_quantity', e.target.value ? Number(e.target.value) : 0)}
-                        placeholder="100"
-                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-                      <span className="text-xs text-gray-400">개</span>
+                {/* 총 수량 / 확률 (모드에 따라 다르게 표시) */}
+                {tierMode === 'quantity' ? (
+                  <div className="flex items-end gap-3 mb-3">
+                    <div className="flex-1">
+                      <label className="text-xs text-gray-500 mb-1 block">총 수량</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={Math.max(1, issued)} value={tier.total_quantity}
+                          onChange={(e) => updateTierField(tier.tempKey, 'total_quantity', e.target.value ? Number(e.target.value) : 0)}
+                          placeholder="100"
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">개</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {isNew ? '저장하면 등록됩니다' : `지급됨 ${issued}개 · 잔여 ${tier.remaining_quantity}개`}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {isNew ? '저장하면 등록됩니다' : `지급됨 ${issued}개 · 잔여 ${tier.remaining_quantity}개`}
-                    </p>
+                    <div className="shrink-0 text-center">
+                      <p className="text-xs text-gray-400 mb-1">저장 시 확률</p>
+                      <p className={`text-lg font-black ${previewProbabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
+                        {previewProbabilities[i].toFixed(1)}%
+                      </p>
+                      {!isNew && <p className="text-xs text-gray-300">현재 {tier.computed_probability.toFixed(1)}%</p>}
+                    </div>
                   </div>
-                  <div className="shrink-0 text-center">
-                    <p className="text-xs text-gray-400 mb-1">저장 시 확률</p>
-                    <p className={`text-lg font-black ${previewProbabilities[i] > 0 ? 'text-orange-500' : 'text-gray-300'}`}>
-                      {previewProbabilities[i].toFixed(1)}%
-                    </p>
-                    {!isNew && <p className="text-xs text-gray-300">현재 {tier.computed_probability.toFixed(1)}%</p>}
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">확률</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={0} max={100} step={0.1} value={tier.probability_percent}
+                          onChange={(e) => updateTierField(tier.tempKey, 'probability_percent', e.target.value ? Number(e.target.value) : '')}
+                          placeholder="예: 15"
+                          className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">%</span>
+                      </div>
+                      {!isNew && <p className="text-xs text-gray-300 mt-1">현재 {tier.computed_probability.toFixed(1)}%</p>}
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">재고 수량 (선택 — 비우면 무제한)</label>
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={Math.max(1, issued)}
+                          value={tier.total_quantity >= UNLIMITED_TIER_QUANTITY ? '' : tier.total_quantity || ''}
+                          onChange={(e) => updateTierField(tier.tempKey, 'total_quantity', e.target.value ? Number(e.target.value) : 0)}
+                          placeholder="비우면 무제한"
+                          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                        <span className="text-xs text-gray-400">개</span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {isNew
+                          ? '저장하면 등록됩니다'
+                          : tier.total_quantity >= UNLIMITED_TIER_QUANTITY
+                            ? '재고 무제한 (지급 개수는 별도로 세지 않음)'
+                            : `지급됨 ${issued}개 · 잔여 ${tier.remaining_quantity}개`}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 직원 확인 필요 */}
                 <label className="flex items-center gap-2 cursor-pointer mb-2">
