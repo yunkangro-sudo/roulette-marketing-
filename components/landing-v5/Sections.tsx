@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, type TouchEvent } from 'react'
-import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat } from 'lucide-react'
+import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
 import { PRICING, formatMonthlyPrice } from '@/lib/landing-v5/config'
@@ -287,6 +287,14 @@ export function DifferenceSection() {
                 참여했는가&quot;가 아니라 &quot;누가 다시 오는가&quot;까지 봅니다.
               </p>
             </div>
+            <div>
+              <h3 className="text-[20px] text-dg-ink">당근 마케팅도 광고에서 끝내지 않습니다</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
+                당근 광고만 돌리면 클릭에서 끝납니다. 단골팅을 더하면, 그 클릭이 게임 참여가 되고, 참여가 단골
+                인증이 되고, 단골 인증이 재방문이 됩니다. 당근 광고비를 안 쓰던 매장도, 이미 당근 광고를 쓰고 있는
+                매장도 — 단골팅으로 그 다음 단계를 만들 수 있습니다.
+              </p>
+            </div>
           </div>
         </div>
         <ScreenshotSlot shotId="11" />
@@ -364,6 +372,70 @@ export function ProofSection() {
             ※ 본 자료의 수치(재방문율, 매출 기여, 참여율, 손익 계산 포함)는 이해를 돕기 위한 예시 데이터입니다.
             실제 성과는 업종·매장 조건에 따라 달라질 수 있습니다.
           </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** "당근 마케팅을 왜 해야 하는가"에 대한 설득 논리를 담는 섹션 —
+ *  데이터로 증명(재방문 성과) 다음, 채널과 운영(당근·카카오·게임 연동 흐름) 앞에 위치해
+ *  "당근이 왜 좋은 채널인지 → 그래서 어떻게 연동되는지"로 자연스럽게 이어지도록 한다. */
+export function CarrotChannelSection() {
+  const reasons = [
+    {
+      icon: MapPin,
+      title: '지역 기반',
+      body: '우리 매장 반경 손님에게만 정확히 도달합니다',
+    },
+    {
+      icon: Smartphone,
+      title: '이미 쓰는 채널',
+      body: '별도 앱 설치나 학습 없이 바로 시작합니다',
+    },
+    {
+      icon: HeartHandshake,
+      title: '신뢰 기반',
+      body: "'이웃'이라는 정서가 실제 방문 전환으로 이어집니다",
+    },
+  ]
+
+  return (
+    <section className="bg-dg-bg py-20 md:py-28">
+      <div className="mx-auto max-w-3xl px-5 text-center">
+        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">당근 연동</p>
+        <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
+          당근에서 고객을 만나고,
+          <br />
+          게임으로 다시 연결합니다
+        </h2>
+        <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-relaxed text-dg-ink-soft md:text-[17px]">
+          당근마켓은 이미 누적 가입자 4,000만 명, 월간 활성 이용자(MAU) 2,300만 명이 넘는 우리 동네 채널입니다. 새
+          광고 채널을 따로 배울 필요 없이, 이미 손님이 매일 들여다보는 곳에서 매장을 알리고, 그 손님을 게임으로
+          다시 연결합니다.
+        </p>
+        <p className="mt-3 text-[12px] text-dg-ink-soft/70">
+          ※ 누적 가입자 4,000만 명(당근 자체 발표, 2024년 10월 기준), MAU 2,300만 명(와이즈앱·리테일 조사, 2026년
+          1분기 기준)
+        </p>
+      </div>
+
+      <div className="mx-auto mt-12 max-w-5xl px-5">
+        <p className="text-center text-[13px] font-semibold tracking-wide text-dg-ink-soft">왜 당근인가</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {reasons.map(({ icon: Icon, title, body }) => (
+            <div
+              key={title}
+              className="border border-dg-line bg-white p-6 text-center"
+              style={{ borderRadius: 6 }}
+            >
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-dg-green-tint text-dg-green-deep">
+                <Icon size={20} strokeWidth={1.75} />
+              </span>
+              <h3 className="mt-4 text-[16px] font-bold text-dg-ink">{title}</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-dg-ink-soft">{body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -13,6 +13,7 @@ import {
   HowItWorks,
   DifferenceSection,
   ProofSection,
+  CarrotChannelSection,
   ChannelTrust,
   PricingSection,
   FinalCta,
@@ -40,6 +41,7 @@ export default function LandingV5() {
         <GrowthEngineSection />
         <DifferenceSection />
         <ProofSection />
+        <CarrotChannelSection />
         <ChannelTrust />
         <ClientsSection />
         <PricingSection onCta={openDemo} />
