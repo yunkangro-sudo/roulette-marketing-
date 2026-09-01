@@ -210,3 +210,15 @@
     display: none;
   }
 }
+
+/* 헤더 햄버거 메뉴 — 오른쪽 슬라이드 인 패널 */
+@keyframes dg-panel-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  aside[aria-label="주요 메뉴"] {
+    animation: none !important;
+  }
+}
