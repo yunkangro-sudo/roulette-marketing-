@@ -11,13 +11,13 @@ export default function PrivacyPage() {
       {/* 헤더 */}
       <header className="border-b border-white/10 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/landing" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-gradient-to-br from-yellow-400 to-orange-500">
               🥕
             </div>
             <span className="font-bold text-white">단골마케팅</span>
           </Link>
-          <Link href="/landing" className="text-sm text-gray-400 hover:text-white transition-colors">
+          <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
             ← 홈으로
           </Link>
         </div>

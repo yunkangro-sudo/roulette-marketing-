@@ -1,11 +1,6 @@
-import LandingV5 from '@/components/landing-v5/LandingV5'
+import { redirect } from 'next/navigation'
 
-export const metadata = {
-  title: '단골팅 — 손님을 모으는 게 아니라, 다시 오게 만듭니다',
-  description:
-    '소상공인을 위한 게임형 재방문 마케팅. 이미 온 손님을 단골로 만드는 완성된 프로세스.',
-}
-
-export default function LandingV5Page() {
-  return <LandingV5 />
+/** 구 랜딩(v5) 경로 — 이제 루트(`/`)가 이 콘텐츠를 직접 서빙하므로, 기존 링크/북마크 호환을 위해 리다이렉트만 유지 */
+export default function LandingV5RedirectPage() {
+  redirect('/')
 }
