@@ -35,7 +35,7 @@ interface Props {
   /** 탭 구조(CompanyDetailTabsClient) 안에 "기본정보" 탭으로 끼워넣을 때 바깥 제목/뒤로가기 chrome을 숨긴다 */
   hideChrome?: boolean
   /**
-   * 'super_admin'(기본값): 계약 정보(계약기간/월 광고비) 수정 + 광고주 계정(재발급) 섹션 포함, PATCH는 /api/admin/companies/[id]
+   * 'super_admin'(기본값): 계약 정보(계약기간/월 구독료) 수정 + 광고주 계정(재발급) 섹션 포함, PATCH는 /api/admin/companies/[id]
    * 'advertiser': 업체 스스로 "기본정보"만 수정 — 계약 정보·광고주 계정 섹션은 숨기고(이용기간·결제 탭에서 읽기전용으로 별도 노출),
    *               PATCH는 본인 매장으로 스코프된 /api/admin/company 로 전송
    */
@@ -132,7 +132,7 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
         setShownEmail(newAdvertiserEmail)
         setTempPassword(data.temp_password)
       } else if (isAdvertiser) {
-        // 업체 스스로 수정: 계약 정보(계약기간/월 광고비)는 절대 보내지 않는다 — 서버도 화이트리스트로 한 번 더 방어
+        // 업체 스스로 수정: 계약 정보(계약기간/월 구독료)는 절대 보내지 않는다 — 서버도 화이트리스트로 한 번 더 방어
         const res = await fetch('/api/admin/company', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -306,7 +306,7 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             </div>
 
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">월 광고비 (원)</label>
+              <label className="text-xs text-gray-500 mb-1 block">월 구독료 (원)</label>
               <div className="flex items-center gap-2">
                 <input type="number" min={0} value={form.ad_amount === 0 ? '' : form.ad_amount}
                   onChange={(e) => set('ad_amount', e.target.value === '' ? 0 : Number(e.target.value))}

@@ -97,7 +97,7 @@ export default function CompanyInfoClient({ company, subscriptions, subscription
 
       {tab === 'subscription' && (
         <div className="space-y-4">
-          {/* 계약 정보(계약기간·월 광고비) — 수퍼관리자가 입력, 읽기전용 */}
+          {/* 계약 정보(계약기간·월 구독료) — 수퍼관리자가 입력, 읽기전용 */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-gray-700">계약 정보</h2>
@@ -114,7 +114,7 @@ export default function CompanyInfoClient({ company, subscriptions, subscription
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 mb-1">월 광고비</p>
+              <p className="text-xs text-gray-500 mb-1">월 구독료</p>
               <p className="text-sm text-gray-900 font-medium">
                 {company.ad_amount ? `${company.ad_amount.toLocaleString()}원 / 월` : '미설정'}
               </p>

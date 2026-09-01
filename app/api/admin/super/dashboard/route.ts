@@ -12,6 +12,16 @@ function daysUntil(dateStr: string): number {
   return Math.ceil(diff / 86400000)
 }
 
+/** reward_catalog.reward_type enum → 화면 표시용 한글 라벨 */
+const REWARD_TYPE_LABELS: Record<string, string> = {
+  free_item: '무료상품',
+  discount: '할인쿠폰',
+  points: '포인트추가',
+  experience: '체험서비스',
+  special_coupon: '스페셜쿠폰',
+  vip_reward: 'VIP리워드',
+}
+
 /**
  * GET /api/admin/super/dashboard?range=today|week|month
  * super_admin/agency 전용 — 전체 매장 합산 KPI. 대리접속 중(=effective role이 advertiser로
@@ -27,6 +37,11 @@ export async function GET(request: Request) {
   const range = (searchParams.get('range') ?? 'today') as DashboardRange
   const { startUtc, endUtcExclusive, startDateLabel, endDateLabel } = resolveDashboardRange(range)
 
+  // 재방문 코호트 계산용 "직전 동일 길이 기간" — 이번 구간 길이만큼 앞으로 당긴 구간
+  const rangeLengthMs = new Date(endUtcExclusive).getTime() - new Date(startUtc).getTime()
+  const prevStartUtc = new Date(new Date(startUtc).getTime() - rangeLengthMs).toISOString()
+  const prevEndUtcExclusive = startUtc
+
   const supabase = createServerClient()
 
   const [
@@ -36,6 +51,12 @@ export async function GET(request: Request) {
     couponsResult,
     revenueResult,
     dailyParticipantsRaw,
+    newMembersResult,
+    daangnClicksResult,
+    rewardCatalogResult,
+    couponsUsedRangeResult,
+    cohortResult,
+    convertedResult,
   ] = await Promise.all([
     supabase.from('store_contracts').select('id, store_id, store_name, created_at'),
     supabase
@@ -50,7 +71,7 @@ export async function GET(request: Request) {
       .lt('occurred_at', endUtcExclusive),
     supabase
       .from('coupons')
-      .select('amount')
+      .select('amount, issued_at')
       .gte('issued_at', startUtc)
       .lt('issued_at', endUtcExclusive),
     supabase
@@ -64,6 +85,48 @@ export async function GET(request: Request) {
       .eq('event_type', 'game_start')
       .gte('occurred_at', startUtc)
       .lt('occurred_at', endUtcExclusive),
+
+    // 전체 가입 회원수 (신규 카카오 인증 완료 기준, 매장 합산)
+    supabase
+      .from('customer_loyalty')
+      .select('store_id', { count: 'exact', head: true })
+      .gte('kakao_first_login_at', startUtc)
+      .lt('kakao_first_login_at', endUtcExclusive),
+
+    // 당근 단골 클릭수 (전체 합산, 클릭 기준 — 실제 단골추가 확정 아님)
+    supabase
+      .from('activity_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_type', 'daangn_click')
+      .gte('occurred_at', startUtc)
+      .lt('occurred_at', endUtcExclusive),
+
+    // 리워드 유형별 등록 비율 (전체 매장, 활성 리워드 기준 — 기간 무관 스냅샷)
+    supabase.from('reward_catalog').select('reward_type').eq('active', true),
+
+    // 쿠폰 사용통계: 이번 구간에 "사용 처리"된 쿠폰
+    supabase
+      .from('coupons')
+      .select('used_at')
+      .eq('status', 'used')
+      .gte('used_at', startUtc)
+      .lt('used_at', endUtcExclusive),
+
+    // 재방문 통계: 직전 동일기간에 신규 유입된 코호트
+    supabase
+      .from('customer_loyalty')
+      .select('store_id', { count: 'exact', head: true })
+      .gte('first_seen_at', prevStartUtc)
+      .lt('first_seen_at', prevEndUtcExclusive),
+
+    // 그 코호트 중 이번 구간에 재방문(방문기록 갱신)한 수
+    supabase
+      .from('customer_loyalty')
+      .select('store_id', { count: 'exact', head: true })
+      .gte('first_seen_at', prevStartUtc)
+      .lt('first_seen_at', prevEndUtcExclusive)
+      .gte('last_visit_at', startUtc)
+      .lt('last_visit_at', endUtcExclusive),
   ])
 
   const allStores = stores ?? []
@@ -140,6 +203,44 @@ export async function GET(request: Request) {
     .sort((a, b) => b.count - a.count)
     .slice(0, TOP_STORES_LIMIT)
 
+  // 업체 가입현황 추이 (일별, store_contracts.created_at 기준)
+  const signupBuckets = new Map<string, number>()
+  for (const d of enumerateKstDates(startDateLabel, endDateLabel)) signupBuckets.set(d, 0)
+  for (const s of allStores) {
+    if (s.created_at < startUtc || s.created_at >= endUtcExclusive) continue
+    const label = toKstDateLabel(s.created_at)
+    if (signupBuckets.has(label)) signupBuckets.set(label, (signupBuckets.get(label) ?? 0) + 1)
+  }
+  const signupTrend = [...signupBuckets.entries()].map(([date, count]) => ({
+    date: date.slice(5).replace('-', '/'),
+    count,
+  }))
+
+  // 리워드 유형별 등록 비율
+  const rewardTypeCounts = new Map<string, number>()
+  for (const row of rewardCatalogResult.data ?? []) {
+    rewardTypeCounts.set(row.reward_type, (rewardTypeCounts.get(row.reward_type) ?? 0) + 1)
+  }
+  const rewardTotal = [...rewardTypeCounts.values()].reduce((sum, n) => sum + n, 0)
+  const rewardStats = [...rewardTypeCounts.entries()]
+    .map(([type, count]) => ({
+      type,
+      label: REWARD_TYPE_LABELS[type] ?? type,
+      count,
+      percent: rewardTotal > 0 ? Math.round((count / rewardTotal) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+
+  // 쿠폰 발급 대비 사용률 (이번 구간 발급 건 기준 모수, 사용은 상태 전환된 건 기준)
+  const couponsIssuedCount = (couponsResult.data ?? []).length
+  const couponsUsedCount = (couponsUsedRangeResult.data ?? []).length
+  const couponUsageRate = couponsIssuedCount > 0 ? Math.round((couponsUsedCount / couponsIssuedCount) * 100) : null
+
+  // 재방문 통계 (직전 동일기간 신규 코호트 중 이번 구간 재방문 비율)
+  const revisitCohortCount = cohortResult.count ?? 0
+  const revisitConvertedCount = convertedResult.count ?? 0
+  const revisitRate = revisitCohortCount > 0 ? Math.round((revisitConvertedCount / revisitCohortCount) * 100) : null
+
   return NextResponse.json({
     range,
     startDate: startDateLabel,
@@ -151,9 +252,24 @@ export async function GET(request: Request) {
       totalCouponAmount: couponAmountSum,
       subscriptionRevenue: subscriptionRevenueSum,
       newStores: newStoresInRange,
+      newMembers: newMembersResult.count ?? 0,
+      daangnClicks: daangnClicksResult.count ?? 0,
     },
     expiringSoon,
     dailyParticipants,
     topStores,
+    signupTrend,
+    rewardStats,
+    couponStats: {
+      issued: couponsIssuedCount,
+      used: couponsUsedCount,
+      usageRate: couponUsageRate,
+    },
+    revisit: {
+      cohortCount: revisitCohortCount,
+      convertedCount: revisitConvertedCount,
+      rate: revisitRate,
+      hasEnoughData: revisitCohortCount > 0,
+    },
   })
 }

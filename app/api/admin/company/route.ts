@@ -43,7 +43,7 @@ export async function GET() {
   })
 }
 
-/** 광고주가 스스로 수정 가능한 "기본정보" 필드만 화이트리스트. 계약기간/월 광고비는 절대 포함하지 않는다 */
+/** 광고주가 스스로 수정 가능한 "기본정보" 필드만 화이트리스트. 계약기간/월 구독료는 절대 포함하지 않는다 */
 const ADVERTISER_EDITABLE_FIELDS = [
   'store_name',
   'contractor_name',

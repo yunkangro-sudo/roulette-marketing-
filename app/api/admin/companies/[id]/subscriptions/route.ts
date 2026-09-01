@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: Params) {
 
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at')
+    .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')
     .eq('store_id', company.store_id)
     .order('end_date', { ascending: false })
 
@@ -50,6 +50,8 @@ export async function POST(req: Request, { params }: Params) {
   const { data: company } = await supabase.from('store_contracts').select('store_id').eq('id', id).maybeSingle()
   if (!company) return NextResponse.json({ error: '업체를 찾을 수 없습니다' }, { status: 404 })
 
+  const paymentStatus = ['paid', 'unpaid', 'overdue'].includes(body.payment_status) ? body.payment_status : 'unpaid'
+
   const { data, error } = await supabase
     .from('subscriptions')
     .insert({
@@ -60,8 +62,10 @@ export async function POST(req: Request, { params }: Params) {
       end_date: body.end_date,
       memo: body.memo || null,
       created_by: session.account.id,
+      payment_status: paymentStatus,
+      payment_date: paymentStatus === 'paid' ? (body.payment_date || null) : null,
     })
-    .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at')
+    .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')
     .single()
 
   if (error) return NextResponse.json({ error: '구독 등록 실패: ' + error.message }, { status: 500 })

@@ -26,10 +26,16 @@ interface SummaryData {
     totalCouponAmount: number
     subscriptionRevenue: number
     newStores: number
+    newMembers: number
+    daangnClicks: number
   }
   expiringSoon: ExpiringStore[]
   dailyParticipants: { date: string; count: number }[]
   topStores: { storeId: string; storeName: string; count: number }[]
+  signupTrend: { date: string; count: number }[]
+  rewardStats: { type: string; label: string; count: number; percent: number }[]
+  couponStats: { issued: number; used: number; usageRate: number | null }
+  revisit: { cohortCount: number; convertedCount: number; rate: number | null; hasEnoughData: boolean }
 }
 
 const RANGE_OPTIONS: { value: Range; label: string }[] = [
@@ -124,6 +130,8 @@ export default function SuperDashboardClient() {
             <KpiCard label="전체 쿠폰 지급액" value={`${data.kpi.totalCouponAmount.toLocaleString()}원`} />
             <KpiCard label="구독 매출 합계" value={`${data.kpi.subscriptionRevenue.toLocaleString()}원`} note="결제 등록일 기준" />
             <KpiCard label="신규 매장" value={`${data.kpi.newStores.toLocaleString()}곳`} />
+            <KpiCard label="전체 가입 회원수" value={`${data.kpi.newMembers.toLocaleString()}명`} note="신규 카카오 인증 완료 기준" />
+            <KpiCard label="당근 단골 클릭수" value={`${data.kpi.daangnClicks.toLocaleString()}건`} note="클릭 기준, 실제 단골추가 확정 아님" />
           </div>
 
           {/* 라인차트: 일별 전체 참여자 */}
@@ -132,10 +140,53 @@ export default function SuperDashboardClient() {
             <MiniLineChart data={data.dailyParticipants.map((d) => ({ label: d.date, value: d.count }))} />
           </div>
 
+          {/* 라인차트: 업체 가입현황 추이 */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-sm font-bold text-gray-900 mb-4">업체 가입현황 추이</h2>
+            <MiniLineChart data={data.signupTrend.map((d) => ({ label: d.date, value: d.count }))} color="#00C7A7" />
+          </div>
+
           {/* 바차트: 매장별 참여자 Top 10 */}
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <h2 className="text-sm font-bold text-gray-900 mb-4">매장별 참여자 Top 10</h2>
             <MiniBarChart data={data.topStores.map((s) => ({ label: s.storeName, value: s.count }))} />
+          </div>
+
+          {/* 바차트: 리워드 유형별 등록 비율 */}
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <h2 className="text-sm font-bold text-gray-900 mb-1">리워드 유형별 등록 비율</h2>
+            <p className="text-[11px] text-gray-400 mb-4">전체 매장의 활성 리워드 기준 · 온보딩 컨설팅 참고용</p>
+            {data.rewardStats.length > 0 ? (
+              <MiniBarChart data={data.rewardStats.map((r) => ({ label: `${r.label} (${r.percent}%)`, value: r.count }))} color="#D9A94F" />
+            ) : (
+              <div className="text-center py-8 text-xs text-gray-400">등록된 리워드가 없습니다</div>
+            )}
+          </div>
+
+          {/* 쿠폰 사용통계 + 재방문 통계 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="text-sm font-bold text-gray-900 mb-3">쿠폰 사용통계</h2>
+              <p className="text-2xl font-black text-gray-900 leading-none">
+                {data.couponStats.usageRate !== null ? `${data.couponStats.usageRate}%` : '집계 중'}
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                발급 {data.couponStats.issued.toLocaleString()}건 · 사용 {data.couponStats.used.toLocaleString()}건
+              </p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h2 className="text-sm font-bold text-gray-900 mb-3">전체 매장 평균 재방문율</h2>
+              {data.revisit.hasEnoughData ? (
+                <>
+                  <p className="text-2xl font-black text-gray-900 leading-none">{data.revisit.rate}%</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    직전 구간 신규 {data.revisit.cohortCount.toLocaleString()}명 중 {data.revisit.convertedCount.toLocaleString()}명 재방문
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-400 py-2">데이터가 더 쌓이면 보여드릴게요</p>
+              )}
+            </div>
           </div>
         </>
       ) : null}

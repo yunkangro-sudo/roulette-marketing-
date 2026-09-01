@@ -31,7 +31,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
   const [{ data: subscriptions }, subscriptionStatus] = await Promise.all([
     supabase
       .from('subscriptions')
-      .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at')
+      .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')
       .eq('store_id', company.store_id)
       .order('end_date', { ascending: false }),
     getSubscriptionStatus(company.store_id),

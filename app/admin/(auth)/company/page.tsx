@@ -20,7 +20,7 @@ export default async function CompanyInfoPage() {
     supabase.from('store_contracts').select('*').eq('store_id', storeId).maybeSingle(),
     supabase
       .from('subscriptions')
-      .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at')
+      .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')
       .eq('store_id', storeId)
       .order('end_date', { ascending: false }),
     getSubscriptionStatus(storeId),

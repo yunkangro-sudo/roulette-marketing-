@@ -97,7 +97,7 @@ export default function CompaniesListClient({ companies }: { companies: CompanyL
                   </div>
                   <div className="text-left sm:text-right shrink-0">
                     <p className="text-lg font-black text-gray-900">{c.ad_amount.toLocaleString()}원</p>
-                    <p className="text-xs text-gray-400">월 광고비</p>
+                    <p className="text-xs text-gray-400">월 구독료</p>
                   </div>
                 </div>
               </Link>
