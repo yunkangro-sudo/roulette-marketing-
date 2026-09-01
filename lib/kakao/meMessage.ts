@@ -32,7 +32,7 @@ export async function sendMeMessage(
 ): Promise<boolean> {
   if (!accessToken) return false
 
-  const appUrl   = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://roulette-marketing.vercel.app').trim()
+  const appUrl   = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.dgting.co.kr').trim()
   const playUrl  = `${appUrl}/play/${payload.storeId}`
   const validStr = payload.validUntil
     ? new Date(payload.validUntil).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })

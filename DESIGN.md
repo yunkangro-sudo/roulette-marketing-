@@ -37,6 +37,8 @@
 | `--danggeun-orange` | `#FF8A3D` | 당근 브랜드 오렌지 계열 (근사치 — 실제 사용 전 당근 공식 브랜드 가이드에서 정확한 헥스 재확인 필요) |
 | `--merge-gradient` | `linear-gradient(135deg, #FEE500, #FF8A3D)` | 히어로 섹션 등 "두 채널이 만나는 지점"을 상징하는 단 하나의 시그니처 그라디언트 |
 
+> **2026-08 실제 구현 노트**: landing-v5(현재 루트 `/`)는 위 표의 값 그대로가 아니라, `components/landing-v5/landing-v5.css`의 `.landing-v5` 클래스 스코프 안에 CSS 커스텀 프로퍼티로 별도 정의된 토큰을 쓴다 (Tailwind 테마가 아니라 클래스 스코프 변수라 다른 페이지에서 `Navbar` 등 landing-v5 컴포넌트를 재사용하려면 반드시 `.landing-v5` 래퍼로 감싸야 함 — `/signup`이 이 패턴을 따름). 실제 값: `--green:#00c7a7`(민트그린, 브랜드 포인트 컬러) / `--green-deep:#019c87` / `--green-tint:#e3fbf6` / `--carrot:#ff8a00`(당근) / `--kakao:#fee500` / `--ink:#222222` / `--bg:#faf7f0`(웜톤 오프화이트). 위 표의 `--landing-ink`/`--landing-paper`/`--danggeun-orange` 근사치보다 이 실측 토큰이 우선한다.
+
 **절대 규칙 — 가장 중요**:
 1. **페이지 전체를 노랑·주황으로 칠하지 않는다.** 기본 배경은 `--landing-paper`(프리미엄 오프화이트) 또는 `--landing-ink`(다크 섹션) 유지. 카카오 옐로우·당근 오렌지는 **각 채널을 설명하는 카드·배지·아이콘에만 국한**해서 쓴다.
 2. **`--merge-gradient`는 페이지 전체에서 딱 한 곳(히어로)에만 쓴다.** 여러 군데 쓰면 "두 채널이 만난다"는 의미가 희석되고 유치해 보인다.

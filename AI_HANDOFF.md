@@ -1,5 +1,17 @@
 # AI_HANDOFF.md — 프로젝트 인수인계 문서
 
+> **⚠️ 이 문서는 프로젝트 초창기(Sprint 1 착수 전) 기획 단계 문서다.** 아래 테이블명(`tenants`/`campaigns`/`participants`/`tenant_admin` 등)은 당시 검토하던 SaaS 스타터 템플릿 매핑안이며, **실제 구현에서는 채택되지 않았다.** 지금 실제로 쓰이는 테이블명은 `stores`(정확히는 `store_settings`/`store_accounts`/`store_contracts`), `events`, `coupons`, `customer_loyalty` 등이고, 역할명은 `super_admin`/`agency`/`advertiser`/`staff`다.
+>
+> 현재 아키텍처를 확인하려면 이 문서 대신 아래를 참고할 것:
+> - [`README.md`](./README.md) — 진행 로그, 폴더 구조, 배포 전 체크리스트
+> - [`docs/당근인형뽑기_게임설계도.md`](./docs/당근인형뽑기_게임설계도.md) — 게임/쿠폰/포인트 로직 SSOT
+> - [`docs/관리자_메뉴_구조_확정.md`](./docs/관리자_메뉴_구조_확정.md) — 실제 역할·메뉴 구조
+> - [`ADMIN_FEATURES.md`](./ADMIN_FEATURES.md) — 관리자 모드 결정사항/진행상황
+>
+> 이 문서는 "초기에 어떤 대안들을 검토했고 왜 그렇게 판단했는지"를 보여주는 역사적 기록으로만 남겨둔다.
+>
+> ---
+>
 > 이 문서는 코드 작업 시작 전 AI가 모든 설계 문서를 읽고 정리한 핵심 판단 요약이다.  
 > 실제 스키마·코드 작업 착수 전 사람이 검토·확정해야 하는 항목들을 포함한다.  
 > 수정이 필요한 부분은 이 파일에 직접 표시해줄 것.

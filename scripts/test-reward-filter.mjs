@@ -6,7 +6,7 @@
 // .env.local에서 값을 읽어서 실행: node --env-file=.env.local scripts/test-reward-filter.mjs
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
-const BASE_URL     = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roulette-marketing.vercel.app'
+const BASE_URL     = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.dgting.co.kr'
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('환경변수 NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY가 필요합니다.')

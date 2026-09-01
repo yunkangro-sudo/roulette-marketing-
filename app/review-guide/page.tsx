@@ -2,11 +2,13 @@
  * /review-guide — 카카오 API 심사관용 서비스 테스트 가이드
  *
  * 카카오 개발자센터 심사 제출 시 이 URL을 첨부:
- * https://roulette-marketing.vercel.app/review-guide
+ * https://www.dgting.co.kr/review-guide
+ * (최초 제출 당시엔 roulette-marketing.vercel.app로 제출됐으나, 현재는 정식 도메인으로 통일됨.
+ *  Vercel 기본 도메인 접속은 next.config.ts에서 이 도메인으로 자동 리다이렉트된다.)
  */
 
 export default function ReviewGuidePage() {
-  const BASE = 'https://roulette-marketing.vercel.app'
+  const BASE = 'https://www.dgting.co.kr'
   const STORE_ID = 'chj-001'  // 심사용 테스트 매장
 
   return (

@@ -196,11 +196,50 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `AlreadyParticipatedScreen`(이미 참여하셨어요 화면)에 남아있던 QA용 "다른 계정으로 테스트" 버튼 제거 — 실제 손님 화면에는 노출하지 않음
 - [x] **버그 발견/수정**: 이벤트 등록 폼의 "쿠폰 사용 기간 > 고정 날짜" 옵션이 `coupon_validity_value`를 `"시작일~종료일"` 범위 문자열로 저장하는데, `computeValidUntil()`은 이를 단일 날짜로 가정해 `Invalid Date` 예외가 발생 — 이 예외가 조용히 무시되면서 당첨은 정상 처리되지만 쿠폰만 생성 안 되는 상태로 남음(`aschip`, `arc` 이벤트 실제 영향 확인). `computeValidUntil`이 `~` 포함 문자열이면 종료일만 추출하도록 수정 + 회귀 테스트 2건 추가
 
+### 2026-08-25 (보안 대응 + 리워드 이미지 업로드 + 이미지 최적화)
+- [x] `docs/migrations/039_enable_rls_all_tables.sql` — Supabase 보안 어드바이저 경고 대응, `signup_inquiries` 제외 24개 테이블 전체 RLS 재활성화(정책 없이 service_role만 접근, 기능 영향 없음)
+- [x] `docs/migrations/040_reward_images_storage_bucket.sql` — 리워드 이미지를 URL 입력 대신 실제 파일 업로드로 전환 (Storage 버킷, 5MB 제한)
+- [x] 게임 런타임 이미지 12개 PNG→WebP 변환(13.7MB→0.6MB, 90%+ 절감) + 랜딩 진입 시점 프리로드 추가
+
+### 2026-08-25~26 (리워드 교환 구조 통합 + 포인트/재고 차감 시점 이동 + 업체 하드 삭제)
+- [x] `docs/migrations/041_reward_redemption_coupons_integration.sql` — 리워드 교환을 별도 `rewards_issued` 테이블 대신 `coupons` 테이블로 통합해, 게임 당첨 쿠폰과 완전히 동일한 코드 확인 화면·계산대 흐름을 재사용
+- [x] `docs/migrations/042_remove_usage_threshold_gate.sql` — 리워드 교환 최소잔액(usage_threshold) 게이트 완전 제거 (리워드 가격만으로 교환 가능 여부 판단)
+- [x] `docs/migrations/043_defer_point_deduction_to_confirm.sql` — 포인트/재고 차감 시점을 "교환하기" 클릭 순간 → "사장님 확인"(실사용 확정) 순간으로 이동, `confirm_coupon_used_atomic` 신규 RPC
+- [x] `docs/migrations/044_delete_store_completely.sql`, `045_fix_delete_store_completely_permission.sql` — 슈퍼관리자용 업체 완전 삭제(Hard Delete) 기능, `SECURITY DEFINER` 권한 오류 수정
+
+### 2026-08-27~29 (랜딩페이지 v5 전면 리뉴얼)
+- [x] 신규 랜딩(`components/landing-v5/`) 대대적 개편 — 히어로, "실제 접점"(QR/쿠폰함/카톡알림) 섹션, 문제제기/포지셔닝 비대칭 레이아웃, 당근 연동 섹션, FAQ 14문항, 요금제(베이직+AEO마케팅 2카드), 관리자 미리보기 모달, 클라이언트 도입사례 섹션 등 다수 커밋
+- [x] "Before/After 드래그 비교" 섹션을 "성장 엔진" 섹션(회차별 플로우 카드, 패널 프레임 배경)으로 교체
+- [x] `docs/migrations/046_signup_inquiries_source.sql` — 요금제 리드 소스 구분(베이직 신청 경로 추적)
+- [x] `docs/migrations/047_aeo_waitlist.sql` — "AEO마케팅" 카드 출시 알림 대기자 전용 테이블
+- [x] 성과 리포트(`/admin/report`)를 월광고비/ROI 퍼널 방식에서 **객단가 기반 스토리텔링형 리포트**로 전면 개편 — 헤드라인(구독료 대비 배수)/활동퍼널(MoM 증감)/단골전환스토리/당근단골자산가치/성장궤적(3개월 예측)/인기 시간대 6개 섹션. "월 광고비"/"ROI" 카드는 삭제(DB 컬럼은 유지), "평균 결제금액(객단가)" 입력 필드를 포인트 정책 화면에 추가
+
+### 2026-08-31 (경품 티어 확률 직접입력 + 카카오톡 메시지 버튼 추가)
+- [x] `docs/migrations/048_prize_tier_probability_mode.sql` — 경품 티어를 "수량 기반 자동계산" 외에 "확률(%) 직접입력" 모드로도 설정 가능하도록 확장 (이벤트별 `prize_tier_mode` 선택)
+- [x] 쿠폰 발급 카카오톡(나에게 보내기) 메시지에 "당근마켓 후기 남기고 쿠폰받기" 버튼 추가
+- [x] **버그 발견/수정**: 위 버튼에 당근(`daangn.com`) 링크를 직접 연결하면 카카오 API가 메시지 발송 자체를 전체 실패시키는 문제 발견 — 자체 도메인 경유 리다이렉트로 우회
+
+### 2026-09-01 (슈퍼관리자 구독관리 + 도메인/랜딩 구조 정리 + NFC 방문적립 신규)
+- [x] "월 광고비" 용어를 코드/화면 전체에서 "월 구독료"로 통일, 슈퍼관리자 대시보드에 KPI 6종(업체 가입추이/전체 회원수/당근 클릭수/리워드 유형별 비율/쿠폰 사용률/평균 재방문율) 추가
+- [x] `docs/migrations/049_subscription_payment_fields.sql` — `subscriptions`에 `payment_date`/`payment_status`(paid/unpaid/overdue) 추가, 신규 메뉴 "업체 구독관리"(검색·필터, 입금확인 처리, CSV 다운로드)
+- [x] **랜딩 URL 구조 정리** — 구 랜딩(`/landing`) 삭제, 신규 랜딩(`landing-v5`)을 루트(`/`)로 승격, `/landing-v5`는 `/`로 영구 리다이렉트 유지 (북마크 호환)
+- [x] 랜딩 헤더를 가로 메뉴에서 **햄버거 + 오른쪽 슬라이드 패널**로 재구성 (로그인/회원가입/서비스/프로세스/요금제/AEO 홈페이지 제작/상담신청 CTA), `/aeo` 자리표시 페이지 신설
+- [x] `next.config.ts`에 Vercel 기본 도메인(`roulette-marketing.vercel.app`) → 정식 도메인(`www.dgting.co.kr`) 영구 리다이렉트 추가 — 카카오 로그인 리다이렉트/NFC 체크인 URL 등 "현재 접속 origin"을 그대로 쓰는 모든 화면이 자동으로 정식 도메인 기준으로 동작하게 됨
+- [x] `/signup` 회원가입 페이지의 예전 스타일 헤더를 새 랜딩 헤더(`Navbar`)로 교체, `Navbar`의 섹션 앵커 링크를 홈 기준 절대경로(`/#service` 등)로 수정해 다른 페이지에서도 정상 재사용되도록 개선
+- [x] **NFC 방문 적립 기능 신규 추가** (`docs/migrations/050_nfc_checkin.sql`) — 매장에 놓은 NFC 태그를 손님이 태그하면 `/checkin/{storeId}`로 접속되어 자동으로 포인트 적립 또는 스탬프 적립(목표 도달 시 `reward_catalog` 리워드를 쿠폰으로 자동 발급)이 되는 기능. 게임/포인트샵 로직과 완전히 분리된 별도 경로이며 손대지 않음. `process_nfc_checkin` RPC로 "하루 1회 제한 + 적립/발급"을 한 트랜잭션에서 원자적으로 처리(동시 태그 시 이중 발급 방지). 관리자 "포인트 정책" 화면에서 사용여부/모드(포인트·스탬프)/리워드 선택/체크인 URL 복사 지원
+
+### 2026-09-01 (2차: 매장 고정 QR코드 생성/다운로드 + 남아있던 vercel.app 기본값 정리)
+- [x] `qrcode` 라이브러리 도입, `GET /api/admin/store-qr?format=png|svg` — 매장 고정 QR을 즉석 생성해서 반환(DB 저장 없음, `storeId`만으로 매번 결정적으로 생성). 세션 기반으로 자기 매장만 생성 가능(advertiser 고정, staff 차단, super_admin/agency는 대리접속/조회 storeId 기준)
+- [x] `/admin/events` 화면 상단에 `StoreQrCard` 추가 — QR 미리보기, PNG(960px)/SVG(인쇄용) 다운로드 버튼 2개, 복사 가능한 URL 텍스트, "QR 밑에 이 주소를 같이 인쇄하세요" 안내. 에러정정 최고단계(H) 적용(코팅지 반사광 대비)
+- [x] **버그 발견/수정**: 카카오 "나에게 보내기" 쿠폰 메시지(`lib/kakao/meMessage.ts`)가 `NEXT_PUBLIC_APP_URL` 환경변수 미설정 시 폴백하는 기본값이 여전히 `roulette-marketing.vercel.app`으로 남아있던 것을 발견 — `.env.example` 기본값, `lib/kakao/meMessage.ts`, `app/review-guide/page.tsx`(카카오 심사관용 가이드), `scripts/test-reward-filter.mjs`의 폴백/하드코딩 값을 모두 `https://www.dgting.co.kr`로 정리. **Vercel 프로덕션 `NEXT_PUBLIC_APP_URL` 환경변수의 실제 값이 무엇인지는 아직 확인 못 함 — 다음 세션에서 반드시 확인할 것 (아래 "배포 전 반드시 확인할 것" 참고)**
+
 ### 다음 예정
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신 — 현재는 조회 시점 판정으로 안전하게 대체 중)
-- [ ] 알림톡 발송대행사 실연동 (현재 stub 상태)
-- [ ] 당근 비즈프로필 실제 연동 (현재 화면 안내만, 클릭 로그 미구현)
-- [ ] Supabase Pro 업그레이드 + 자동 일일 백업(PITR) 전환
+- [ ] 알림톡(비즈메시지) 발송대행사 실연동 (`lib/alimtalk/send.ts` 여전히 stub — 카카오 "나에게 보내기"(`lib/kakao/meMessage.ts`)와는 별개 트랙)
+- [ ] 당근 비즈프로필 실제 연동 (현재 화면 안내/링크만, 클릭 로그는 `daangn_click` activity_log로 집계만 되고 딥링크 자동 연결은 미구현)
+- [ ] Supabase Pro 업그레이드 + 자동 일일 백업(PITR) 전환 — 진행 여부 재확인 필요 (`ADMIN_FEATURES.md` 참고)
+- [ ] NFC 방문적립 실제 태그로 현장 테스트 (하루1회 제한/포인트·스탬프 각 모드/계산대 스캔 확인 — `docs/migrations/050_nfc_checkin.sql` 상단 체크리스트 참고)
+- [ ] 카카오 앱을 `www.dgting.co.kr` 전용으로 새로 만들 경우, 콜백 URL(`https://www.dgting.co.kr/api/auth/kakao/callback`) 재등록 + 신규 키값(`KAKAO_REST_API_KEY`/`KAKAO_CLIENT_SECRET`/`NEXT_PUBLIC_KAKAO_JS_KEY`) `.env.local`/Vercel 갱신
 
 ---
 
@@ -209,18 +248,21 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 임시로 처리하고 넘어간 것 / 미완성 상태로 남아있는 것. 실제 서비스 오픈 전에 아래를 전부 해소해야 한다.
 
 - [x] **카카오 로그인 실연동 완료** — `NEXT_PUBLIC_KAKAO_JS_KEY` 설정 완료. `/api/auth/kakao` OAuth 서버사이드 흐름 구현, 전화번호 암호화 저장(AES-256-CBC), iron-session 고객 세션 쿠키 적용. Mock 로그인은 키 미설정 시 개발 폴백으로만 유지
-- [ ] **알림톡 발송대행사(솔라피 등) 가입 및 실제 발송 연동은 별도 진행 예정** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태. `KAKAO_ALIMTALK_SENDER_KEY` 입력 후 stub 내부 주석 해제하면 즉시 연동 가능
-- [ ] **카카오 로그인 심사 대기 우회** — `.env.local` 또는 Vercel에 `NEXT_PUBLIC_KAKAO_REVIEW_PENDING=true` 이면 화면 3 버튼이 실제 카카오 대신 `test-user-1` mock 세션으로 claim 한다. **심사 승인 후: 플래그를 false/삭제하고 `ResultLockedScreen.tsx`·`mock-customer-session`의 `TEMP: 카카오 심사 대기용` 주석 구간을 제거한다.**
+- [x] **`/staff` 계산대 화면 인증 추가 완료** — `store_accounts`/`iron-session` 관리자 로그인 도입(6단계) 이후 `/staff`는 `staff`/`advertiser` 역할 로그인이 필수. 누구나 URL로 접근 가능하던 문제는 해소됨
+- [x] **관리자 CRUD 화면 구현 완료** — 이벤트 등록/수정, 회원 관리, 쿠폰 관리, 포인트 정책, 리워드 관리, 성과 리포트, 슈퍼관리자 업체·구독 관리까지 전부 화면으로 구현됨 (`docs/관리자_메뉴_구조_확정.md` 참고)
+- [x] **`store_settings` 관리자 편집 UI 구현 완료** — `average_order_value`(객단가), NFC 설정 등 전부 `/admin/loyalty-settings` 화면에서 입력 가능. `월 광고비` 컬럼은 화면에서 제거(DB 컬럼만 유지)하고 "월 구독료" 개념으로 대체됨
+- [ ] **알림톡(비즈메시지) 발송대행사 가입 및 실제 발송 연동 필요** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태 (쿠폰 발급 시 카카오 "나에게 보내기"(`lib/kakao/meMessage.ts`)는 별도로 실제 발송되고 있음, 혼동 주의). 대행사(비즈뿌리오, 알리고, 솔라피 등) 가입 후 Sender Key 발급 → `.env.local`에 `KAKAO_ALIMTALK_SENDER_KEY` 입력 → `sendAlimtalk()` 내부 주석 해제 후 대행사 API 호출 코드 추가
 - [ ] **카카오 비즈앱 전환 및 전화번호 동의항목 심사** — 개인사업자/법인 사업자 기준으로 카카오 비즈앱 전환 신청 후, 카카오 개발자 센터에서 "전화번호" 동의항목 심사 신청 필요. 심사 전에는 `phone_number`가 null로 내려와 전화번호 저장이 생략됨 (로그인 자체는 정상 동작)
-- [ ] **알림톡 발송대행사 가입 및 KAKAO_ALIMTALK_SENDER_KEY 실제값 입력** — 현재 `lib/alimtalk/send.ts`는 `message_log` 테이블에 기록만 하는 stub 상태. 대행사(비즈뿌리오, 알리고, 솔라피 등) 가입 후 Sender Key 발급 → `.env.local`에 `KAKAO_ALIMTALK_SENDER_KEY` 입력 → `sendAlimtalk()` 내부 주석 해제 후 대행사 API 호출 코드 추가
+- [ ] **카카오 앱을 `www.dgting.co.kr` 전용으로 신규 생성 시 콜백 URL 재등록 필요** — 리다이렉트 URI는 `req.nextUrl.origin` 기준으로 동적 생성되므로, 카카오 개발자센터에 `https://www.dgting.co.kr/api/auth/kakao/callback` 패턴을 등록하면 됨. 새 앱 생성 시 `KAKAO_REST_API_KEY`/`KAKAO_CLIENT_SECRET`/`NEXT_PUBLIC_KAKAO_JS_KEY`를 `.env.local`/Vercel에 갱신할 것
 - [ ] **개인정보처리방침 업데이트** — "전화번호 수집·이용 목적(카카오 쿠폰 알림 발송)" 항목 추가 필요. 수집 근거, 보유 기간, 제3자 제공 여부(대행사 전달 포함) 명시 필요
-- [ ] **`/staff` 계산대 화면 인증 없음** — 누구나 URL로 접근해서 쿠폰을 사용/확인 처리할 수 있음. 최소 비밀번호 정도는 배포 전 추가 필요
 - [ ] **쿠폰 만료 배치 미구현** — `valid_until`이 지난 쿠폰의 `status`가 실제로 `expired`로 바뀌지 않고, 조회 시점에 `lib/coupons/getEffectiveStatus.ts`가 판정해서 보여줌 (DB에는 계속 `issued`/`pending_verify` 등으로 남음). 규모가 커지면 배치를 추가하되, 그래도 조회 시점 판정 로직은 안전망으로 유지하는 게 안전
-- [ ] **당근 단골 추가 실제 연동 없음** — `VerificationCtaScreen`은 화면과 쿠폰 코드 표시만 하고, 실제 당근 비즈프로필 딥링크 연결과 클릭 로그(`damgeun_click_logs`)는 미구현
-- [ ] **동시 접속자 방어(트랜잭션 락) 없음** — `/api/games/play`의 재고 차감이 단순 조회→차감 흐름 (로컬 소규모 사용자 기준으로 의도적 생략, `docs/당근인형뽑기_게임설계도.md` 4.3절 참고)
-- [ ] **관리자 CRUD 화면 미구현** — 이벤트 등록/수정, 확률 자동계산 UI, 쿠폰 현황 대시보드 아직 없음. `/admin/report`, `/admin/dashboard`는 조회 전용으로 구현됨 (store_settings.monthly_ad_budget 수정은 아직 SQL 직접)
-- [ ] **`store_settings.monthly_ad_budget`/`average_order_value` 수동 입력** — Supabase SQL로 직접 업데이트 필요. 관리자 편집 UI는 6단계에서 추가 예정
-- [ ] **테스트 이벤트 데이터가 하드코딩** — `test-store-001`/`test-event-001` 기준으로만 검증됨, 실제 매장 온보딩 플로우 없음
+- [ ] **당근 단골 추가 실제 딥링크 연동 없음** — 화면·쿠폰 코드 표시 + 당근 URL 링크(`daangn_url`) 안내는 되어있으나, 실제 당근 비즈프로필 자동 딥링크 연결은 미구현. 클릭 자체는 `activity_log`(`daangn_click`)로 집계됨
+- [ ] **동시 접속자 방어(트랜잭션 락) 없음** — `/api/games/play`의 재고 차감이 단순 조회→차감 흐름 (로컬 소규모 사용자 기준으로 의도적 생략, `docs/당근인형뽑기_게임설계도.md` 4.3절 참고). 단, `redeem_points_atomic`/`process_nfc_checkin` 등 포인트·쿠폰 발급 관련 RPC는 원자적 트랜잭션으로 처리됨
+- [ ] **테스트 이벤트 데이터가 일부 하드코딩** — 초기 `test-store-001`/`test-event-001` 기준 시드 데이터가 남아있음, 실제 매장은 정상 온보딩(회원가입) 플로우로 생성됨
+- [ ] **NFC 방문적립 실제 태그 현장 테스트 미완료** — 코드/마이그레이션은 배포됐으나, 실제 NFC 태그로 직접 태그해서 하루1회 제한·포인트/스탬프 각 모드·계산대 스캔까지 확인하는 실사용 테스트는 아직 안 함
+- [ ] **Vercel 프로덕션 `NEXT_PUBLIC_APP_URL` 환경변수 값 확인 필요** — 로컬 CLI가 이 프로젝트에 연결되어 있지 않아 실제 값을 확인하지 못함. `https://www.dgting.co.kr`로 설정되어 있는지 Vercel 대시보드에서 직접 확인할 것. 아니라면 카카오 쿠폰 발급 메시지 링크와 매장 QR코드가 옛 도메인을 가리키게 됨(코드 쪽 폴백 기본값은 이미 정리 완료)
+- [ ] **매장 고정 QR코드 실제 인쇄 스캔 테스트 미완료** — 코드는 배포됐으나, 실제 프린터로 인쇄해서 폰 카메라로 스캔했을 때 에러정정 H단계가 코팅지 반사광/오염 환경에서도 잘 읽히는지는 아직 확인 안 함
+- [ ] **Supabase Pro 업그레이드 + 자동 일일 백업(PITR) 전환** — 진행 여부 최종 확인 필요 (`ADMIN_FEATURES.md` "다음 작업 추천 순서" 1번 참고)
 
 ---
 
@@ -236,7 +278,12 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 | [`docs/화면별_텍스트_스냅샷.md`](./docs/화면별_텍스트_스냅샷.md) | 손님 화면에 실제로 노출되는 문구 스냅샷 (`PlayFlow.tsx` 기준) |
 | [`docs/관리자_메뉴_구조_확정.md`](./docs/관리자_메뉴_구조_확정.md) | 역할별 관리자 메뉴 구조·권한 원칙 (광고주/슈퍼·에이전시) |
 | [`docs/ADMIN_MANUAL.md`](./docs/ADMIN_MANUAL.md) | 관리자·직원용 실사용 메뉴얼 (로그인, 이벤트, 리포트, 계산대) |
-| [`docs/migrations/`](./docs/migrations/) | Supabase 대시보드에서 실행한 DB 변경사항 기록 (Git에 안 남는 부분 추적용, **새 세션 시작 시 필수 확인**) |
+| [`docs/dangolting_landing_v5_cursor_spec.md`](./docs/dangolting_landing_v5_cursor_spec.md) | 신규 랜딩페이지(landing-v5, 현재 루트 `/`) 카피·섹션·디자인 원본 지시문 |
+| [`docs/SEO_AEO_GEO_세팅_지시서_v1.md`](./docs/SEO_AEO_GEO_세팅_지시서_v1.md) | SEO/AEO/GEO(생성형 검색 노출) 세팅 지시서 |
+| [`docs/특허_회피구조_설명.md`](./docs/특허_회피구조_설명.md) | 특허 회피 설계 원칙 — "게임 실행이 채널 구독과 무관해야 함" 등 고정 원칙의 근거 |
+| [`docs/v2_로드맵/전국응모시스템.md`](./docs/v2_로드맵/전국응모시스템.md) | v2 로드맵 — 전국 단위 응모 시스템 구상안 (미착수) |
+| [`docs/migrations/`](./docs/migrations/) | Supabase 대시보드에서 실행한 DB 변경사항 기록 (Git에 안 남는 부분 추적용, **새 세션 시작 시 필수 확인**, 최신 번호는 `050_nfc_checkin.sql`) |
+| [`ADMIN_FEATURES.md`](./ADMIN_FEATURES.md) | 관리자 모드 관련 결정사항·진행상황 추적 (완료/보류/미시작 구분) |
 | [`DESIGN.md`](./DESIGN.md) | 컬러 토큰, 타이포그래피, 레이아웃 원칙, 컴그래픽 요소 |
 | [`docs/_archive/`](./docs/_archive/) | 초창기 기획안(01~04 번호 문서) 보관함 — 현재 구현과 불일치하니 참고용으로만 열람 |
 
@@ -255,31 +302,36 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 
 ```
 /app
-  /(customer)       손님 게임 플로우
-    /game-demo      게임 프로토타입 (1단계)
-    /play/[storeId] 실서비스 게임 참여 프로세스 (예정)
-  /(public)         홍보사이트 (예정)
-  /admin            광고주 관리자 (예정)
-  /franchise        프랜차이즈 관리자 (예정)
-  /agency           대리점 관리자 (예정)
-  /super            총관리자 (예정)
+  page.tsx            루트(/) — landing-v5를 직접 렌더 (구 랜딩 /landing은 삭제됨)
+  /(customer)         손님 게임 플로우
+    /game-demo        게임 프로토타입
+    /play/[storeId]   실서비스 게임 참여 프로세스
+    /checkin/[storeId] NFC 방문 적립 체크인 화면
+  /(mockup)           랜딩/약관/개인정보/데모 등 홍보용 정적 페이지 (landing-v5 포함, /landing-v5는 /로 리다이렉트만 함)
+  /me                 손님용 포인트/쿠폰 웹뷰 (/me/points 등)
+  /staff              계산대 검증 화면 (staff/advertiser 로그인 필요)
+  /signup             광고주 회원가입
+  /aeo                AEO 홈페이지 제작 자리표시 페이지
+  /admin/(auth)       광고주·슈퍼관리자·에이전시 공용 관리자 영역 (역할별 메뉴 분기, docs/관리자_메뉴_구조_확정.md 참고)
+    /super/dashboard      슈퍼관리자 전체 대시보드
+    /super/subscriptions  업체 구독관리 (신규)
+    /companies            업체 리스트/상세 (대리접속 진입점)
+    /loyalty-settings     포인트 정책 (NFC 설정 포함)
+    /report               성과 리포트 (객단가 기반 스토리텔링형)
+  /api                서버 API 라우트 (게임/쿠폰/포인트/관리자/카카오OAuth/NFC체크인 등)
 
 /components
-  /game             게임 컴포넌트 (2단계에서 그대로 재사용)
-    GameContainer   게임 상태 관리
-    StartScreen     시작 화면
-    OnboardingOverlay  최초 안내 오버레이
-    PlayScreen      크레인 드래그 게임
-    ResultScreen    결과 화면
-    types.ts        공유 타입
-    gameUtils.ts    확률 계산
+  /game               게임 컴포넌트 (StartScreen/PlayScreen/ResultScreen/StampBoard 등)
+  /landing-v5         현재 루트 랜딩페이지 전용 컴포넌트 (Navbar 등, landing-v5.css로 스코프)
 
 /lib
-  /game-engine      게임 엔진별 로직 (예정)
-  /cta-integrations 채널별 CTA 모듈 (예정)
-  /auth             인증/권한 체크 (예정)
-  /schemas          공유 데이터 검증 스키마 (예정)
-/docs               설계서 원본 (↑ 참고)
+  /game-engine        확률/재고/쿠폰유효기간 순수 함수
+  /auth               카카오 OAuth, mockLogin, 세션
+  /admin              관리자 세션, 권한, 구독 상태 판정
+  /alimtalk           알림톡 발송 유틸 (stub, 위 "배포 전 확인" 참고)
+  /kakao              카카오 "나에게 보내기" 메시지 발송
+  /coupons            쿠폰 유효 상태 판정
+/docs                 설계서 원본 (↑ "문서 지도" 참고)
 ```
 
 ---
@@ -313,10 +365,13 @@ npm run dev
 | 카카오 로그인 (OAuth) | **연동 완료** | `lib/auth/kakao.ts` |
 | 전화번호 수집(동의항목) | **비즈앱 전환 + 심사 대기** — 심사 전엔 `phone_number`가 null로 내려와 저장 생략 (로그인 자체는 정상) | `lib/auth/kakao.ts` |
 | 카카오 채널 친구추가 CTA | 연동 완료 (`NEXT_PUBLIC_ADVERTISER_KAKAO_URL`) | `PlayFlow.tsx` |
-| 카카오 알림톡 | **미연동** — `message_log`에 기록만 하는 stub 상태, 발송대행사 계약 필요 | `lib/alimtalk/send.ts` |
+| 카카오 "나에게 보내기" (쿠폰 발급 알림) | **연동 완료** — 쿠폰 발급 시 실제 발송됨. "당근마켓 후기 남기고 쿠폰받기" 버튼 포함(당근 링크는 직접 넣지 않고 자체 도메인 경유 리다이렉트 사용 — 직접 링크 시 발송 전체 실패하는 카카오 API 제약 발견) | `lib/kakao/meMessage.ts` |
+| 카카오 알림톡(비즈메시지) | **미연동** — `message_log`에 기록만 하는 stub 상태, 발송대행사 계약 필요. 위 "나에게 보내기"와는 완전히 별개 기능이니 혼동 주의 | `lib/alimtalk/send.ts` |
 | 카카오 심사 대기 우회 | `NEXT_PUBLIC_KAKAO_REVIEW_PENDING=true`면 실제 OAuth 대신 mock 세션으로 결과 열람 (데모/심사 대기 중 시연용) | `ResultLockedScreen.tsx` |
+| 카카오 로그인 리다이렉트 URI | 접속 origin(`req.nextUrl.origin`) 기준 동적 생성. Vercel 기본 도메인은 `next.config.ts`에서 `www.dgting.co.kr`로 301 리다이렉트되므로 실질적으로 항상 정식 도메인 기준으로 동작 | `app/api/auth/kakao/route.ts` |
 
 > 심사 승인 후: `NEXT_PUBLIC_KAKAO_REVIEW_PENDING` 플래그를 false/삭제하고 관련 `TEMP:` 주석 구간을 제거할 것 (아래 "배포 전 반드시 확인할 것" 참고).
+> 새 카카오 앱으로 키를 교체할 경우: `KAKAO_REST_API_KEY`/`KAKAO_CLIENT_SECRET`/`NEXT_PUBLIC_KAKAO_JS_KEY`를 `.env.local`/Vercel에 갱신하고, 카카오 개발자센터에 `https://www.dgting.co.kr/api/auth/kakao/callback`을 Redirect URI로 등록할 것.
 
 ---
 

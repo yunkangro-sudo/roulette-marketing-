@@ -2,6 +2,7 @@ import { requireAdminAuth, getAllowedStoreId } from '@/lib/admin/session'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import EventCard from './EventCard'
+import StoreQrCard from './StoreQrCard'
 
 export default async function EventsPage({ searchParams }: { searchParams: Promise<{ store_id?: string }> }) {
   const account = await requireAdminAuth()
@@ -33,6 +34,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
           + 새 이벤트 등록
         </Link>
       </div>
+
+      {filterStoreId && <StoreQrCard storeId={filterStoreId} />}
 
       {!events || events.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
