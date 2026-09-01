@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import '@/components/landing-v5/landing-v5.css'
+import Navbar from '@/components/landing-v5/Navbar'
 
 type Step = 'form' | 'success'
 
@@ -108,24 +110,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      {/* 헤더 */}
-      <nav className="border-b bg-white/90 backdrop-blur sticky top-0 z-10" style={{ borderColor: '#E4E8ED' }}>
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
-              style={{ background: 'linear-gradient(135deg, #FEE500, #FF8A3D)' }}>
-              🎮
-            </div>
-            <span className="font-bold text-[#14151A]">단골마케팅</span>
-          </a>
-          <a href="/admin/login" className="text-sm text-[#6B7280] hover:text-[#14151A] transition-colors">
-            이미 계정이 있으신가요? <span className="font-semibold text-[#3D5AFE]">로그인</span>
-          </a>
-        </div>
-      </nav>
+    <div className="landing-v5 min-h-screen bg-[#FAFAF8]">
+      <Navbar />
 
-      <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="max-w-2xl mx-auto px-4 pb-12 pt-24">
         {/* 타이틀 */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-[#3D5AFE]/10 text-[#3D5AFE] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">

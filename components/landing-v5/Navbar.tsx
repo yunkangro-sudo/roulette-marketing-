@@ -42,7 +42,9 @@ export default function Navbar() {
         }}
       >
         <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-5">
-          <a href="#top" className="font-han text-[22px] text-dg-ink">
+          {/* 다른 페이지(회원가입 등)에서도 재사용되므로 항상 홈 기준 절대경로(/#top)로 이동 —
+              홈에서는 같은 경로라 그냥 앵커 스크롤처럼 동작하고, 다른 페이지에서는 홈으로 이동 후 스크롤된다 */}
+          <a href="/#top" className="font-han text-[22px] text-dg-ink">
             단골<span className="text-dg-green">팅</span>
           </a>
 
@@ -114,7 +116,7 @@ export default function Navbar() {
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.href}
-                  href={link.href}
+                  href={`/${link.href}`}
                   onClick={close}
                   className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
                 >
