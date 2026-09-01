@@ -89,7 +89,9 @@ export async function GET(req: NextRequest) {
           ? `${appUrl}/me/points?store_id=${encodeURIComponent(storeId)}`
           : nextPage === 'claim'
             ? `${appUrl}/play/${storeId}?claim=1`
-            : `${appUrl}/play/${storeId}`)
+            : nextPage === 'checkin'
+              ? `${appUrl}/checkin/${storeId}`
+              : `${appUrl}/play/${storeId}`)
       : `${appUrl}/`
     return NextResponse.redirect(dest)
 

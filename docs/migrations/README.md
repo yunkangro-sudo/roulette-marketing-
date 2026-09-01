@@ -72,6 +72,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 047 | [`047_aeo_waitlist.sql`](./047_aeo_waitlist.sql) | `aeo_waitlist` (AEO마케팅 출시 알림 대기자) 테이블 추가 — 랜딩 요금제 섹션 "AEO마케팅" 카드의 "출시 알림 받기" 리드를 베이직 신청과 분리 저장. service_role 전용, anon 정책 없음 |
 | 048 | [`048_prize_tier_probability_mode.sql`](./048_prize_tier_probability_mode.sql) | `events.prize_tier_mode` 컬럼 추가 (`quantity`\|`percent`, 기본값 `quantity`) — 경품 티어를 "총 수량 입력→자동계산" 또는 "확률(%) 직접입력" 중 골라서 설정할 수 있게 함 |
 | 049 | [`049_subscription_payment_fields.sql`](./049_subscription_payment_fields.sql) | `subscriptions.payment_date`(실제 입금 확인일)/`payment_status`(`paid`\|`unpaid`\|`overdue`, 기본값 `unpaid`) 컬럼 추가 — 슈퍼관리자 "업체 구독관리" 화면의 수동 입금 확인 워크플로우용. 기존 이력 row는 `paid`/입금일=`start_date`로 일괄 보정 |
+| 050 | [`050_nfc_checkin.sql`](./050_nfc_checkin.sql) | NFC 방문 적립(포인트/스탬프 선택형) 기능 추가 — `store_settings`에 `nfc_checkin_enabled`/`nfc_checkin_mode`/`nfc_checkin_points`/`stamp_goal_count`/`stamp_reward_id` 컬럼, 신규 `nfc_checkin_log`(하루 1회 제한, KST 날짜 컬럼)/`nfc_stamp_progress`(스탬프 진행 카운트) 테이블, `coupons.source_type`에 `stamp_reward` 추가. 원자적 처리를 위한 `process_nfc_checkin` RPC 신규 추가 (하루1회 체크 + 포인트적립 또는 스탬프증가·목표달성시 쿠폰발급·리셋을 한 트랜잭션으로 처리) |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

@@ -5,6 +5,8 @@ import StoreSelector from '../components/StoreSelector'
 
 interface Props { role: string; storeId: string | null }
 
+interface RewardOption { id: string; name: string }
+
 export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [selectedStore, setSelectedStore] = useState(storeId ?? '')
   const [pointPerVisit, setPointPerVisit] = useState(1000)
@@ -17,6 +19,14 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
   const [pointsEnabled, setPointsEnabled] = useState(true)
 
+  const [nfcEnabled, setNfcEnabled] = useState(false)
+  const [nfcMode, setNfcMode] = useState<'points' | 'stamp'>('points')
+  const [nfcPoints, setNfcPoints] = useState(1000)
+  const [stampGoal, setStampGoal] = useState(10)
+  const [stampRewardId, setStampRewardId] = useState('')
+  const [rewardOptions, setRewardOptions] = useState<RewardOption[]>([])
+  const [copied, setCopied] = useState(false)
+
   const load = useCallback(async (sid: string) => {
     if (!sid) return
     const res = await fetch(`/api/admin/loyalty-settings?store_id=${encodeURIComponent(sid)}`)
@@ -28,6 +38,12 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
       setRevisitInterval(data.default_revisit_interval_days ? String(data.default_revisit_interval_days) : '7')
       setPointsEnabled(data.points_enabled !== false)
       setAvgOrderValue(data.average_order_value ? String(data.average_order_value) : '')
+      setNfcEnabled(data.nfc_checkin_enabled === true)
+      setNfcMode(data.nfc_checkin_mode === 'stamp' ? 'stamp' : 'points')
+      setNfcPoints(data.nfc_checkin_points ?? 1000)
+      setStampGoal(data.stamp_goal_count ?? 10)
+      setStampRewardId(data.stamp_reward_id ?? '')
+      setRewardOptions(data.reward_options ?? [])
     }
     setLoaded(true)
   }, [])
@@ -42,6 +58,20 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
     if (!pointPerVisit || pointPerVisit <= 0) return null
     return Math.ceil(usageThreshold / pointPerVisit)
   }, [pointPerVisit, usageThreshold])
+
+  const checkinUrl = useMemo(() => {
+    if (!selectedStore) return ''
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.dgting.co.kr'
+    return `${origin}/checkin/${selectedStore}`
+  }, [selectedStore])
+
+  function handleCopyCheckinUrl() {
+    if (!checkinUrl) return
+    navigator.clipboard.writeText(checkinUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   async function handleSave() {
     if (!selectedStore) { setMessage({ text: '매장을 먼저 선택해주세요', ok: false }); return }
@@ -59,6 +89,11 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
           default_revisit_interval_days: revisitInterval ? Number(revisitInterval) : 7,
           points_enabled: pointsEnabled,
           average_order_value: avgOrderValue ? Number(avgOrderValue) : 0,
+          nfc_checkin_enabled: nfcEnabled,
+          nfc_checkin_mode: nfcMode,
+          nfc_checkin_points: nfcPoints,
+          stamp_goal_count: stampGoal,
+          stamp_reward_id: nfcMode === 'stamp' ? (stampRewardId || null) : stampRewardId || null,
         }),
       })
       const data = await res.json()
@@ -209,6 +244,140 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
             <p className="text-xs text-gray-400 mt-1">
               재방문 손님이 평균적으로 얼마 정도 결제하는지 입력해주세요. 성과 리포트의 추가매출 추정에 사용돼요.
             </p>
+          </div>
+
+          {/* NFC 방문 적립 */}
+          <div className="pt-5 border-t border-gray-100">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-700">NFC 방문 적립 사용</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  매장에 NFC 태그를 놓으면, 손님이 폰을 태그하는 것만으로 방문 적립이 돼요. 게임/경품과는 별개예요.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={nfcEnabled}
+                onClick={() => setNfcEnabled((v) => !v)}
+                className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${
+                  nfcEnabled ? 'bg-orange-500' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 rounded-full bg-white shadow mt-0.5 transition-transform ${
+                    nfcEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {nfcEnabled && (
+              <div className="mt-4 space-y-4">
+                {/* 모드 선택 */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNfcMode('points')}
+                    className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                      nfcMode === 'points'
+                        ? 'border-orange-500 bg-orange-50 text-orange-600'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    포인트 적립 (기본)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNfcMode('stamp')}
+                    className={`flex-1 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                      nfcMode === 'stamp'
+                        ? 'border-orange-500 bg-orange-50 text-orange-600'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    스탬프 적립
+                  </button>
+                </div>
+
+                {nfcMode === 'points' ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">1회 방문당 적립 포인트</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={nfcPoints}
+                        onChange={(e) => setNfcPoints(Number(e.target.value))}
+                        min={1}
+                        className="w-36 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:border-orange-500"
+                      />
+                      <span className="text-sm text-gray-500">P / 회</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">목표 방문 횟수</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={stampGoal}
+                          onChange={(e) => setStampGoal(Number(e.target.value))}
+                          min={1}
+                          className="w-36 border border-gray-300 rounded-lg px-3 py-2 text-right text-sm focus:outline-none focus:border-orange-500"
+                        />
+                        <span className="text-sm text-gray-500">회 채우면 리워드 지급</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">다 채웠을 때 지급할 리워드</label>
+                      {rewardOptions.length === 0 ? (
+                        <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2.5">
+                          먼저 리워드를 등록해주세요 (리워드 관리 메뉴)
+                        </p>
+                      ) : (
+                        <select
+                          value={stampRewardId}
+                          onChange={(e) => setStampRewardId(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-orange-500"
+                        >
+                          <option value="">선택해주세요</option>
+                          {rewardOptions.map((r) => (
+                            <option key={r.id} value={r.id}>{r.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* 체크인 URL */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">NFC 태그에 저장할 URL</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={checkinUrl}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-600 bg-gray-50 truncate"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCopyCheckinUrl}
+                      className="shrink-0 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                    >
+                      {copied ? '복사됨!' : '복사'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    이 주소를 NFC 태그에 저장하면, 손님이 폰을 태그에 대는 것만으로 방문 적립이 돼요.
+                  </p>
+                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2 leading-relaxed">
+                    ⚠️ 이 URL을 손님이 즐겨찾기해두면, 태그 없이도 하루 1회 적립될 수 있어요. 리워드 가치가 크지 않은 매장에 추천드려요.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <button
