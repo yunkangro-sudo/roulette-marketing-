@@ -22,15 +22,23 @@ export interface CouponMsgPayload {
   daangnUrl?:   string | null
 }
 
+export interface SendMeMessageResult {
+  ok: boolean
+  /** 실패 시 원인 구분 — message_log 등에 기록해 나중에 원인을 추적하기 위함 */
+  reason?: 'no_access_token' | 'api_error' | 'exception'
+  /** 카카오 API가 돌려준 에러 응답 원문 (api_error일 때) 또는 예외 메시지 */
+  detail?: unknown
+}
+
 /**
  * 손님 본인 카카오톡으로 쿠폰 안내 메시지 발송
- * @returns true=성공, false=실패(silent)
+ * @returns 성공 여부와 실패 시 원인(디버깅용) — 항상 throw 없이 반환됨(silent)
  */
 export async function sendMeMessage(
   accessToken: string,
   payload: CouponMsgPayload,
-): Promise<boolean> {
-  if (!accessToken) return false
+): Promise<SendMeMessageResult> {
+  if (!accessToken) return { ok: false, reason: 'no_access_token' }
 
   const appUrl   = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.dgting.co.kr').trim()
   const playUrl  = `${appUrl}/play/${payload.storeId}`
@@ -92,13 +100,13 @@ export async function sendMeMessage(
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       console.warn('[meMessage] 카카오 나에게 보내기 실패:', err)
-      return false
+      return { ok: false, reason: 'api_error', detail: err }
     }
 
     console.log('[meMessage] 카카오 나에게 보내기 성공:', payload.shortCode)
-    return true
+    return { ok: true }
   } catch (err) {
     console.warn('[meMessage] 카카오 나에게 보내기 예외 (무시):', err)
-    return false
+    return { ok: false, reason: 'exception', detail: err instanceof Error ? err.message : String(err) }
   }
 }

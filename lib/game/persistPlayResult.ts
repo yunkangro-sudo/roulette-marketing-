@@ -294,11 +294,34 @@ export async function persistPendingPlay(params: {
   // 카카오 로그인 → 결과 공개 시 당첨 내용을 손님 카카오톡으로 자동 발송.
   // 실제 카카오 앱키/talk_message 동의가 없는 데모·mock 로그인 상태에서는
   // accessToken이 없어 자동으로 스킵된다 — 심사 완료 후 별도 코드 변경 없이 활성화됨.
+  //
+  // 발송 결과(성공/스킵/실패)는 항상 message_log에 기록한다. Vercel 서버 로그는
+  // 운영자가 바로 확인하기 어려워서, "왜 카톡이 안 오는지"를 DB 조회 한 번으로
+  // 진단할 수 있도록 하기 위함 — message_type='coupon_issued_me_message'로 구분해서
+  // 기존 알림톡(coupon_issued) 기록과 섞이지 않게 한다.
   ;(async () => {
+    const logResult = async (status: 'sent' | 'skipped' | 'failed', errorMessage?: string) => {
+      await supabase.from('message_log').insert({
+        store_id: pending.storeId,
+        kakao_user_id: kakaoUserId,
+        message_type: 'coupon_issued_me_message',
+        payload: { couponId: coupon.id, shortCode: coupon.short_code, amount: pending.amount },
+        status,
+        error_message: errorMessage ?? null,
+      }).then(() => {}, () => {})
+    }
+
     try {
       const session = await getCustomerSession()
       const accessToken = session.user?.accessToken
-      if (!accessToken || !session.user?.hasTalkMsg) return
+      if (!accessToken) {
+        await logResult('skipped', '로그인 세션에 accessToken 없음 (mock 로그인이거나 세션 만료)')
+        return
+      }
+      if (!session.user?.hasTalkMsg) {
+        await logResult('skipped', 'talk_message 동의 스코프 없음 (카카오 로그인 시 동의 안 함, 또는 앱 동의항목 미설정)')
+        return
+      }
       const [{ data: store }, { data: contract }] = await Promise.all([
         supabase
           .from('store_settings')
@@ -311,7 +334,7 @@ export async function persistPendingPlay(params: {
           .eq('store_id', pending.storeId)
           .maybeSingle(),
       ])
-      await sendMeMessage(accessToken, {
+      const result = await sendMeMessage(accessToken, {
         storeName: store?.store_name || '매장',
         shortCode: coupon.short_code ?? coupon.id.slice(0, 8).toUpperCase(),
         amount: pending.amount,
@@ -320,7 +343,14 @@ export async function persistPendingPlay(params: {
         storeId: pending.storeId,
         daangnUrl: contract?.daangn_url ?? null,
       })
-    } catch { /* silent */ }
+      if (result.ok) {
+        await logResult('sent')
+      } else {
+        await logResult('failed', `${result.reason}: ${JSON.stringify(result.detail)}`)
+      }
+    } catch (err) {
+      await logResult('failed', `예외: ${err instanceof Error ? err.message : String(err)}`)
+    }
   })()
 
   return revealed

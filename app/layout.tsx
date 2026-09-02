@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://dgting.co.kr'),
+  metadataBase: new URL('https://www.dgting.co.kr'),
   title: '단골팅 — 게임 한 번으로 카카오 × 당근 단골 만들기',
   description: '소상공인을 위한 재방문 전환 마케팅 SaaS. QR 게임 이벤트로 카카오 채널 친구추가와 당근 단골추가를 동시에.',
   openGraph: {
     title: '신규 손님은 늘리고, 단골은 마구마구 늘립니다.',
     description: '당근에서 만나고, 게임 한 판으로 다시 옵니다. 소상공인을 위한 재방문 게임 마케팅, 단골팅.',
-    url: 'https://dgting.co.kr',
+    url: 'https://www.dgting.co.kr',
     siteName: '단골팅',
     locale: 'ko_KR',
     type: 'website',
