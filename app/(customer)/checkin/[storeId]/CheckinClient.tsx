@@ -92,6 +92,20 @@ export default function CheckinClient({ storeId }: { storeId: string }) {
         <img src="/characters/char_result_jackpot.webp" alt="" className="mx-auto h-auto w-[32%] max-w-[130px] select-none" />
         <p className="mt-4 text-lg font-bold text-[#222222]">오늘은 이미 방문 적립을 받으셨어요</p>
         <p className="mt-2 text-sm text-[#222222]/50">내일 또 태그해주세요!</p>
+        <div className="mt-8 space-y-3">
+          <a
+            href={`/play/${encodeURIComponent(storeId)}`}
+            className="block w-full rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white shadow-sm transition-colors hover:bg-[#00b296]"
+          >
+            게임 첫 화면으로 돌아가기
+          </a>
+          <a
+            href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
+            className="block w-full rounded-full border border-[#222222]/15 px-10 py-4 text-base font-bold text-[#222222] transition-colors hover:bg-[#222222]/5"
+          >
+            내 쿠폰함 바로가기
+          </a>
+        </div>
       </Shell>
     )
   }

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   const now = new Date().toISOString()
 
-  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes] = await Promise.all([
+  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes, nfcSettingsRes, stampProgressRes] = await Promise.all([
     supabase
       .from('customer_loyalty')
       .select('point_balance, visit_count, last_visit_at')
@@ -81,6 +81,18 @@ export async function GET(req: Request) {
       .select('store_name, daangn_url')
       .eq('store_id', storeId)
       .maybeSingle(),
+    // NFC 스탬프 카드 표시 여부 — 매장이 stamp 모드를 켰을 때만 쿠폰함에 카드를 보여준다
+    supabase
+      .from('store_settings')
+      .select('nfc_checkin_enabled, nfc_checkin_mode, stamp_goal_count')
+      .eq('store_id', storeId)
+      .maybeSingle(),
+    supabase
+      .from('nfc_stamp_progress')
+      .select('current_count')
+      .eq('store_id', storeId)
+      .eq('kakao_user_id', kakaoUserId)
+      .maybeSingle(),
   ])
 
   // 미션 + 진행률 합산 — 완료된 미션 제외
@@ -122,6 +134,11 @@ export async function GET(req: Request) {
     }
   })
 
+  const nfcSettings = nfcSettingsRes.data
+  const stamp = (nfcSettings?.nfc_checkin_enabled && nfcSettings?.nfc_checkin_mode === 'stamp')
+    ? { current: stampProgressRes.data?.current_count ?? 0, goal: nfcSettings.stamp_goal_count ?? 10 }
+    : null
+
   return NextResponse.json({
     storeName,
     daangnUrl: safeHttpUrl(storeRes.data?.daangn_url),
@@ -131,5 +148,6 @@ export async function GET(req: Request) {
     history:  historyRes.data ?? [],
     missions,
     coupons,
+    stamp,
   })
 }

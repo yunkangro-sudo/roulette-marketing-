@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import StampBoard from '@/components/game/StampBoard'
 
 type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
 
@@ -41,6 +42,11 @@ interface Mission {
   endAt: string | null
   currentValue: number
   completedAt: string | null
+}
+
+interface StampInfo {
+  current: number
+  goal: number
 }
 
 interface MyCoupon {
@@ -100,6 +106,7 @@ function PointsContent() {
   const [history, setHistory] = useState<LedgerEntry[]>([])
   const [missions, setMissions] = useState<Mission[]>([])
   const [coupons, setCoupons] = useState<MyCoupon[]>([])
+  const [stamp, setStamp] = useState<StampInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -130,6 +137,7 @@ function PointsContent() {
       setHistory(data.history ?? [])
       setMissions(data.missions ?? [])
       setCoupons(data.coupons ?? [])
+      setStamp(data.stamp ?? null)
     } finally {
       setLoading(false)
     }
@@ -234,6 +242,18 @@ function PointsContent() {
           >
             당근 단골추가 바로가기 →
           </a>
+        )}
+
+        {/* NFC 스탬프 카드 — 매장이 방문적립을 "스탬프 모드"로 켰을 때만 표시 (포인트 모드거나
+            NFC 자체를 안 쓰면 stamp가 null이라 렌더되지 않는다) */}
+        {stamp && (
+          <div className="rounded-2xl bg-white/70 px-5 py-5 shadow-sm backdrop-blur-sm">
+            <h2 className="mb-3 text-sm font-bold text-[#222222]/70">방문 스탬프</h2>
+            <StampBoard current={stamp.current} goal={stamp.goal} />
+            <p className="mt-3 text-center text-[11px] text-[#222222]/40">
+              매장 NFC 태그에 폰을 대면 스탬프가 쌓여요. 목표를 채우면 리워드가 자동 발급돼요!
+            </p>
+          </div>
         )}
 
         {/* 리워드 교환 — 포인트 잔액 바로 아래, 이미지가 먼저 눈에 들어오는 카드형 */}
