@@ -24,7 +24,7 @@ function trackDaangnClick() {
   fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {})
 }
 
-export default function VerificationCtaScreen({ result, onDone, onClose, daangnUrl, storeId, storeName }: Props) {
+export default function VerificationCtaScreen({ result, onClose, daangnUrl, storeName }: Props) {
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
@@ -58,7 +58,7 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 280, damping: 14 }}
           >
-            <p className="text-[28px] font-black leading-tight tracking-tight text-[#00C7A7]">
+            <p className="text-[28px] font-black leading-tight tracking-tight text-[#222222]">
               {storeName}
             </p>
           </motion.div>
@@ -92,6 +92,7 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
           >
             <CouponTicket
               amountLabel={result.label}
+              amountLabelClassName="text-[#00C7A7]"
               code={result.coupon.shortCode ?? result.coupon.id.slice(0, 6).toUpperCase()}
               validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
               noteText="쿠폰함에서 쿠폰 사용가능"
@@ -117,22 +118,6 @@ export default function VerificationCtaScreen({ result, onDone, onClose, daangnU
             </a>
           ) : (
             <p className="text-sm text-[#222222]/40">당근 단골 링크 준비중</p>
-          )}
-          <button
-            type="button"
-            onClick={onDone}
-            className="text-xs text-[#222222]/45 hover:text-[#222222]/70"
-          >
-            확인했어요
-          </button>
-
-          {storeId && (
-            <a
-              href={`/me/points?store_id=${encodeURIComponent(storeId)}`}
-              className="block w-full rounded-full bg-[#00C7A7] px-10 py-3.5 text-center text-sm font-bold text-[#222222] transition-colors hover:bg-[#00b399]"
-            >
-              내 쿠폰함
-            </a>
           )}
         </motion.div>
       </div>
