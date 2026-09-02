@@ -5,11 +5,12 @@ import { motion } from 'framer-motion'
 import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { BasicApplyModal, AeoWaitlistModal, BankRow } from './PricingModals'
+import { BasicApplyModal, ContentOpsModal, BankRow } from './PricingModals'
 import {
   PRICING,
-  PRICING_BASIC_DISCOUNT_PERCENT,
+  PRICING_BASIC_DISCOUNT_AMOUNT,
   PRICING_BASIC_TODAY_TOTAL,
+  CONTENT_OPS,
   LAUNCH_EVENT,
   BANK_ACCOUNT,
   formatMonthlyPrice,
@@ -731,10 +732,10 @@ export function ChannelTrust() {
 
 export function PricingSection() {
   const [applyOpen, setApplyOpen] = useState(false)
-  const [waitlistOpen, setWaitlistOpen] = useState(false)
+  const [consultOpen, setConsultOpen] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const basic = PRICING.basic
-  const aeo = PRICING.aeo
+  const contentOps = CONTENT_OPS
 
   function copyBank(text: string, key: string) {
     navigator.clipboard?.writeText(text).then(() => {
@@ -747,12 +748,18 @@ export function PricingSection() {
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
-        <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">지금 가입하면, 이 가격입니다</h2>
+        <h2 className="text-[32px] text-dg-ink md:text-[44px]">
+          <span className="mt-3 block">지금 시작하는 100개 매장만</span>
+          <span className="mt-1 block text-dg-green-deep">월 19,000원으로 시작하세요</span>
+        </h2>
+        <p className="mt-4 text-[15px] text-dg-ink-soft">
+          월 39,000원 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
+        </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {/* 베이직 — 판매중, 강조 */}
           <motion.article
-            className="relative overflow-visible border-2 border-dg-green bg-white p-7"
+            className="relative overflow-visible border-2 border-dg-green bg-white p-5 sm:p-7"
             style={{ borderRadius: 10 }}
             animate={{
               boxShadow: [
@@ -784,13 +791,19 @@ export function PricingSection() {
                   className="inline-flex items-center bg-dg-green px-2 py-0.5 text-[12px] font-extrabold text-dg-ink"
                   style={{ borderRadius: 4 }}
                 >
-                  {PRICING_BASIC_DISCOUNT_PERCENT}% 할인
+                  매월 {formatWon(PRICING_BASIC_DISCOUNT_AMOUNT)} 할인
                 </span>
               </div>
-              <p className="mt-1 font-num text-[54px] font-bold leading-none text-dg-green-deep">
+              <p className="mt-1 whitespace-nowrap font-num text-[38px] font-bold leading-none text-dg-green-deep sm:text-[54px]">
                 {formatMonthlyPrice(basic.promoPrice)}
               </p>
-              <p className="mt-2.5 text-[14px] text-dg-ink">
+              <p
+                className="mt-3 inline-block bg-dg-green-tint px-2.5 py-1 text-[13px] font-bold text-dg-green-deep"
+                style={{ borderRadius: 4 }}
+              >
+                {basic.lockInNote}
+              </p>
+              <p className="mt-3 text-[14px] text-dg-ink">
                 + 초기 세팅비 {formatWon(basic.setupFee)} (최초 1회)
               </p>
               <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 포함</p>
@@ -831,40 +844,65 @@ export function PricingSection() {
             </div>
           </motion.article>
 
-          {/* AEO마케팅 — 준비중, 톤다운 */}
+          {/* 당근 콘텐츠 성장 운영 — 판매중이지만 즉시 결제가 아닌 상담 신청 흐름.
+              베이직 대비 차분한 다크 톤으로 "프리미엄 운영 대행" 느낌을 준다. */}
           <article
-            className="relative overflow-hidden border border-dg-line bg-dg-bg/60 p-7 opacity-90"
+            className="relative overflow-hidden border border-dg-ink/10 bg-dg-ink p-5 text-white sm:p-7"
             style={{ borderRadius: 10 }}
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className="inline-flex items-center border border-dg-ink-soft/30 bg-white px-2.5 py-1 text-[11px] font-bold text-dg-ink-soft"
-                style={{ borderRadius: 999 }}
-              >
-                준비중 · Coming Soon
-              </span>
+            <span
+              className="inline-flex items-center border border-white/20 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/70"
+              style={{ borderRadius: 999 }}
+            >
+              콘텐츠 운영 대행
+            </span>
+
+            <h3 className="mt-4 text-[24px] font-bold text-white sm:text-[26px]">{contentOps.name}</h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-white/55">{contentOps.tagline}</p>
+
+            <p className="mt-6 font-num text-[32px] font-bold text-dg-green sm:text-[36px]">
+              {formatMonthlyPrice(contentOps.price)}
+            </p>
+            <p className="mt-1 text-[12px] text-white/40">모든 요금 VAT 별도</p>
+
+            <div className="mt-6 space-y-5">
+              {contentOps.items.map((item, i) => (
+                <div key={item.title} className={i > 0 ? 'border-t border-white/10 pt-5' : ''}>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <p className="text-[15px] font-bold text-white">{item.title}</p>
+                    <p className="shrink-0 text-[12.5px] text-white/50">
+                      {item.freq} · {formatWon(item.price)}
+                    </p>
+                  </div>
+                  <ul className="mt-2 space-y-1.5">
+                    {item.features.map((feature) => (
+                      <li key={feature} className="flex gap-2 text-[13px] leading-relaxed text-white/60">
+                        <span className="text-dg-green">•</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
 
-            <h3 className="mt-4 text-[26px] font-bold text-dg-ink-soft">{aeo.name}</h3>
-
-            <p className="mt-4 text-[15px] font-bold text-dg-ink-soft">{aeo.subheadline}</p>
-            <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{aeo.description}</p>
-
-            <p className="mt-6 font-num text-[26px] font-bold text-dg-ink-soft">
-              {formatWon(aeo.price)} <span className="text-[14px] font-normal">(1회) · 출시 예정</span>
-            </p>
-            <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 별도</p>
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <p className="text-[13px] text-white/60">{contentOps.addon.label}</p>
+                <p className="shrink-0 text-[13px] font-semibold text-white">
+                  {contentOps.addon.note} {formatWon(contentOps.addon.price)}
+                </p>
+              </div>
+            </div>
 
             <button
               type="button"
-              onClick={() => setWaitlistOpen(true)}
-              className="mt-7 min-h-[52px] w-full border border-dg-ink-soft/40 bg-white py-3.5 text-[15px] font-bold text-dg-ink-soft transition-colors hover:border-dg-ink hover:text-dg-ink"
+              onClick={() => setConsultOpen(true)}
+              className="mt-7 min-h-[52px] w-full border border-white/25 bg-white/5 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-white/10"
               style={{ borderRadius: 6 }}
             >
-              출시 알림 받기
+              콘텐츠 운영 상담받기
             </button>
-
-            <p className="mt-4 text-center text-[12px] text-dg-ink-soft">{aeo.launchNote}</p>
           </article>
         </div>
 
@@ -914,7 +952,7 @@ export function PricingSection() {
               className="min-h-[56px] w-full py-4 text-[17px] font-bold text-dg-ink transition-opacity hover:opacity-90"
               style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
             >
-              지금 신청하기
+              19,000원 혜택으로 시작하기
             </button>
           </div>
 
@@ -961,7 +999,7 @@ export function PricingSection() {
       </div>
 
       {applyOpen && <BasicApplyModal onClose={() => setApplyOpen(false)} />}
-      {waitlistOpen && <AeoWaitlistModal onClose={() => setWaitlistOpen(false)} />}
+      {consultOpen && <ContentOpsModal onClose={() => setConsultOpen(false)} />}
     </section>
   )
 }

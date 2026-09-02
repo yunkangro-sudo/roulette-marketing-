@@ -16,7 +16,10 @@ export const PRICING = {
     regularPrice: 39_000,
     promoPrice: 19_000,
     setupFee: 275_000,
-    ribbonLabel: '선착순 100개 업체 한정',
+    ribbonLabel: '🔥 얼리버드 100개 매장 한정',
+    /** 단순 "기간 한정 할인"이 아니라 "가입 시점 가격이 해지 전까지 유지된다"는 걸
+     *  명확히 알려서 지금 가입해야 하는 이유(락인 혜택)를 강조한다. */
+    lockInNote: '가입 후 해지 전까지 월 19,000원 혜택 유지',
     features: ['게임 이벤트 1개', '기본 쿠폰·포인트', '기본 고객 데이터'],
     qrPrintNote: 'QR 코드 인쇄물 10개까지 무료 제공 (10개 초과 시 추가 요금 발생)',
     reassurance: [
@@ -25,6 +28,8 @@ export const PRICING = {
       'QR 하나로 시작 — 복잡한 세팅 없음',
     ],
   },
+  /** 랜딩 요금제 섹션(PricingSection)에는 더 이상 노출하지 않지만, 자리표시 페이지
+   *  /aeo가 여전히 이 값과 AeoWaitlistModal을 그대로 사용하므로 삭제하지 않는다. */
   aeo: {
     id: 'aeo',
     name: 'AEO마케팅',
@@ -36,13 +41,49 @@ export const PRICING = {
   },
 } as const
 
-/** 정가 대비 프로모션가 할인율(%) — 반올림해서 배지에 그대로 노출 ("51% 할인"). */
+/** 정가 대비 프로모션가 할인율(%) — FAQ 등 다른 곳에서 참조할 수 있어 유지. */
 export const PRICING_BASIC_DISCOUNT_PERCENT = Math.round(
   (1 - PRICING.basic.promoPrice / PRICING.basic.regularPrice) * 100
 )
 
+/** 정가 대비 프로모션가 할인액(원) — 요금제 카드에 "매월 20,000원 할인"처럼 원화로 노출. */
+export const PRICING_BASIC_DISCOUNT_AMOUNT = PRICING.basic.regularPrice - PRICING.basic.promoPrice
+
 /** 베이직 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료(프로모션가). */
 export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.promoPrice
+
+/** 요금제 섹션 두 번째 카드 — "AEO마케팅(준비중)" 카드를 대체하는 실제 판매 중인
+ *  콘텐츠 운영 대행 상품. 가격/구성이 이미 확정되어 있지만 CTA는 "상담받기"로,
+ *  즉시 결제가 아닌 리드(상담 신청) 수집 흐름을 탄다. */
+export const CONTENT_OPS = {
+  id: 'content-ops',
+  name: '당근 콘텐츠 성장 운영',
+  tagline: '당근 안에서 우리 매장을 계속 발견하게 만드는 콘텐츠 운영',
+  price: 330_000,
+  items: [
+    {
+      title: '바이럴 콘텐츠 운영',
+      freq: '월 4회',
+      price: 150_000,
+      features: [
+        '주 1회 후킹 콘텐츠 기획',
+        '콘텐츠 제작 및 발행',
+        '당근 내 자연 유입 및 바이럴 효과를 위한 콘텐츠 운영',
+      ],
+    },
+    {
+      title: '쇼츠 제작 · 스토리 운영',
+      freq: '월 2회',
+      price: 180_000,
+      features: ['매장 쇼츠 영상 제작', '당근 스토리 콘텐츠 발행 및 운영', '사진과 영상은 광고주가 제공'],
+    },
+  ],
+  addon: {
+    label: '당근 비즈프로필 최적화 · 관리',
+    note: '최초 1회',
+    price: 100_000,
+  },
+} as const
 
 /** 요금제 섹션 — 요금제 카드와 최종 CTA 사이에 배치하는 런칭 경품 이벤트 블록.
  *  ctaUrl은 단골팅 자체 게임 엔진에 등록된 실제 이벤트 페이지. */
