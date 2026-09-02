@@ -43,6 +43,7 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
         { href: '/admin/loyalty-settings',  label: '포인트 정책' },
         { href: '/admin/reward-catalog',    label: '리워드 관리' },
         { href: '/admin/coupons',           label: '쿠폰 관리' },
+        { href: '/admin/business-page',     label: '매장 홈페이지' },
         { href: '/staff',                   label: '계산대 →', highlight: true },
       ]
     : []

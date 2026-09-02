@@ -101,10 +101,12 @@ interface Props {
   forceLocked?: boolean
   /** 진열장 상단 명판에 표시할 실제 매장명 */
   storeName?: string | null
+  /** 게임 진입 경로 (통계 집계용) — 미지정 시 서버에서 'qr_instore'로 취급 */
+  entrySource?: 'qr_instore' | 'online_page'
 }
 
 /** 서버에서 결과를 받아온다. 실서비스는 locked만 반환하고 당첨액은 세션에만 둔다. */
-async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
+async function drawResult(eventId?: string, entrySource?: 'qr_instore' | 'online_page'): Promise<PrizeResult | 'locked'> {
   if (!eventId) {
     return rollPrize()
   }
@@ -112,7 +114,7 @@ async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
   const res = await fetch('/api/games/play', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ event_id: eventId }),
+    body: JSON.stringify({ event_id: eventId, entry_source: entrySource }),
   })
 
   if (!res.ok) {
@@ -132,7 +134,7 @@ async function drawResult(eventId?: string): Promise<PrizeResult | 'locked'> {
   }
 }
 
-export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, storeName }: Props) {
+export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, storeName, entrySource }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [layout, setLayout] = useState<CoverLayout>({ scale: 1, x: 0, y: 0, w: 0, h: 0 })
   const [isAnimating, setIsAnimating] = useState(false)
@@ -194,7 +196,7 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
 
     let result: PrizeResult | 'locked'
     try {
-      result = await drawResult(eventId)
+      result = await drawResult(eventId, entrySource)
     } catch (err) {
       console.error('게임 결과 요청 오류:', err)
       alert('오류가 발생했습니다. 다시 시도해주세요.')
@@ -235,7 +237,7 @@ export default function PlayScreen({ onResult, onLocked, eventId, forceLocked, s
     setIsAnimating(false)
     if (locked) onLocked?.()
     else onResult(result as PrizeResult)
-  }, [isAnimating, clawX, clawY, onResult, onLocked, eventId, forceLocked, layout.scale, constraints.left, constraints.right])
+  }, [isAnimating, clawX, clawY, onResult, onLocked, eventId, entrySource, forceLocked, layout.scale, constraints.left, constraints.right])
 
   return (
     <div className="relative h-full w-full select-none overflow-hidden bg-[#EFE6D6]">

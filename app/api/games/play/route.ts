@@ -15,6 +15,9 @@ import { isLockedPlayResponse } from '@/lib/game/guestPlayPolicy'
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   const eventId = body?.event_id
+  // 통계 집계용일 뿐이라 URL/body 값을 그대로 믿지 않고 화이트리스트로만 받는다
+  // (경품 확률/재고 분기에는 이 값을 절대 사용하지 않는다).
+  const entrySource: 'qr_instore' | 'online_page' = body?.entry_source === 'online_page' ? 'online_page' : 'qr_instore'
 
   if (!eventId) {
     return NextResponse.json({ error: 'event_id가 필요합니다' }, { status: 400 })
@@ -68,6 +71,7 @@ export async function POST(request: Request) {
     amount: finalTier.amount,
     tierId: finalTier.id,
     challengeFrequency: (event.challenge_frequency ?? 'daily') as 'daily' | 'weekly' | 'monthly' | 'unlimited',
+    entrySource,
   }
   session.revealedPlay = undefined
   await session.save()

@@ -23,9 +23,11 @@ interface Props {
   forceLocked?: boolean
   /** 진열장 상단 명판에 표시할 실제 매장명 */
   storeName?: string | null
+  /** 게임 진입 경로 (통계 집계용) */
+  entrySource?: 'qr_instore' | 'online_page'
 }
 
-export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase, forceLocked, storeName }: Props = {}) {
+export default function GameContainer({ onGameResult, onReplay, eventId, deferReveal, onLocked, initialPhase, forceLocked, storeName, entrySource }: Props = {}) {
   const [phase, setPhase] = useState<GamePhase>(initialPhase ?? 'start')
   const [result, setResult] = useState<PrizeResult | null>(null)
 
@@ -67,6 +69,7 @@ export default function GameContainer({ onGameResult, onReplay, eventId, deferRe
             eventId={eventId}
             forceLocked={forceLocked}
             storeName={storeName}
+            entrySource={entrySource}
           />
         </div>
       )}

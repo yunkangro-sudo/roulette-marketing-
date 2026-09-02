@@ -144,6 +144,7 @@ export async function persistPendingPlay(params: {
     eventType: 'game_start',
     refId: pending.eventId,
     refType: 'game',
+    entrySource: pending.entrySource,
   }).catch(() => {})
 
   let pointsAwarded = 0
@@ -208,6 +209,7 @@ export async function persistPendingPlay(params: {
       eventType: 'game_complete',
       refId: pending.eventId,
       refType: 'game',
+      entrySource: pending.entrySource,
     }).catch(() => {})
     processMissionProgress(pending.storeId, kakaoUserId).catch(() => {})
     recalculateCustomerSegment(pending.storeId, kakaoUserId).catch(() => {})
@@ -273,6 +275,7 @@ export async function persistPendingPlay(params: {
     eventType: 'game_complete',
     refId: coupon.id,
     refType: 'coupon',
+    entrySource: pending.entrySource,
   }).catch(() => {})
 
   processMissionProgress(pending.storeId, kakaoUserId).catch(() => {})

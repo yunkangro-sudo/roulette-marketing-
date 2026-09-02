@@ -202,12 +202,22 @@ function PointsContent() {
   return (
     <div className="min-h-screen bg-[#EFE6D6]">
       <div className="mx-auto max-w-md space-y-5 px-4 py-8">
-        <a
-          href={`/play/${encodeURIComponent(storeId)}`}
-          className="inline-flex items-center gap-1 text-sm font-medium text-[#222222]/50 transition-colors hover:text-[#222222]/80"
-        >
-          ← 게임으로 돌아가기
-        </a>
+        <div className="flex items-center justify-between">
+          <a
+            href={`/play/${encodeURIComponent(storeId)}`}
+            className="inline-flex items-center gap-1 text-sm font-medium text-[#222222]/50 transition-colors hover:text-[#222222]/80"
+          >
+            ← 게임으로 돌아가기
+          </a>
+          <a
+            href={`/b/${encodeURIComponent(storeId)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-bold text-[#00C7A7] transition-colors hover:text-[#00b296]"
+          >
+            매장 홈페이지 →
+          </a>
+        </div>
 
         <div>
           {/* 어느 매장인지 화면 열자마자 바로 인지되도록 업체명을 첫 줄에 꽉 차게, 가장 크게 배치 */}

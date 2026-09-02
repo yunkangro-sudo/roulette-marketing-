@@ -35,6 +35,8 @@ export interface ActivityLogParams {
   refId?:      string
   refType?:    ActivityRefType
   occurredAt?: Date
+  /** 게임 진입 경로 (통계 집계용, 미지정 시 'qr_instore'). 경품 확률/재고 분기 금지. */
+  entrySource?: 'qr_instore' | 'online_page'
 }
 
 /**
@@ -51,6 +53,7 @@ export async function logActivity(params: ActivityLogParams): Promise<void> {
       ref_id:        params.refId    ?? null,
       ref_type:      params.refType  ?? null,
       occurred_at:   (params.occurredAt ?? new Date()).toISOString(),
+      entry_source:  params.entrySource ?? 'qr_instore',
     })
 
     if (error) {

@@ -233,7 +233,16 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `/admin/events` 화면 상단에 `StoreQrCard` 추가 — QR 미리보기, PNG(960px)/SVG(인쇄용) 다운로드 버튼 2개, 복사 가능한 URL 텍스트, "QR 밑에 이 주소를 같이 인쇄하세요" 안내. 에러정정 최고단계(H) 적용(코팅지 반사광 대비)
 - [x] **버그 발견/수정**: 카카오 "나에게 보내기" 쿠폰 메시지(`lib/kakao/meMessage.ts`)가 `NEXT_PUBLIC_APP_URL` 환경변수 미설정 시 폴백하는 기본값이 여전히 `roulette-marketing.vercel.app`으로 남아있던 것을 발견 — `.env.example` 기본값, `lib/kakao/meMessage.ts`, `app/review-guide/page.tsx`(카카오 심사관용 가이드), `scripts/test-reward-filter.mjs`의 폴백/하드코딩 값을 모두 `https://www.dgting.co.kr`로 정리. **Vercel 프로덕션 `NEXT_PUBLIC_APP_URL` 환경변수의 실제 값이 무엇인지는 아직 확인 못 함 — 다음 세션에서 반드시 확인할 것 (아래 "배포 전 반드시 확인할 것" 참고)**
 
+### 2026-09-02 (매장 공개 홈페이지 신규 + SEO 기반 신설)
+- [x] **매장 공개 홈페이지(`/b/{storeId}`) 신규 추가** (`docs/migrations/051_business_page.sql`) — 홈페이지 없는 매장에 정식 소개 페이지를 자동 생성. `store_id`를 그대로 slug로 재사용(별도 slug 컬럼 없음), 주소/전화는 `store_contracts`를 그대로 재사용(중복 저장 안 함). 신규 `business_entity`(1:1, `homepage_enabled` 기본 true·`online_play_enabled` 기본 false)/`business_media`/`business_faq`/`business_external_links` 테이블. 무료/유료 차이는 순수 "누가 콘텐츠를 입력하느냐"일 뿐, DB에 기능 게이팅 없음
+- [x] 히어로(로고/커버/소개), 신뢰지표(이번 달 참여자수·재방문율, 10명 미만이면 자동 숨김), 진행중 이벤트/리워드 미리보기(`/api/events/active`와 동일하게 확률·재고는 절대 노출 안 함), 매장 사진, 리뷰 링크(네이버/구글), 매장 정보(주소·영업시간·연락처·당근·카카오채널·인스타 등 외부링크), FAQ 섹션 구현. `LocalBusiness` JSON-LD 구조화데이터 + 동적 OG 메타태그 포함
+- [x] 관리자 신규 메뉴 "매장 홈페이지"(`/admin/business-page`) — 노출 온오프, 온라인 게임 참여 허용 온오프, 소개글/영업시간/업종, 로고·커버·매장사진 업로드(`business-images` Storage 버킷 신규), 리뷰링크·외부링크·FAQ 관리
+- [x] `entry_source`(`qr_instore`\|`online_page`) 통계 컬럼을 `activity_log`에 추가하고 `PlayFlow→GameContainer→PlayScreen→/api/games/play→persistPlayResult` 전체 경로에 배선 — 매장 홈페이지에서 원격 참여한 경우(`?source=online`)를 구분 집계할 수 있게 함. **경품 확률/재고 분기에는 절대 사용하지 않음**(URL 파라미터라 조작 가능하므로 통계 전용)
+- [x] 쿠폰함(`/me/points`) 상단에 "매장 홈페이지 →" 바로가기 추가
+- [x] `app/sitemap.ts`/`app/robots.ts` 신규 생성 — `/b/{storeId}`만 검색엔진에 노출(`homepage_enabled=false`인 매장은 사이트맵에서 자동 제외), 나머지 개인화/인증 영역은 전부 차단
+
 ### 다음 예정
+- [ ] 매장 공개 홈페이지 실제 광고주 입력 테스트 (사진 업로드/FAQ/리뷰링크 등 실사용 확인)
 - [ ] 만료 배치 (쿠폰 valid_until 지난 것 expired로 갱신 — 현재는 조회 시점 판정으로 안전하게 대체 중)
 - [ ] 알림톡(비즈메시지) 발송대행사 실연동 (`lib/alimtalk/send.ts` 여전히 stub — 카카오 "나에게 보내기"(`lib/kakao/meMessage.ts`)와는 별개 트랙)
 - [ ] 당근 비즈프로필 실제 연동 (현재 화면 안내/링크만, 클릭 로그는 `daangn_click` activity_log로 집계만 되고 딥링크 자동 연결은 미구현)

@@ -53,6 +53,8 @@ interface Props {
   resumeClaim?: boolean
   /** 카카오 로그인 콜백에서 에러가 나서 돌아온 경우(?auth_error=1) */
   authError?: boolean
+  /** 매장 홈페이지(/b/{slug})에서 "게임하고 쿠폰받기"로 들어온 경우(?source=online) — 통계 집계용 */
+  entrySource?: 'qr_instore' | 'online_page'
 }
 
 /** 카카오 로그인 실패 시 랜딩 화면 상단에 뜨는 안내 배너 — 리다이렉트로 바꿔도 여전히
@@ -193,7 +195,7 @@ function toPrizeResult(revealed: {
   }
 }
 
-export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoChannelUrl, resumeClaim = false, authError = false }: Props) {
+export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoChannelUrl, resumeClaim = false, authError = false, entrySource }: Props) {
   const [step, setStep] = useState<Step>('loading')
   const [user, setUser] = useState<MockUser | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
@@ -550,6 +552,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         onLocked={() => setStep('result_locked')}
         onReplay={handleSwitchAccount}
         storeName={storeName || event.name}
+        entrySource={entrySource}
       />
     )
   }
