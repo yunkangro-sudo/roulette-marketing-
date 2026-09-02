@@ -20,11 +20,16 @@ export default function ClientLogoStrip() {
   }
 
   return (
-    <div className="border-y border-dg-line bg-white/60 pb-16 pt-10">
+    <div className="border-y border-dg-line bg-white/60 pb-[51px] pt-8">
       <div className="mx-auto max-w-6xl px-5">
-        <p className="mb-6 text-center text-[13px] font-medium text-dg-ink-soft">
-          이미 단골팅과 함께하고 있어요
-        </p>
+        {/* 캡션 라벨 — 인용구처럼 격리된, 절제된 톤 */}
+        <div className="mb-[19px] flex items-center justify-center gap-4">
+          <span aria-hidden className="h-px w-8 bg-dg-line" />
+          <p className="whitespace-nowrap text-center text-[11px] font-semibold uppercase tracking-[0.1em] text-dg-green-deep/70">
+            이미 단골팅과 함께하고 있어요
+          </p>
+          <span aria-hidden className="h-px w-8 bg-dg-line" />
+        </div>
       </div>
 
       <div
@@ -40,10 +45,10 @@ export default function ClientLogoStrip() {
               key={setIdx}
               aria-hidden={setIdx === 1}
               data-dup={setIdx === 1 ? 'true' : undefined}
-              className="flex items-center gap-14 pr-14"
+              className="marquee-set flex items-center gap-20 pr-20"
             >
               {CLIENTS.map((client, i) => (
-                <div key={`${setIdx}-${client.name}-${i}`} className="shrink-0 grayscale transition-all duration-200 hover:grayscale-0">
+                <div key={`${setIdx}-${client.name}-${i}`} className="shrink-0">
                   <ClientLogoBox client={client} size="strip" />
                 </div>
               ))}

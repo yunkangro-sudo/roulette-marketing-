@@ -14,20 +14,25 @@ export default function ClientLogoBox({
   size?: 'sm' | 'md' | 'strip'
 }) {
   if (size === 'strip') {
+    // 실제 로고가 준비되면: 그레이스케일 기본 적용 → 호버 시에만 원색으로 전환.
     if (client.logoUrl) {
       return (
-        <div className="relative h-9 w-[120px] shrink-0">
-          <Image src={client.logoUrl} alt={client.name} fill className="object-contain object-left" sizes="120px" />
+        <div className="group relative h-9 w-[120px] shrink-0">
+          <Image
+            src={client.logoUrl}
+            alt={client.name}
+            fill
+            className="object-contain object-left grayscale transition-all duration-200 group-hover:grayscale-0"
+            sizes="120px"
+          />
         </div>
       )
     }
+    // 배지(pill) 없이 순수 텍스트 나열 — 담담하게 보여주는 톤, 호버 시에만 브랜드 그린으로 진해짐
     return (
-      <div
-        className="flex h-9 min-w-[110px] shrink-0 items-center justify-center whitespace-nowrap px-4"
-        style={{ background: 'var(--line)', borderRadius: 999 }}
-      >
-        <span className="text-[13px] font-semibold text-dg-ink-soft">{client.name}</span>
-      </div>
+      <span className="client-name shrink-0 whitespace-nowrap text-[17px] font-semibold">
+        {client.name}
+      </span>
     )
   }
 

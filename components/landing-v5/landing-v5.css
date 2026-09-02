@@ -81,6 +81,7 @@
 .landing-v5 .border-dg-gold\/30 { border-color: color-mix(in srgb, var(--gold) 30%, transparent); }
 .landing-v5 .border-dg-ink\/20 { border-color: color-mix(in srgb, var(--ink) 20%, transparent); }
 .landing-v5 .border-dg-line\/80 { border-color: color-mix(in srgb, var(--line) 80%, transparent); }
+.landing-v5 .text-dg-green-deep\/70 { color: color-mix(in srgb, var(--green-deep) 70%, transparent); }
 
 .landing-v5 input[type="range"] {
   -webkit-appearance: none;
@@ -169,14 +170,14 @@
   }
 }
 
-/* 클라이언트 로고 마퀴 — translateX만 사용(레이아웃 유발 속성 X), 10개 기준 24s 왕복 */
+/* 클라이언트 로고 마퀴 — translateX만 사용(레이아웃 유발 속성 X), 10개 기준 28s 왕복(느리고 은은하게) */
 @keyframes marqueeScroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
 
 .landing-v5 .marquee-track {
-  animation: marqueeScroll 24s linear infinite;
+  animation: marqueeScroll 28s linear infinite;
   will-change: transform;
 }
 
@@ -184,25 +185,46 @@
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black 8%,
-    black 92%,
+    black 12%,
+    black 88%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to right,
     transparent 0%,
-    black 8%,
-    black 92%,
+    black 12%,
+    black 88%,
     transparent 100%
   );
 }
 
+/* 업체명 — 배지 없이 순수 타이포그래피. 본문보다 존재감 낮은 톤 → 호버 시에만 브랜드 그린으로 진해짐 */
+.landing-v5 .client-name {
+  color: #9ca3af;
+  letter-spacing: 0.015em;
+  transition: color 0.2s ease;
+}
+.landing-v5 .client-name:hover {
+  color: var(--green);
+}
+
+/* prefers-reduced-motion: 스크롤 애니메이션 대신, 전체를 여러 줄로 감싸서
+   가운데 정렬로 보여준다 — 가로 스크롤(overflow-x: auto)로 두면 안내 없이
+   잘려 보이는 콘텐츠처럼 오해를 사기 쉬워서 정적 래핑 레이아웃으로 대체한다. */
 @media (prefers-reduced-motion: reduce) {
   .landing-v5 .marquee-track {
     animation: none !important;
+    width: 100%;
+  }
+  .landing-v5 .marquee-set {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 16px;
+    padding-right: 0;
+    width: 100%;
   }
   .landing-v5 .marquee-mask {
-    overflow-x: auto !important;
+    overflow: visible !important;
     -webkit-mask-image: none;
     mask-image: none;
   }
