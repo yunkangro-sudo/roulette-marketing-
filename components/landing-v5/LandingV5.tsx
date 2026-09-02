@@ -24,11 +24,13 @@ import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
 import DemoModal from './DemoModal'
 import AdminPreviewModal from './AdminPreviewModal'
+import { BasicApplyModal } from './PricingModals'
 import { SHOW_CLIENT_SHOWCASE } from '@/lib/landing-v5/config'
 
 export default function LandingV5() {
   const [demoOpen, setDemoOpen] = useState(false)
   const [adminPreviewOpen, setAdminPreviewOpen] = useState(false)
+  const [finalApplyOpen, setFinalApplyOpen] = useState(false)
   const openDemo = () => setDemoOpen(true)
 
   function goToPricing() {
@@ -57,7 +59,7 @@ export default function LandingV5() {
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
         <PricingSection />
         <FaqSection />
-        <FinalCta onCta={() => setAdminPreviewOpen(true)} />
+        <FinalCta onCta={() => setFinalApplyOpen(true)} onPreview={() => setAdminPreviewOpen(true)} />
       </main>
       <Footer />
       <BottomBar onDemo={openDemo} />
@@ -65,6 +67,7 @@ export default function LandingV5() {
       {adminPreviewOpen && (
         <AdminPreviewModal onClose={() => setAdminPreviewOpen(false)} onApply={goToPricing} />
       )}
+      {finalApplyOpen && <BasicApplyModal onClose={() => setFinalApplyOpen(false)} />}
     </div>
   )
 }

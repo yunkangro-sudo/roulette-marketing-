@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
@@ -13,6 +13,8 @@ import {
   CONTENT_OPS,
   LAUNCH_EVENT,
   BANK_ACCOUNT,
+  KAKAO_CONSULT_URL,
+  SIGNUP_PATH,
   formatMonthlyPrice,
   formatWon,
 } from '@/lib/landing-v5/config'
@@ -1004,42 +1006,71 @@ export function PricingSection() {
   )
 }
 
-export function FinalCta({ onCta }: CtaProps) {
+export function FinalCta({ onCta, onPreview }: CtaProps & { onPreview?: () => void }) {
   return (
     <section className="bg-dg-green py-20 md:py-28">
       <div className="mx-auto max-w-4xl px-5 text-center">
-        <p className="text-[14px] font-semibold" style={{ color: 'rgba(34,34,34,0.7)' }}>손님은 이미 왔습니다</p>
-        <h2 className="mt-3 text-[34px] leading-tight text-dg-ink md:text-[52px]">
-          이제 그 손님이
+        <p className="text-[14px] font-semibold" style={{ color: 'rgba(34,34,34,0.7)' }}>재방문의 시작</p>
+        <h2 className="mt-3 text-[28px] leading-tight text-dg-ink sm:text-[34px] md:text-[52px]">
+          광고비를 더 쓰기 전에,
           <br />
-          다시 올 이유를 만들어주세요
+          지금 온 손님부터 다시 오게 하세요
         </h2>
-        <p className="mt-5 text-[16px]" style={{ color: 'rgba(34,34,34,0.75)' }}>
-          광고는 첫 만남을 만듭니다. 단골팅은 두 번째 만남부터 설계합니다.
+        <p className="mt-5 text-[15px] leading-relaxed sm:text-[16px]" style={{ color: 'rgba(34,34,34,0.75)' }}>
+          단골팅은 한 번 방문한 손님이
+          <br />
+          다시 찾아올 이유를 만들어주는 재방문 시스템입니다.
         </p>
+
+        {/* 선착순 프로모션 강조 블록 — 헤드라인만으로 끝나지 않고 "지금 가입해야 하는 이유"를
+            가격과 함께 명확하게 못박아 이 섹션이 브랜드 슬로건이 아닌 전환 유도로 읽히게 한다 */}
+        <div className="mx-auto mt-8 max-w-md bg-white/70 p-6" style={{ borderRadius: 10 }}>
+          <p className="text-[13px] font-bold text-dg-ink">선착순 100개 업체 한정</p>
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-2">
+            <span className="font-num text-[16px] font-medium text-dg-ink/50 line-through decoration-2">
+              월 39,000원
+            </span>
+            <span className="text-dg-ink/50">→</span>
+            <span className="whitespace-nowrap font-num text-[30px] font-bold text-dg-ink sm:text-[38px]">
+              월 19,000원
+            </span>
+          </p>
+          <p className="mt-2 text-[13px] leading-relaxed text-dg-ink/70">
+            프로모션 가입자는 해지 전까지
+            <br />
+            월 19,000원 혜택이 유지됩니다.
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={onCta}
-          className="mt-10 bg-white px-8 py-4 text-[15px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5"
-          style={{ borderRadius: 4 }}
+          className="mt-8 min-h-[56px] w-full max-w-md bg-white px-8 py-4 text-[16px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 sm:w-auto"
+          style={{ borderRadius: 6 }}
         >
-          우리 매장 재방문 설계하기
+          월 19,000원 혜택으로 시작하기
         </button>
+        <p className="mt-3 text-[12.5px]" style={{ color: 'rgba(34,34,34,0.6)' }}>
+          복잡한 계약 없이 바로 시작할 수 있습니다
+        </p>
+
+        {onPreview && (
+          <button
+            type="button"
+            onClick={onPreview}
+            className="mt-4 text-[13px] font-semibold text-dg-ink/70 underline underline-offset-2 transition-colors hover:text-dg-ink"
+          >
+            가입 전에 관리자 화면이 궁금하다면 미리보기 →
+          </button>
+        )}
       </div>
     </section>
   )
 }
 
-function FooterInfoRow({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <li className="flex gap-2">
-      <span className="shrink-0 text-dg-ink-soft">{label}</span>
-      <span className="text-dg-ink/80">{children}</span>
-    </li>
-  )
-}
-
 export function Footer() {
+  const kakaoReady = Boolean(KAKAO_CONSULT_URL)
+
   return (
     <footer className="border-t border-dg-line bg-dg-bg pb-8 pt-14">
       <div className="mx-auto max-w-6xl px-5">
@@ -1049,7 +1080,9 @@ export function Footer() {
               단골<span className="text-dg-green">팅</span>
             </p>
             <p className="mt-3 max-w-[220px] text-[14px] leading-relaxed text-dg-ink-soft">
-              손님을 모으는 게 아니라 다시 오게 만듭니다
+              손님을 모으는 게 아니라
+              <br />
+              다시 오게 만듭니다.
             </p>
             <p className="mt-4 text-[13px] text-dg-ink-soft">광고 → 게임 → 단골 → 쿠폰 → 재방문</p>
           </div>
@@ -1060,24 +1093,24 @@ export function Footer() {
               <li><a href="#service" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">단골팅 게임</a></li>
               <li><a href="#process" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">작동 원리</a></li>
               <li><a href="#pricing" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">요금제</a></li>
-              <li><a href="#proof" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">도입 성과</a></li>
+              <li><a href="#proof" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">도입 효과</a></li>
             </ul>
           </div>
 
           <div>
-            <p className="text-[13px] font-semibold text-dg-ink">회사 정보</p>
-            <ul className="mt-4 space-y-2 text-[13px] leading-relaxed">
-              <FooterInfoRow label="상호">아크웍스(ARK WORKS)</FooterInfoRow>
-              <FooterInfoRow label="대표">양경직</FooterInfoRow>
-              <FooterInfoRow label="사업자등록번호">628-33-01601</FooterInfoRow>
-              <FooterInfoRow label="통신판매업신고번호">제 2026-충남천안-1482호</FooterInfoRow>
-              <FooterInfoRow label="주소">충남 천안시 서북구 2공단5로 52, 룩소르비즈타워 863호</FooterInfoRow>
-              <FooterInfoRow label="대표전화">
-                <a href="tel:16883893" className="hover:text-dg-ink hover:underline">1688-3893</a>
-              </FooterInfoRow>
-              <FooterInfoRow label="이메일">
-                <a href="mailto:yangpro03@gmail.com" className="hover:text-dg-ink hover:underline">yangpro03@gmail.com</a>
-              </FooterInfoRow>
+            <p className="text-[13px] font-semibold text-dg-ink">고객지원</p>
+            <ul className="mt-4 space-y-3 text-[14px] text-dg-ink-soft">
+              <li>
+                <a
+                  href={kakaoReady ? KAKAO_CONSULT_URL : SIGNUP_PATH}
+                  className="inline-flex min-h-[24px] items-center hover:text-dg-ink"
+                >
+                  카카오톡 상담
+                </a>
+              </li>
+              <li><a href="#faq" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">자주 묻는 질문</a></li>
+              <li><a href="/terms" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">이용약관</a></li>
+              <li><a href="/privacy" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">개인정보처리방침</a></li>
             </ul>
           </div>
         </div>
@@ -1088,6 +1121,24 @@ export function Footer() {
             <a href="/terms" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">이용약관</a>
           </div>
           <p className="text-[12px] text-dg-ink-soft">© {new Date().getFullYear()} 아크웍스(단골팅). All rights reserved.</p>
+        </div>
+
+        {/* 회사 정보 — 삭제하지 않고 유지하되, 가장 눈에 덜 띄는 위치(맨 하단)에
+            작은 글씨로 한 줄 처리해 시각적 비중을 낮춘다 */}
+        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] leading-relaxed text-dg-ink-soft/70">
+          <span>아크웍스(ARK WORKS)</span>
+          <span aria-hidden="true">·</span>
+          <span>대표 양경직</span>
+          <span aria-hidden="true">·</span>
+          <span>사업자등록번호 628-33-01601</span>
+          <span aria-hidden="true">·</span>
+          <span>통신판매업신고번호 제 2026-충남천안-1482호</span>
+          <span aria-hidden="true">·</span>
+          <span>충남 천안시 서북구 2공단5로 52, 룩소르비즈타워 863호</span>
+          <span aria-hidden="true">·</span>
+          <a href="tel:16883893" className="hover:text-dg-ink hover:underline">1688-3893</a>
+          <span aria-hidden="true">·</span>
+          <a href="mailto:yangpro03@gmail.com" className="hover:text-dg-ink hover:underline">yangpro03@gmail.com</a>
         </div>
       </div>
     </footer>
