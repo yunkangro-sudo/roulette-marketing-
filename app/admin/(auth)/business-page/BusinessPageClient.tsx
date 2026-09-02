@@ -2,14 +2,21 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import StoreSelector from '../components/StoreSelector'
+import {
+  BUSINESS_TYPE_OPTIONS, DEFAULT_BUSINESS_TYPE, PRODUCT_SECTION_LABEL, PRODUCT_ITEM_LABEL,
+  resolveBusinessType, type BusinessType,
+} from '@/lib/business-page/businessTypeLabels'
 
 interface Props { role: string; storeId: string | null }
 
 interface FaqRow { question: string; answer: string }
 interface LinkRow { platform: string; url: string }
+interface ProductRow { name: string; imageUrl: string | null; price: string; description: string }
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+const MAX_PRODUCTS = 6
+const MAX_PRIDE_POINTS = 4
 
 export default function BusinessPageClient({ role, storeId }: Props) {
   const [selectedStore, setSelectedStore] = useState(storeId ?? '')
@@ -30,6 +37,11 @@ export default function BusinessPageClient({ role, storeId }: Props) {
   const [businessHours, setBusinessHours] = useState('')
   const [naverReviewUrl, setNaverReviewUrl] = useState('')
   const [googleReviewUrl, setGoogleReviewUrl] = useState('')
+  const [businessType, setBusinessType] = useState<BusinessType>(DEFAULT_BUSINESS_TYPE)
+  const [parkingInfo, setParkingInfo] = useState('')
+  const [petFriendly, setPetFriendly] = useState(false)
+  const [pridePoints, setPridePoints] = useState<string[]>([])
+  const [products, setProducts] = useState<ProductRow[]>([])
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -37,12 +49,13 @@ export default function BusinessPageClient({ role, storeId }: Props) {
   const [faqList, setFaqList] = useState<FaqRow[]>([])
   const [links, setLinks] = useState<LinkRow[]>([])
 
-  const [uploading, setUploading] = useState<'LOGO' | 'COVER' | 'STORE' | null>(null)
+  const [uploading, setUploading] = useState<'LOGO' | 'COVER' | 'STORE' | number | null>(null)
   const [imageError, setImageError] = useState('')
 
   const logoInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const storeInputRef = useRef<HTMLInputElement>(null)
+  const productInputRefs = useRef<Record<number, HTMLInputElement | null>>({})
 
   const load = useCallback(async (sid: string) => {
     if (!sid) return
@@ -60,6 +73,10 @@ export default function BusinessPageClient({ role, storeId }: Props) {
       setBusinessHours(data.business_hours ?? '')
       setNaverReviewUrl(data.naver_review_url ?? '')
       setGoogleReviewUrl(data.google_review_url ?? '')
+      setBusinessType(resolveBusinessType(data.business_type))
+      setParkingInfo(data.parking_info ?? '')
+      setPetFriendly(data.pet_friendly === true)
+      setPridePoints(Array.isArray(data.store_pride_points) ? data.store_pride_points : [])
 
       const media = (data.media ?? []) as { media_type: string; url: string }[]
       setLogoUrl(media.find((m) => m.media_type === 'LOGO')?.url ?? null)
@@ -68,6 +85,12 @@ export default function BusinessPageClient({ role, storeId }: Props) {
 
       setFaqList((data.faq ?? []).map((f: FaqRow) => ({ question: f.question, answer: f.answer })))
       setLinks((data.external_links ?? []).map((l: LinkRow) => ({ platform: l.platform, url: l.url })))
+      setProducts((data.products ?? []).map((p: { name: string; image_url: string | null; price: number | null; description: string | null }) => ({
+        name: p.name,
+        imageUrl: p.image_url ?? null,
+        price: p.price != null ? String(p.price) : '',
+        description: p.description ?? '',
+      })))
     }
     setLoaded(true)
   }, [])
@@ -83,7 +106,7 @@ export default function BusinessPageClient({ role, storeId }: Props) {
     return `${origin}/b/${selectedStore}`
   }, [selectedStore])
 
-  async function uploadImage(file: File, type: 'LOGO' | 'COVER' | 'STORE') {
+  async function uploadImage(file: File, type: 'LOGO' | 'COVER' | 'STORE' | number) {
     setImageError('')
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { setImageError('jpg, png, webp 형식의 이미지만 업로드할 수 있어요'); return }
     if (file.size > MAX_IMAGE_SIZE) { setImageError('이미지는 5MB 이하만 업로드할 수 있어요'); return }
@@ -100,7 +123,8 @@ export default function BusinessPageClient({ role, storeId }: Props) {
 
       if (type === 'LOGO') setLogoUrl(data.url)
       else if (type === 'COVER') setCoverUrl(data.url)
-      else setStorePhotos((prev) => [...prev, data.url])
+      else if (type === 'STORE') setStorePhotos((prev) => [...prev, data.url])
+      else updateProduct(type, { imageUrl: data.url })
     } catch {
       setImageError('네트워크 오류로 업로드에 실패했어요')
     } finally {
@@ -118,6 +142,24 @@ export default function BusinessPageClient({ role, storeId }: Props) {
   function removeLink(i: number) { setLinks((prev) => prev.filter((_, idx) => idx !== i)) }
   function updateLink(i: number, patch: Partial<LinkRow>) {
     setLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)))
+  }
+
+  function addProduct() {
+    if (products.length >= MAX_PRODUCTS) { setImageError(`${PRODUCT_ITEM_LABEL[businessType]}는 최대 ${MAX_PRODUCTS}개까지만 등록할 수 있어요`); return }
+    setProducts((prev) => [...prev, { name: '', imageUrl: null, price: '', description: '' }])
+  }
+  function removeProduct(i: number) { setProducts((prev) => prev.filter((_, idx) => idx !== i)) }
+  function updateProduct(i: number, patch: Partial<ProductRow>) {
+    setProducts((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
+  }
+
+  function addPridePoint() {
+    if (pridePoints.length >= MAX_PRIDE_POINTS) return
+    setPridePoints((prev) => [...prev, ''])
+  }
+  function removePridePoint(i: number) { setPridePoints((prev) => prev.filter((_, idx) => idx !== i)) }
+  function updatePridePoint(i: number, value: string) {
+    setPridePoints((prev) => prev.map((p, idx) => (idx === i ? value : p)))
   }
 
   async function handleSave() {
@@ -144,9 +186,21 @@ export default function BusinessPageClient({ role, storeId }: Props) {
           business_hours: businessHours,
           naver_review_url: naverReviewUrl,
           google_review_url: googleReviewUrl,
+          business_type: businessType,
+          parking_info: parkingInfo,
+          pet_friendly: petFriendly,
+          store_pride_points: pridePoints,
           media,
           faq: faqList,
           external_links: links,
+          products: products
+            .filter((p) => p.name.trim())
+            .map((p) => ({
+              name: p.name.trim(),
+              image_url: p.imageUrl,
+              price: p.price.trim() ? Number(p.price) : null,
+              description: p.description.trim() || null,
+            })),
         }),
       })
       const data = await res.json()
@@ -228,7 +282,16 @@ export default function BusinessPageClient({ role, storeId }: Props) {
             <p className="text-xs text-gray-400">업체명·주소·연락처는 "업체 정보" 메뉴에서 수정할 수 있어요.</p>
 
             <Field label="업종">
-              <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="예: 분식, 카페"
+              <select value={businessType} onChange={(e) => setBusinessType(resolveBusinessType(e.target.value))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 bg-white">
+                {BUSINESS_TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">업종에 따라 아래 "{PRODUCT_SECTION_LABEL[businessType]}" 섹션 이름이 자동으로 바뀌어요.</p>
+            </Field>
+            <Field label="세부 업종 (선택)">
+              <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="예: 분식, 이탈리안, 필라테스"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
             </Field>
             <Field label="소개글">
@@ -240,6 +303,72 @@ export default function BusinessPageClient({ role, storeId }: Props) {
               <input value={businessHours} onChange={(e) => setBusinessHours(e.target.value)} placeholder="예: 매일 11:00~21:00, 일요일 휴무"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
             </Field>
+            <Field label="주차 정보 (선택)">
+              <input value={parkingInfo} onChange={(e) => setParkingInfo(e.target.value)} placeholder="예: 건물 뒤편 무료주차 2대 가능"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+            </Field>
+            <ToggleRow
+              label="반려동물 동반 가능"
+              hint="켜면 매장 정보에 '반려동물 동반 가능' 표시가 붙어요"
+              checked={petFriendly}
+              onChange={setPetFriendly}
+            />
+          </div>
+
+          {/* 대표 상품/메뉴/서비스 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
+            <h2 className="text-sm font-bold text-gray-900">{PRODUCT_SECTION_LABEL[businessType]} ({products.length}/{MAX_PRODUCTS})</h2>
+            {imageError && <p className="text-xs text-red-500">{imageError}</p>}
+            {products.map((p, i) => (
+              <div key={i} className="flex gap-3 border border-gray-100 rounded-lg p-3">
+                <div className="w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center">
+                  {p.imageUrl ? <img src={p.imageUrl} alt="" className="w-full h-full object-cover" /> : <span className="text-gray-300 text-xs">없음</span>}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <input value={p.name} onChange={(e) => updateProduct(i, { name: e.target.value })}
+                      placeholder={`${PRODUCT_ITEM_LABEL[businessType]} 이름`}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+                    <input value={p.price} onChange={(e) => updateProduct(i, { price: e.target.value.replace(/[^0-9]/g, '') })}
+                      placeholder="가격(원)" inputMode="numeric"
+                      className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+                  </div>
+                  <input value={p.description} onChange={(e) => updateProduct(i, { description: e.target.value })}
+                    placeholder="짧은 설명 (선택)"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+                  <div className="flex items-center gap-3">
+                    <input ref={(el) => { productInputRefs.current[i] = el }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadImage(f, i) }} />
+                    <button type="button" onClick={() => productInputRefs.current[i]?.click()} disabled={uploading === i}
+                      className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50">
+                      {uploading === i ? '업로드 중...' : p.imageUrl ? '사진 변경' : '사진 업로드'}
+                    </button>
+                    <button type="button" onClick={() => removeProduct(i)} className="text-sm text-gray-400 hover:text-red-500">삭제</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={addProduct} disabled={products.length >= MAX_PRODUCTS}
+              className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed">
+              + {PRODUCT_ITEM_LABEL[businessType]} 추가
+            </button>
+          </div>
+
+          {/* 우리 매장의 자랑 */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
+            <h2 className="text-sm font-bold text-gray-900">우리 매장의 자랑 ({pridePoints.length}/{MAX_PRIDE_POINTS})</h2>
+            <p className="text-xs text-gray-400">우리 매장만의 강점을 짧은 한 줄로 3~4개 적어주세요. (예: "20년 전통 손맛", "매일 아침 직접 로스팅")</p>
+            {pridePoints.map((p, i) => (
+              <div key={i} className="flex gap-2">
+                <input value={p} onChange={(e) => updatePridePoint(i, e.target.value)} placeholder="예: 20년 전통 손맛"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+                <button type="button" onClick={() => removePridePoint(i)} className="text-gray-400 hover:text-red-500 px-2">삭제</button>
+              </div>
+            ))}
+            <button type="button" onClick={addPridePoint} disabled={pridePoints.length >= MAX_PRIDE_POINTS}
+              className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-40 disabled:cursor-not-allowed">
+              + 자랑거리 추가
+            </button>
           </div>
 
           {/* 사진 */}

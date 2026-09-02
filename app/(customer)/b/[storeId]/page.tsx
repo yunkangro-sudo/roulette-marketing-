@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
-import { getTrustMetrics } from '@/lib/business-page/trustMetrics'
+import { getLiveStats } from '@/lib/business-page/trustMetrics'
+import { resolveBusinessType } from '@/lib/business-page/businessTypeLabels'
 import BusinessPageView from './BusinessPageView'
 
 interface Props {
@@ -12,7 +13,7 @@ interface Props {
 async function loadData(storeId: string) {
   const supabase = createServerClient()
 
-  const [contractRes, entityRes, mediaRes, faqRes, linksRes, eventRes] = await Promise.all([
+  const [contractRes, entityRes, mediaRes, faqRes, linksRes, eventRes, productsRes, rewardCountRes] = await Promise.all([
     supabase
       .from('store_contracts')
       .select('store_name, address, phone, website, daangn_url, kakao_channel_url')
@@ -23,6 +24,8 @@ async function loadData(storeId: string) {
     supabase.from('business_faq').select('question, answer').eq('store_id', storeId).order('sort_order'),
     supabase.from('business_external_links').select('platform, url').eq('store_id', storeId).order('sort_order'),
     supabase.from('events').select('id, name').eq('store_id', storeId).eq('status', 'active').maybeSingle(),
+    supabase.from('business_products').select('name, image_url, price, description').eq('store_id', storeId).order('sort_order'),
+    supabase.from('reward_catalog').select('id', { count: 'exact', head: true }).eq('store_id', storeId).eq('active', true),
   ])
 
   if (!contractRes.data) return null
@@ -49,9 +52,13 @@ async function loadData(storeId: string) {
     business_hours: null,
     naver_review_url: null,
     google_review_url: null,
+    business_type: 'service',
+    parking_info: null,
+    pet_friendly: false,
+    store_pride_points: [],
   }
 
-  const trustMetrics = entity.show_trust_metrics ? await getTrustMetrics(storeId) : null
+  const liveStats = entity.show_trust_metrics ? await getLiveStats(storeId) : null
 
   return {
     storeId,
@@ -67,6 +74,10 @@ async function loadData(storeId: string) {
     businessHours: entity.business_hours as string | null,
     naverReviewUrl: safeHttpUrl(entity.naver_review_url as string | null),
     googleReviewUrl: safeHttpUrl(entity.google_review_url as string | null),
+    businessType: resolveBusinessType(entity.business_type),
+    parkingInfo: entity.parking_info as string | null,
+    petFriendly: entity.pet_friendly === true,
+    pridePoints: (entity.store_pride_points as string[] | null) ?? [],
     logoUrl: mediaRes.data?.find((m) => m.media_type === 'LOGO')?.url ?? null,
     coverUrl: mediaRes.data?.find((m) => m.media_type === 'COVER')?.url ?? null,
     storePhotos: (mediaRes.data ?? []).filter((m) => m.media_type === 'STORE').map((m) => m.url),
@@ -74,7 +85,9 @@ async function loadData(storeId: string) {
     externalLinks: linksRes.data ?? [],
     eventName: eventRes.data?.name ?? null,
     tierLabels: tiers.map((t) => t.label),
-    trustMetrics,
+    products: productsRes.data ?? [],
+    activeRewardCount: rewardCountRes.count ?? 0,
+    liveStats,
   }
 }
 

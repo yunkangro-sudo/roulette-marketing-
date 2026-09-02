@@ -1,3 +1,12 @@
+import { PRODUCT_SECTION_LABEL, type BusinessType } from '@/lib/business-page/businessTypeLabels'
+import LiveStatsToggle from './LiveStatsToggle'
+
+interface PeriodStats {
+  participantCount: number
+  revisitRate: number
+  issuedCount: number
+}
+
 interface BusinessPageData {
   storeId: string
   storeName: string
@@ -12,6 +21,10 @@ interface BusinessPageData {
   businessHours: string | null
   naverReviewUrl: string | null
   googleReviewUrl: string | null
+  businessType: BusinessType
+  parkingInfo: string | null
+  petFriendly: boolean
+  pridePoints: string[]
   logoUrl: string | null
   coverUrl: string | null
   storePhotos: string[]
@@ -19,7 +32,9 @@ interface BusinessPageData {
   externalLinks: { platform: string; url: string }[]
   eventName: string | null
   tierLabels: string[]
-  trustMetrics: { participantCount: number; revisitRate: number } | null
+  products: { name: string; image_url: string | null; price: number | null; description: string | null }[]
+  activeRewardCount: number
+  liveStats: { today: PeriodStats; month: PeriodStats; belowThreshold: boolean } | null
 }
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -40,8 +55,10 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
   }
 
   const hasReview = data.naverReviewUrl || data.googleReviewUrl
-  const hasStoreInfo = data.address || data.businessHours || data.phone || data.externalLinks.length > 0
+  const hasStoreInfo = data.address || data.businessHours || data.phone || data.parkingInfo || data.petFriendly || data.externalLinks.length > 0
   const hasFaq = data.faq.length > 0
+  const showLiveStats = data.liveStats && !data.liveStats.belowThreshold
+  const playUrl = `/play/${encodeURIComponent(data.storeId)}?source=online`
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -58,7 +75,7 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
     <main className="min-h-screen bg-[#F7F5F0] pb-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* 히어로 */}
+      {/* ① 브랜드 히어로 */}
       <section className="relative overflow-hidden bg-[#222222]">
         {data.coverUrl && (
           <img src={data.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-50" />
@@ -72,38 +89,34 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           {data.description && <p className="mt-3 text-sm leading-relaxed text-white/80">{data.description}</p>}
 
           <div className="mt-7">
-            {data.onlinePlayEnabled ? (
-              <a
-                href={`/play/${encodeURIComponent(data.storeId)}?source=online`}
-                className="inline-block w-full rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white shadow-lg transition-colors hover:bg-[#00b296]"
-              >
-                게임하고 쿠폰받기 🎮
-              </a>
-            ) : (
-              <p className="rounded-full border border-white/25 px-6 py-4 text-sm font-semibold text-white/70">
-                매장 방문 시 QR로 참여해보세요
-              </p>
-            )}
+            <PlayCta enabled={data.onlinePlayEnabled} href={playUrl} />
           </div>
         </div>
       </section>
 
       <div className="mx-auto max-w-lg space-y-6 px-5 pt-6">
-        {/* 신뢰지표 */}
-        {data.trustMetrics && (
-          <section className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-white p-5 text-center shadow-sm">
-              <p className="text-2xl font-black text-[#00C7A7]">{data.trustMetrics.participantCount.toLocaleString()}명</p>
-              <p className="mt-1 text-xs font-semibold text-[#222222]/50">이번 달 참여자</p>
-            </div>
-            <div className="rounded-2xl bg-white p-5 text-center shadow-sm">
-              <p className="text-2xl font-black text-[#00C7A7]">{data.trustMetrics.revisitRate}%</p>
-              <p className="mt-1 text-xs font-semibold text-[#222222]/50">재방문율</p>
-            </div>
-          </section>
+        {/* ② 오늘·이번달, 우리 매장 */}
+        {showLiveStats && data.liveStats && (
+          <div className="space-y-3">
+            <LiveStatsToggle today={data.liveStats.today} month={data.liveStats.month} />
+            <MiniCta enabled={data.onlinePlayEnabled} href={playUrl} />
+          </div>
         )}
 
-        {/* 진행중인 이벤트/리워드 미리보기 */}
+        {/* ③ 지금 받을 수 있는 혜택 */}
+        <div className="space-y-3">
+          <section className="rounded-2xl bg-white p-5 shadow-sm">
+            <h2 className="mb-3 text-sm font-bold text-[#222222]">지금 받을 수 있는 혜택</h2>
+            <div className="grid grid-cols-3 gap-2">
+              <BenefitCard icon="🎮" title="게임" desc="랜덤 경품 도전" />
+              <BenefitCard icon="🎫" title="쿠폰" desc="당첨 즉시 저장" />
+              <BenefitCard icon="⭐" title="리워드" desc={data.activeRewardCount > 0 ? `${data.activeRewardCount}종 준비됨` : '포인트로 교환'} />
+            </div>
+          </section>
+          <MiniCta enabled={data.onlinePlayEnabled} href={playUrl} />
+        </div>
+
+        {/* ④ 진행중인 이벤트 */}
         {data.eventName && data.tierLabels.length > 0 && (
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-[#222222]">지금 진행중인 이벤트</h2>
@@ -118,6 +131,29 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           </section>
         )}
 
+        {/* ⑤ 대표 상품/메뉴/서비스 */}
+        {data.products.length > 0 && (
+          <section className="rounded-2xl bg-white p-5 shadow-sm">
+            <h2 className="mb-3 text-sm font-bold text-[#222222]">{PRODUCT_SECTION_LABEL[data.businessType]}</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {data.products.map((p, i) => (
+                <div key={i} className="overflow-hidden rounded-xl border border-[#222222]/5">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.name} className="aspect-square w-full object-cover" />
+                  ) : (
+                    <div className="aspect-square w-full bg-[#F7F5F0]" />
+                  )}
+                  <div className="p-2.5">
+                    <p className="truncate text-sm font-bold text-[#222222]">{p.name}</p>
+                    {p.price != null && <p className="mt-0.5 text-xs font-semibold text-[#00C7A7]">{p.price.toLocaleString()}원</p>}
+                    {p.description && <p className="mt-0.5 truncate text-xs text-[#222222]/50">{p.description}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* 매장 사진 */}
         {data.storePhotos.length > 0 && (
           <section className="grid grid-cols-3 gap-2">
@@ -127,7 +163,7 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           </section>
         )}
 
-        {/* 리뷰 남기기 — 게임/포인트와 무관한 순수 외부링크 */}
+        {/* ⑦ 리뷰 남기기 — 게임/포인트와 무관한 순수 외부링크 */}
         {hasReview && (
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-[#222222]">리뷰 남기기</h2>
@@ -148,7 +184,7 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           </section>
         )}
 
-        {/* 매장 정보 */}
+        {/* ⑧ 매장 정보 */}
         {hasStoreInfo && (
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-[#222222]">매장 정보</h2>
@@ -169,6 +205,18 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
                 <div className="flex gap-2">
                   <dt className="w-14 shrink-0 text-[#222222]/40">연락처</dt>
                   <dd className="text-[#222222]/80">{data.phone}</dd>
+                </div>
+              )}
+              {data.parkingInfo && (
+                <div className="flex gap-2">
+                  <dt className="w-14 shrink-0 text-[#222222]/40">주차</dt>
+                  <dd className="text-[#222222]/80">{data.parkingInfo}</dd>
+                </div>
+              )}
+              {data.petFriendly && (
+                <div className="flex gap-2">
+                  <dt className="w-14 shrink-0 text-[#222222]/40">반려동물</dt>
+                  <dd className="text-[#222222]/80">동반 가능해요 🐾</dd>
                 </div>
               )}
             </dl>
@@ -195,7 +243,21 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           </section>
         )}
 
-        {/* FAQ */}
+        {/* ⑨ 우리 매장의 자랑 */}
+        {data.pridePoints.length > 0 && (
+          <section className="rounded-2xl bg-white p-5 shadow-sm">
+            <h2 className="mb-3 text-sm font-bold text-[#222222]">우리 매장의 자랑</h2>
+            <div className="grid grid-cols-2 gap-2">
+              {data.pridePoints.map((point, i) => (
+                <div key={i} className="rounded-xl bg-[#F7F5F0] px-3 py-3 text-center text-xs font-bold text-[#222222]/80">
+                  {point}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ⑩ FAQ */}
         {hasFaq && (
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-[#222222]">자주 묻는 질문</h2>
@@ -213,5 +275,45 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
         )}
       </div>
     </main>
+  )
+}
+
+function PlayCta({ enabled, href }: { enabled: boolean; href: string }) {
+  if (!enabled) {
+    return (
+      <p className="rounded-full border border-white/25 px-6 py-4 text-sm font-semibold text-white/70">
+        매장 방문 시 QR로 참여해보세요
+      </p>
+    )
+  }
+  return (
+    <a
+      href={href}
+      className="inline-block w-full rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white shadow-lg transition-colors hover:bg-[#00b296]"
+    >
+      게임하고 쿠폰받기 🎮
+    </a>
+  )
+}
+
+function MiniCta({ enabled, href }: { enabled: boolean; href: string }) {
+  if (!enabled) return null
+  return (
+    <a
+      href={href}
+      className="block w-full rounded-full bg-[#222222] px-6 py-3.5 text-center text-sm font-bold text-white transition-colors hover:bg-[#222222]/85"
+    >
+      게임 참여하기 →
+    </a>
+  )
+}
+
+function BenefitCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <div className="rounded-xl bg-[#F7F5F0] px-2 py-4 text-center">
+      <p className="text-xl">{icon}</p>
+      <p className="mt-1.5 text-xs font-black text-[#222222]">{title}</p>
+      <p className="mt-0.5 text-[10px] font-semibold text-[#222222]/45">{desc}</p>
+    </div>
   )
 }

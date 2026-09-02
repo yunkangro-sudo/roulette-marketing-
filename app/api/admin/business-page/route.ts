@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireAdminAuth } from '@/lib/admin/session'
+import { resolveBusinessType } from '@/lib/business-page/businessTypeLabels'
+
+const MAX_PRODUCTS = 6
 
 /** advertiser → 자기 storeId 강제, 그 외 → 쿼리/바디의 store_id 사용 */
 function resolveStoreId(account: { role: string; storeId: string | null }, provided: string | null): string | null {
@@ -25,12 +28,13 @@ export async function GET(req: Request) {
   }
 
   const supabase = createServerClient()
-  const [entityRes, contractRes, mediaRes, faqRes, linksRes] = await Promise.all([
+  const [entityRes, contractRes, mediaRes, faqRes, linksRes, productsRes] = await Promise.all([
     supabase.from('business_entity').select('*').eq('store_id', storeId).maybeSingle(),
     supabase.from('store_contracts').select('store_name, address, phone, website, daangn_url, kakao_channel_url').eq('store_id', storeId).maybeSingle(),
     supabase.from('business_media').select('id, media_type, url, sort_order').eq('store_id', storeId).order('sort_order'),
     supabase.from('business_faq').select('id, question, answer, sort_order').eq('store_id', storeId).order('sort_order'),
     supabase.from('business_external_links').select('id, platform, url, sort_order').eq('store_id', storeId).order('sort_order'),
+    supabase.from('business_products').select('id, name, image_url, price, description, sort_order').eq('store_id', storeId).order('sort_order'),
   ])
 
   const entity = entityRes.data ?? {
@@ -43,6 +47,10 @@ export async function GET(req: Request) {
     business_hours: null,
     naver_review_url: null,
     google_review_url: null,
+    business_type: 'service',
+    parking_info: null,
+    pet_friendly: false,
+    store_pride_points: [],
   }
 
   return NextResponse.json({
@@ -56,12 +64,14 @@ export async function GET(req: Request) {
     media: mediaRes.data ?? [],
     faq: faqRes.data ?? [],
     external_links: linksRes.data ?? [],
+    products: productsRes.data ?? [],
   })
 }
 
 interface MediaInput { media_type: 'LOGO' | 'COVER' | 'STORE'; url: string }
 interface FaqInput { question: string; answer: string }
 interface LinkInput { platform: string; url: string }
+interface ProductInput { name: string; image_url?: string | null; price?: number | null; description?: string | null }
 
 /**
  * POST /api/admin/business-page
@@ -84,13 +94,25 @@ export async function POST(req: Request) {
   const {
     store_id, homepage_enabled, online_play_enabled, show_trust_metrics,
     category, description, business_hours, naver_review_url, google_review_url,
-    media, faq, external_links,
+    business_type, parking_info, pet_friendly, store_pride_points,
+    media, faq, external_links, products,
   } = body ?? {}
 
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) {
     return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
   }
+
+  const productsInput: ProductInput[] = Array.isArray(products)
+    ? products.filter((p: ProductInput) => p?.name?.trim())
+    : []
+  if (productsInput.length > MAX_PRODUCTS) {
+    return NextResponse.json({ error: `대표 상품/메뉴/서비스는 최대 ${MAX_PRODUCTS}개까지만 등록할 수 있어요` }, { status: 400 })
+  }
+
+  const prideInput: string[] = Array.isArray(store_pride_points)
+    ? store_pride_points.map((s: string) => s?.trim()).filter(Boolean)
+    : []
 
   const supabase = createServerClient()
 
@@ -104,6 +126,10 @@ export async function POST(req: Request) {
     business_hours: business_hours?.trim() || null,
     naver_review_url: naver_review_url?.trim() || null,
     google_review_url: google_review_url?.trim() || null,
+    business_type: resolveBusinessType(business_type),
+    parking_info: parking_info?.trim() || null,
+    pet_friendly: pet_friendly === true,
+    store_pride_points: prideInput,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'store_id' })
 
@@ -113,10 +139,11 @@ export async function POST(req: Request) {
   const faqInput: FaqInput[] = Array.isArray(faq) ? faq : []
   const linksInput: LinkInput[] = Array.isArray(external_links) ? external_links : []
 
-  const [, , ] = await Promise.all([
+  await Promise.all([
     supabase.from('business_media').delete().eq('store_id', storeId),
     supabase.from('business_faq').delete().eq('store_id', storeId),
     supabase.from('business_external_links').delete().eq('store_id', storeId),
+    supabase.from('business_products').delete().eq('store_id', storeId),
   ])
 
   const inserts: PromiseLike<{ error: { message: string } | null }>[] = []
@@ -143,6 +170,20 @@ export async function POST(req: Request) {
         linksInput
           .filter((l) => l.platform?.trim() && l.url?.trim())
           .map((l, i) => ({ store_id: storeId, platform: l.platform.trim(), url: l.url.trim(), sort_order: i })),
+      ),
+    )
+  }
+  if (productsInput.length > 0) {
+    inserts.push(
+      supabase.from('business_products').insert(
+        productsInput.map((p, i) => ({
+          store_id: storeId,
+          name: p.name.trim(),
+          image_url: p.image_url || null,
+          price: p.price != null && p.price !== undefined ? Number(p.price) || null : null,
+          description: p.description?.trim() || null,
+          sort_order: i,
+        })),
       ),
     )
   }
