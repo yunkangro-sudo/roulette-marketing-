@@ -44,6 +44,8 @@ export async function GET(req: Request) {
     show_trust_metrics: true,
     category: null,
     description: null,
+    tagline: null,
+    game_cta_label: null,
     business_hours: null,
     naver_review_url: null,
     google_review_url: null,
@@ -93,7 +95,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null)
   const {
     store_id, homepage_enabled, online_play_enabled, show_trust_metrics,
-    category, description, business_hours, naver_review_url, google_review_url,
+    category, description, tagline, game_cta_label, business_hours, naver_review_url, google_review_url,
     business_type, parking_info, pet_friendly, store_pride_points,
     media, faq, external_links, products,
   } = body ?? {}
@@ -123,6 +125,8 @@ export async function POST(req: Request) {
     show_trust_metrics: show_trust_metrics !== false,
     category: category?.trim() || null,
     description: description?.trim() || null,
+    tagline: tagline?.trim() || null,
+    game_cta_label: game_cta_label?.trim() || null,
     business_hours: business_hours?.trim() || null,
     naver_review_url: naver_review_url?.trim() || null,
     google_review_url: google_review_url?.trim() || null,

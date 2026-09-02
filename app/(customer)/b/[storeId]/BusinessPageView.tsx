@@ -18,6 +18,8 @@ interface BusinessPageData {
   onlinePlayEnabled: boolean
   category: string | null
   description: string | null
+  tagline: string | null
+  gameCtaLabel: string | null
   businessHours: string | null
   naverReviewUrl: string | null
   googleReviewUrl: string | null
@@ -86,10 +88,13 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
           )}
           <h1 className="text-[26px] font-black leading-tight text-white">{data.storeName}</h1>
           {data.category && <p className="mt-1 text-sm font-semibold text-white/70">{data.category}</p>}
+          {data.tagline && (
+            <p className="mt-4 whitespace-pre-line text-lg font-bold leading-snug text-white">{data.tagline}</p>
+          )}
           {data.description && <p className="mt-3 text-sm leading-relaxed text-white/80">{data.description}</p>}
 
           <div className="mt-7">
-            <PlayCta enabled={data.onlinePlayEnabled} href={playUrl} />
+            <PlayCta enabled={data.onlinePlayEnabled} href={playUrl} label={data.gameCtaLabel} />
           </div>
         </div>
       </section>
@@ -278,7 +283,7 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
   )
 }
 
-function PlayCta({ enabled, href }: { enabled: boolean; href: string }) {
+function PlayCta({ enabled, href, label }: { enabled: boolean; href: string; label?: string | null }) {
   if (!enabled) {
     return (
       <p className="rounded-full border border-white/25 px-6 py-4 text-sm font-semibold text-white/70">
@@ -291,7 +296,7 @@ function PlayCta({ enabled, href }: { enabled: boolean; href: string }) {
       href={href}
       className="inline-block w-full rounded-full bg-[#00C7A7] px-10 py-4 text-lg font-bold text-white shadow-lg transition-colors hover:bg-[#00b296]"
     >
-      게임하고 쿠폰받기 🎮
+      {label?.trim() || '게임하고 쿠폰받기 🎮'}
     </a>
   )
 }

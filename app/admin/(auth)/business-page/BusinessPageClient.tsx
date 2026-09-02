@@ -34,6 +34,8 @@ export default function BusinessPageClient({ role, storeId }: Props) {
   const [showTrustMetrics, setShowTrustMetrics] = useState(true)
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
+  const [tagline, setTagline] = useState('')
+  const [gameCtaLabel, setGameCtaLabel] = useState('')
   const [businessHours, setBusinessHours] = useState('')
   const [naverReviewUrl, setNaverReviewUrl] = useState('')
   const [googleReviewUrl, setGoogleReviewUrl] = useState('')
@@ -70,6 +72,8 @@ export default function BusinessPageClient({ role, storeId }: Props) {
       setShowTrustMetrics(data.show_trust_metrics !== false)
       setCategory(data.category ?? '')
       setDescription(data.description ?? '')
+      setTagline(data.tagline ?? '')
+      setGameCtaLabel(data.game_cta_label ?? '')
       setBusinessHours(data.business_hours ?? '')
       setNaverReviewUrl(data.naver_review_url ?? '')
       setGoogleReviewUrl(data.google_review_url ?? '')
@@ -183,6 +187,8 @@ export default function BusinessPageClient({ role, storeId }: Props) {
           show_trust_metrics: showTrustMetrics,
           category,
           description,
+          tagline,
+          game_cta_label: gameCtaLabel,
           business_hours: businessHours,
           naver_review_url: naverReviewUrl,
           google_review_url: googleReviewUrl,
@@ -294,10 +300,21 @@ export default function BusinessPageClient({ role, storeId }: Props) {
               <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="예: 분식, 이탈리안, 필라테스"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
             </Field>
+            <Field label="히어로 메인 카피 (선택)">
+              <textarea value={tagline} onChange={(e) => setTagline(e.target.value)} rows={2}
+                placeholder={'감성적인 헤드라인, 줄바꿈 가능\n예: 오늘 먹고 끝내지 말고,\n다음에도 생각나는 고깃집.'}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 resize-none" />
+              <p className="text-xs text-gray-400 mt-1">비워두면 히어로에 이 문구가 표시되지 않아요 (소개글만 노출).</p>
+            </Field>
             <Field label="소개글">
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
                 placeholder="매장을 한 줄~짧은 문단으로 소개해주세요"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 resize-none" />
+            </Field>
+            <Field label="게임 버튼 문구 (선택)">
+              <input value={gameCtaLabel} onChange={(e) => setGameCtaLabel(e.target.value)} placeholder="예: 🎮 오늘의 고기 뽑기"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500" />
+              <p className="text-xs text-gray-400 mt-1">비워두면 기본 문구(&quot;게임하고 쿠폰받기 🎮&quot;)가 표시돼요.</p>
             </Field>
             <Field label="영업시간">
               <input value={businessHours} onChange={(e) => setBusinessHours(e.target.value)} placeholder="예: 매일 11:00~21:00, 일요일 휴무"
