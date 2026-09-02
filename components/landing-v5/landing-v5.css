@@ -244,3 +244,9 @@
     animation: none !important;
   }
 }
+
+/* 모바일 카드 캐러셀(작동 원리 등) — 스크롤은 가능하되 스크롤바는 숨겨서
+   스와이프 캐러셀처럼 보이게 한다. Firefox는 인라인 style로 별도 처리. */
+.landing-v5 .no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

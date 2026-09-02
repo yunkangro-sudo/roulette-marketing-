@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift } from 'lucide-react'
+import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
 import { BasicApplyModal, AeoWaitlistModal, BankRow } from './PricingModals'
@@ -220,35 +220,133 @@ export function PositioningSection() {
   )
 }
 
+const HOW_IT_WORKS_STEPS = [
+  {
+    n: '01',
+    title: '게임에 참여합니다',
+    body: 'QR 하나면 충분합니다. 로그인 없이, 부담 없이 바로 게임이 시작됩니다.',
+    shot: '01' as const,
+  },
+  {
+    n: '02',
+    title: '선물을 확인합니다',
+    body: '게임이 끝나면 카카오 로그인 한 번으로 결과를 확인합니다.',
+    shot: '04' as const,
+  },
+  {
+    n: '03',
+    title: '단골이 됩니다',
+    body: '선물을 받으려면 당근마켓 단골 인증이 필요합니다.',
+    shot: '09' as const,
+  },
+]
+
+/** 모바일 전용 가로 스와이프 캐러셀 — 다음 카드가 오른쪽에 살짝 보이는 peek 효과 +
+ *  좌우 화살표 버튼 + 하단 페이지네이션 dot을 함께 적용해 "옆으로 넘겨보는 단계형
+ *  콘텐츠"라는 것을 자연스럽게 인지시킨다. PC 3열 그리드는 별도로 그대로 유지한다. */
+function HowItWorksMobileCarousel({ steps }: { steps: typeof HOW_IT_WORKS_STEPS }) {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const [index, setIndex] = useState(0)
+
+  function scrollToIndex(i: number) {
+    const track = trackRef.current
+    const card = track?.children[i] as HTMLElement | undefined
+    if (!track || !card) return
+    track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: 'smooth' })
+  }
+
+  function handleScroll() {
+    const track = trackRef.current
+    if (!track) return
+    const trackLeft = track.getBoundingClientRect().left
+    let closest = 0
+    let minDist = Infinity
+    Array.from(track.children).forEach((child, i) => {
+      const dist = Math.abs((child as HTMLElement).getBoundingClientRect().left - trackLeft)
+      if (dist < minDist) {
+        minDist = dist
+        closest = i
+      }
+    })
+    setIndex(closest)
+  }
+
+  const isFirst = index === 0
+  const isLast = index === steps.length - 1
+
+  return (
+    <div className="relative md:hidden">
+      <div
+        ref={trackRef}
+        onScroll={handleScroll}
+        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-5 px-5 pb-1"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {steps.map((step) => (
+          <article
+            key={step.n}
+            className="w-[88%] shrink-0 snap-start border border-dg-line bg-white p-4"
+            style={{ borderRadius: 6 }}
+          >
+            <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
+            <h3 className="mt-2 text-[19px] text-dg-ink">{step.title}</h3>
+            <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-dg-ink-soft">{step.body}</p>
+            <div className="mt-4 flex justify-center">
+              <ScreenshotSlot shotId={step.shot} maxWidth={160} />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* 좌우 화살표 — 카드 영역 위에 살짝 겹치듯 배치, 미니멀한 톤 유지 */}
+      <button
+        type="button"
+        aria-label="이전 단계"
+        disabled={isFirst}
+        onClick={() => scrollToIndex(index - 1)}
+        className="absolute left-1 top-[92px] flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
+        style={{ borderRadius: 999 }}
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+      </button>
+      <button
+        type="button"
+        aria-label="다음 단계"
+        disabled={isLast}
+        onClick={() => scrollToIndex(index + 1)}
+        className="absolute right-1 top-[92px] flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
+        style={{ borderRadius: 999 }}
+      >
+        <ChevronRight size={18} strokeWidth={2} />
+      </button>
+
+      {/* 페이지네이션 dot — 현재 단계만 그린으로 표시 */}
+      <div className="mt-4 flex items-center justify-center gap-2">
+        {steps.map((step, i) => (
+          <span
+            key={step.n}
+            className={`h-2 w-2 rounded-full transition-colors ${i === index ? 'bg-dg-green' : 'bg-dg-line'}`}
+            aria-hidden="true"
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function HowItWorks({ onCta }: CtaProps) {
-  const steps = [
-    {
-      n: '01',
-      title: '게임에 참여합니다',
-      body: 'QR 하나면 충분합니다. 로그인 없이, 부담 없이 바로 게임이 시작됩니다.',
-      shot: '01' as const,
-    },
-    {
-      n: '02',
-      title: '선물을 확인합니다',
-      body: '게임이 끝나면 카카오 로그인 한 번으로 결과를 확인합니다.',
-      shot: '04' as const,
-    },
-    {
-      n: '03',
-      title: '단골이 됩니다',
-      body: '선물을 받으려면 당근마켓 단골 인증이 필요합니다.',
-      shot: '09' as const,
-    },
-  ]
+  const steps = HOW_IT_WORKS_STEPS
 
   return (
     <section id="process" className="scroll-mt-20 py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-5">
-        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">작동 원리</p>
-        <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
+      <div className="mx-auto max-w-6xl md:px-5">
+        <div className="px-5 md:px-0">
+          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">작동 원리</p>
+          <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
+        </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        {/* PC: 3열 그리드 유지 / 모바일: 가로 스와이프 캐러셀로 전환 */}
+        <div className="mt-12 hidden gap-4 px-5 md:grid md:grid-cols-3 md:px-0">
           {steps.map((step) => (
             <article key={step.n} className="border border-dg-line bg-white p-5" style={{ borderRadius: 6 }}>
               <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
@@ -260,7 +358,11 @@ export function HowItWorks({ onCta }: CtaProps) {
             </article>
           ))}
         </div>
+        <div className="mt-12">
+          <HowItWorksMobileCarousel steps={steps} />
+        </div>
 
+        <div className="px-5 md:px-0">
         {/* 프로세스 3단계를 요약하는 문구라 특정 단계 카드에 종속시키지 않고,
             전체 폭을 쓰는 독립 배너로 분리 — 그리드 stretch로 옆 카드 높이에
             억지로 맞춰지며 하단에 빈 공간이 생기던 문제를 근본적으로 없앤다 */}
@@ -283,6 +385,7 @@ export function HowItWorks({ onCta }: CtaProps) {
             <span aria-hidden="true">→</span>
           </button>
         </article>
+        </div>
       </div>
     </section>
   )
