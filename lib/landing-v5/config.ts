@@ -82,6 +82,8 @@ export const ROI_ASSUMPTIONS = {
   sliderStep: 10,
   sliderDefault: 100,
   exampleGuests: 100,
+  /** 슬라이더 아래 표시되는 참고 힌트 — 항상 sliderMin~sliderMax 범위 안의 값이어야 한다 */
+  sliderHints: [20, 100, 200, 300] as const,
   /** 하루 단위 입력값을 월간 예상치로 환산할 때 쓰는 기준 일수 */
   daysPerMonth: 30,
 } as const

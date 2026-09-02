@@ -96,37 +96,37 @@
 .landing-v5 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: var(--green);
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(0, 199, 167, 0.18), 0 2px 6px rgba(0, 0, 0, 0.25);
   cursor: grab;
 }
 
 .landing-v5 input[type="range"]::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   background: var(--green);
-  border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(0, 199, 167, 0.18), 0 2px 6px rgba(0, 0, 0, 0.25);
   cursor: grab;
 }
 
-/* 터치 기기에서 슬라이더 그립이 더 커지도록 — 데스크톱 22px, 터치 기기 28px */
+/* 터치 기기에서 슬라이더 그립이 더 커지도록 — 데스크톱 26px, 터치 기기 32px */
 @media (pointer: coarse) {
   .landing-v5 input[type="range"] {
     height: 6px;
   }
   .landing-v5 input[type="range"]::-webkit-slider-thumb {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
   .landing-v5 input[type="range"]::-moz-range-thumb {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
 }
 

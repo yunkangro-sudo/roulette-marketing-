@@ -550,7 +550,7 @@ export function ProofSection() {
               ))}
             </div>
           </div>
-          <ScreenshotSlot shotId="10" tone="dark" fit="contain" />
+          <ScreenshotSlot shotId="10" tone="dark" fit="contain" maxWidth={320} />
         </div>
       </div>
 
@@ -561,8 +561,11 @@ export function ProofSection() {
       <div className="bg-white pb-20 md:pb-28">
         <div className="mx-auto max-w-6xl px-5">
           <h3 className="text-center text-[22px] font-bold text-dg-ink md:text-[26px]">
-            그래서, 우리 매장은 얼마나 남을까요?
+            우리 매장이라면 얼마나 달라질까요?
           </h3>
+          <p className="mt-2 text-center text-[14px] text-dg-ink-soft">
+            손님 수를 직접 조절해 예상 결과를 확인해보세요
+          </p>
           <div className="mt-8">
             <RoiCalculator />
           </div>

@@ -66,8 +66,10 @@ export default function RoiCalculator() {
             <label className="mt-6 block">
               <span className="text-[14px] text-white/70">우리 매장 하루 평균 손님 수</span>
               <div className="mt-3 flex items-end justify-between">
-                <span className="font-num text-[42px] font-bold leading-none text-dg-green">{dailyGuests}</span>
-                <span className="pb-1 text-[13px] text-white/45">명</span>
+                <span className="font-num text-[48px] font-bold leading-none text-dg-green md:text-[52px]">
+                  {dailyGuests}
+                </span>
+                <span className="pb-1.5 text-[13px] text-white/45">명</span>
               </div>
               <input
                 type="range"
@@ -78,7 +80,15 @@ export default function RoiCalculator() {
                 onChange={(e) => setDailyGuests(Number(e.target.value))}
                 className="mt-5"
               />
+              <div className="mt-2 flex items-center justify-between text-[11px] text-white/35">
+                {ROI_ASSUMPTIONS.sliderHints.map((hint) => (
+                  <span key={hint}>{hint.toLocaleString('ko-KR')}명</span>
+                ))}
+              </div>
             </label>
+            <p className="mt-3 text-center text-[12px] text-white/40">
+              ← 손님 수를 직접 조절해보세요 →
+            </p>
 
             <dl className="mt-8 space-y-4 text-[15px]">
               <Row label="월 예상 재방문 손님" value={`${live.revisits.toLocaleString('ko-KR')}명`} />
