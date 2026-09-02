@@ -375,6 +375,88 @@ export function ContentOpsModal({ onClose }: Props) {
   )
 }
 
+type HomepagePhase = 'form' | 'submitting' | 'done'
+
+/** "우리 매장 홈페이지" 제작 상담 신청 — 콘텐츠 운영 상담과 동일하게 즉시 결제가 아닌
+ *  리드 수집이라 signup_inquiries를 재사용하고 source로만 구분한다. */
+export function HomepageServiceModal({ onClose }: Props) {
+  useModalChrome(onClose)
+  const [phase, setPhase] = useState<HomepagePhase>('form')
+  const [storeName, setStoreName] = useState('')
+  const [ownerName, setOwnerName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  async function submit() {
+    if (!storeName.trim() || !ownerName.trim() || !phone.trim()) {
+      setError('매장명, 담당자명, 연락처를 모두 입력해주세요')
+      return
+    }
+    setError(null)
+    setPhase('submitting')
+    try {
+      const res = await fetch('/api/signup-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          storeName,
+          ownerName,
+          phone,
+          source: 'landing_v5_pricing_homepage',
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || '신청에 실패했습니다')
+      setPhase('done')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '신청에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      setPhase('form')
+    }
+  }
+
+  return (
+    <ModalShell
+      onClose={onClose}
+      labelId="homepage-service-title"
+      title={phase === 'done' ? '상담 신청 완료' : '홈페이지 제작 상담'}
+    >
+      {phase !== 'done' ? (
+        <div className="space-y-4">
+          <p className="text-[13px] leading-relaxed text-dg-ink-soft">
+            매장 정보를 남겨주시면, 담당자가 홈페이지 제작 상담을 위해 연락드려요.
+          </p>
+          <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
+          <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />
+          <Field label="연락처" value={phone} onChange={setPhone} placeholder="010-0000-0000" type="tel" />
+          {error && <p className="text-[13px] text-dg-danger">{error}</p>}
+          <button
+            type="button"
+            onClick={submit}
+            disabled={phase === 'submitting'}
+            className="mt-2 h-12 w-full border border-dg-ink bg-white text-[15px] font-bold text-dg-ink transition-colors hover:bg-dg-cream disabled:opacity-60"
+            style={{ borderRadius: 6 }}
+          >
+            {phase === 'submitting' ? '접수 중...' : '상담 신청하기'}
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center py-4 text-center">
+          <p className="text-[18px] font-bold text-dg-ink">상담 신청이 접수됐어요!</p>
+          <p className="mt-2 text-[13px] text-dg-ink-soft">담당자가 확인 후 빠르게 연락드릴게요.</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-6 h-12 w-full border border-dg-ink/20 bg-white text-[14px] font-bold text-dg-ink transition-colors hover:bg-dg-cream"
+            style={{ borderRadius: 6 }}
+          >
+            닫기
+          </button>
+        </div>
+      )}
+    </ModalShell>
+  )
+}
+
 type AeoPhase = 'form' | 'submitting' | 'done'
 
 /** AEO마케팅(준비중) 출시 알림 대기자 등록 — 결제 의사 없는 리드라 별도 테이블(aeo_waitlist)로 분리. */

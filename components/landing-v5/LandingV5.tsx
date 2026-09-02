@@ -15,6 +15,7 @@ import {
   ProofSection,
   CarrotChannelSection,
   ChannelTrust,
+  HomepageServiceSection,
   PricingSection,
   FinalCta,
   Footer,
@@ -57,6 +58,7 @@ export default function LandingV5() {
         <CarrotChannelSection />
         <ChannelTrust />
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
+        <HomepageServiceSection />
         <PricingSection />
         <FaqSection />
         <FinalCta onCta={() => setFinalApplyOpen(true)} onPreview={() => setAdminPreviewOpen(true)} />

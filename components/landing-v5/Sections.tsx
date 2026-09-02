@@ -2,15 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { BasicApplyModal, ContentOpsModal, BankRow } from './PricingModals'
+import { BasicApplyModal, ContentOpsModal, HomepageServiceModal, BankRow } from './PricingModals'
 import {
   PRICING,
   PRICING_BASIC_DISCOUNT_AMOUNT,
   PRICING_BASIC_TODAY_TOTAL,
   CONTENT_OPS,
+  HOMEPAGE_SERVICE,
   LAUNCH_EVENT,
   BANK_ACCOUNT,
   KAKAO_CONSULT_URL,
@@ -732,9 +733,138 @@ export function ChannelTrust() {
   )
 }
 
+/** 실제 매장(고객 개인정보 포함)을 캡처하지 않도록, /b/[storeId] 화면 구조를 예시 데이터로
+ *  재구성한 목업. 숫자·매장명은 모두 예시이며 특정 업체 정보를 담지 않는다. */
+function BusinessPageMock() {
+  return (
+    <div
+      className="relative mx-auto w-full max-w-[280px] overflow-hidden border border-dg-line bg-dg-bg shadow-[0_20px_48px_rgba(0,0,0,0.18)]"
+      style={{ aspectRatio: '9 / 19.5', borderRadius: 12 }}
+    >
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="bg-dg-ink px-4 pb-5 pt-7 text-center">
+          <div className="mx-auto h-9 w-9 rounded-full bg-white/15" />
+          <p className="mt-2.5 text-[13px] font-black text-white">OO 매장</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-white/55">카페 · 디저트</p>
+          <div className="mx-auto mt-3.5 rounded-full bg-dg-green py-2 text-[10.5px] font-bold text-dg-ink">
+            게임하고 쿠폰받기
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-2 px-3 py-3">
+          <div className="rounded-lg bg-white p-2.5 shadow-sm">
+            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">지금 받을 수 있는 혜택</p>
+            <div className="grid grid-cols-3 gap-1.5 text-center">
+              {['🎮 게임', '🎫 쿠폰', '⭐ 리워드'].map((label) => (
+                <div key={label} className="rounded-md bg-dg-bg py-2 text-[8px] font-bold text-dg-ink">
+                  {label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-white p-2.5 shadow-sm">
+            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">대표 메뉴</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="aspect-square rounded-md bg-dg-bg" />
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-white p-2.5 shadow-sm">
+            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">매장 정보</p>
+            <div className="space-y-1 text-[8px] leading-relaxed text-dg-ink-soft">
+              <p>위치 · OO시 OO로 12</p>
+              <p>영업시간 · 매일 10:00~21:00</p>
+              <p>연락처 · 0507-0000-0000</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-white p-2.5 shadow-sm">
+            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">리뷰 남기기</p>
+            <div className="flex gap-1.5">
+              <div className="flex-1 rounded-full border border-dg-line py-1.5 text-center text-[8px] font-bold text-dg-ink">
+                네이버
+              </div>
+              <div className="flex-1 rounded-full border border-dg-line py-1.5 text-center text-[8px] font-bold text-dg-ink">
+                구글
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** "우리 매장 홈페이지"(/b/[storeId], 이미 구현된 기능) 소개 섹션 — 당근 연동/채널 흐름 설명이
+ *  끝난 뒤, 요금제로 넘어가기 전에 부가 자산으로서 홈페이지를 짧게 소개한다. */
+export function HomepageServiceSection() {
+  const features = [
+    { icon: Gift, label: '게임 · 쿠폰 · 리워드' },
+    { icon: CalendarCheck, label: '진행 중인 이벤트' },
+    { icon: UtensilsCrossed, label: '대표 메뉴 · 서비스' },
+    { icon: Star, label: '네이버 · 구글 리뷰 연결' },
+    { icon: Navigation, label: '위치 · 영업시간 · 연락처 · 길찾기' },
+    { icon: Sparkles, label: '우리 매장의 자랑 및 홍보 콘텐츠' },
+  ]
+
+  return (
+    <section className="bg-white py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">우리 매장 홈페이지</p>
+            <h2 className="mt-3 text-[28px] leading-snug text-dg-ink md:text-[38px]">
+              홈페이지를 만드는 게 아닙니다.
+              <br />
+              손님이 다시 올 이유가 <span className="text-dg-green-deep">쌓이는 공간</span>을 만듭니다.
+            </h2>
+            <p className="mt-5 text-[15px] leading-relaxed text-dg-ink-soft">
+              게임만 하고 떠나는 것이 아닙니다.
+              <br />
+              게임, 쿠폰, 이벤트부터 메뉴, 리뷰, 매장 정보까지
+              <br />
+              고객이 우리 매장을 다시 찾을 이유를 한 곳에 담아드립니다.
+            </p>
+
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              {features.map(({ icon: Icon, label }) => (
+                <div
+                  key={label}
+                  className="flex items-start gap-2.5 border border-dg-line bg-dg-bg p-4"
+                  style={{ borderRadius: 6 }}
+                >
+                  <Icon size={17} className="mt-0.5 shrink-0 text-dg-green-deep" strokeWidth={1.75} />
+                  <p className="text-[13px] leading-snug text-dg-ink">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-8 text-[14px] leading-relaxed text-dg-ink-soft">
+              게임과 혜택으로 방문을 만들고,
+              <br />
+              매장 홈페이지에서 우리 매장을 다시 기억하게 합니다.
+            </p>
+          </div>
+
+          <div>
+            <BusinessPageMock />
+            <p className="mt-4 text-center text-[13px] text-dg-ink-soft">
+              게임 · 쿠폰 · 매장 정보를 한 곳에 (예시 화면)
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function PricingSection() {
   const [applyOpen, setApplyOpen] = useState(false)
   const [consultOpen, setConsultOpen] = useState(false)
+  const [homepageConsultOpen, setHomepageConsultOpen] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const basic = PRICING.basic
   const contentOps = CONTENT_OPS
@@ -750,9 +880,9 @@ export function PricingSection() {
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
-        <h2 className="text-[32px] text-dg-ink md:text-[44px]">
-          <span className="mt-3 block">지금 시작하는 100개 매장만</span>
-          <span className="mt-1 block text-dg-green-deep">월 19,000원으로 시작하세요</span>
+        <h2 className="leading-snug text-dg-ink" style={{ fontSize: 'clamp(21px, 5.6vw, 44px)' }}>
+          <span className="mt-3 block whitespace-nowrap">지금 시작하는 100개 매장만</span>
+          <span className="mt-1 block whitespace-nowrap text-dg-green-deep">월 19,000원으로 시작하세요</span>
         </h2>
         <p className="mt-4 text-[15px] text-dg-ink-soft">
           월 39,000원 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
@@ -908,6 +1038,67 @@ export function PricingSection() {
           </article>
         </div>
 
+        {/* 추가 서비스 — 우리 매장 홈페이지. 이미 만들어져 있는 /b/[storeId] 공개 홈페이지
+            기능에 가격을 붙인 부가 상품이라 별도 카드 그리드가 아닌 독립 블록으로 구분한다. */}
+        <div className="mt-14 border-t border-dg-line pt-14">
+          <div className="mx-auto max-w-lg text-center">
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">추가 서비스 · {HOMEPAGE_SERVICE.name}</p>
+            <h3 className="mt-2 whitespace-pre-line text-[24px] font-bold leading-snug text-dg-ink md:text-[28px]">
+              {HOMEPAGE_SERVICE.headline}
+            </h3>
+            <p className="mx-auto mt-4 whitespace-pre-line text-[13.5px] leading-relaxed text-dg-ink-soft">
+              {HOMEPAGE_SERVICE.differentiator}
+            </p>
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
+            <article className="border-2 border-dg-green bg-white p-6" style={{ borderRadius: 10 }}>
+              <p className="text-[12px] font-bold text-dg-green-deep">{HOMEPAGE_SERVICE.setup.label}</p>
+              <p className="mt-1 whitespace-nowrap font-num text-[28px] font-bold text-dg-ink sm:text-[30px]">
+                {formatWon(HOMEPAGE_SERVICE.setup.price)}
+                <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">({HOMEPAGE_SERVICE.setup.note})</span>
+              </p>
+              <p className="mt-4 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.setup.title}</p>
+              <ul className="mt-3 space-y-1.5">
+                {HOMEPAGE_SERVICE.setup.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
+                    <Check size={14} className="mt-0.5 shrink-0 text-dg-green-deep" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="border border-dg-line bg-dg-bg p-6" style={{ borderRadius: 10 }}>
+              <p className="text-[12px] font-bold text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.label}</p>
+              <p className="mt-1 whitespace-nowrap font-num text-[28px] font-bold text-dg-ink sm:text-[30px]">
+                {formatWon(HOMEPAGE_SERVICE.maintenance.price)}
+                <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">/ {HOMEPAGE_SERVICE.maintenance.note}</span>
+              </p>
+              <p className="mt-4 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.maintenance.title}</p>
+              <ul className="mt-3 space-y-1.5">
+                {HOMEPAGE_SERVICE.maintenance.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
+                    <Check size={14} className="mt-0.5 shrink-0 text-dg-ink-soft" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </div>
+
+          <div className="mx-auto mt-6 max-w-3xl text-center">
+            <button
+              type="button"
+              onClick={() => setHomepageConsultOpen(true)}
+              className="min-h-[52px] w-full max-w-sm border-2 border-dg-ink bg-white px-8 text-[15px] font-bold text-dg-ink transition-colors hover:bg-dg-cream sm:w-auto"
+              style={{ borderRadius: 6 }}
+            >
+              홈페이지 제작 상담받기
+            </button>
+          </div>
+        </div>
+
         {/* 구분 — 요금제 안내와 별도 이벤트 참여는 다른 성격의 콘텐츠임을 명확히 */}
         <div className="mt-14 border-t border-dg-line pt-14">
           <div className="text-center">
@@ -1002,6 +1193,7 @@ export function PricingSection() {
 
       {applyOpen && <BasicApplyModal onClose={() => setApplyOpen(false)} />}
       {consultOpen && <ContentOpsModal onClose={() => setConsultOpen(false)} />}
+      {homepageConsultOpen && <HomepageServiceModal onClose={() => setHomepageConsultOpen(false)} />}
     </section>
   )
 }
