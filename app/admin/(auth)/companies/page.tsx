@@ -37,6 +37,7 @@ export default async function CompaniesPage() {
       contractor_name: c.contractor_name,
       subscriptionEndDate: classified.endDate,
       status: classified.status,
+      is_demo: c.is_demo === true,
     }
   })
 

@@ -16,7 +16,7 @@ async function loadData(storeId: string) {
   const [contractRes, entityRes, mediaRes, faqRes, linksRes, eventRes, productsRes, rewardCountRes] = await Promise.all([
     supabase
       .from('store_contracts')
-      .select('store_name, address, phone, website, daangn_url, kakao_channel_url')
+      .select('store_name, address, phone, website, daangn_url, kakao_channel_url, is_demo')
       .eq('store_id', storeId)
       .maybeSingle(),
     supabase.from('business_entity').select('*').eq('store_id', storeId).maybeSingle(),
@@ -63,6 +63,7 @@ async function loadData(storeId: string) {
   return {
     storeId,
     storeName: contractRes.data.store_name || storeId,
+    isDemo: contractRes.data.is_demo === true,
     address: contractRes.data.address ?? null,
     phone: contractRes.data.phone ?? null,
     daangnUrl: safeHttpUrl(contractRes.data.daangn_url),
@@ -102,6 +103,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    // 영업 시연용 샘플 매장은 접속은 되지만 검색결과에는 노출되지 않아야 한다
+    ...(data.isDemo ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title,
       description,

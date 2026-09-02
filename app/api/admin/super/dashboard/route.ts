@@ -44,8 +44,24 @@ export async function GET(request: Request) {
 
   const supabase = createServerClient()
 
+  // 데모(샘플) 매장 store_id 목록을 먼저 뽑아서, 아래 모든 집계 쿼리에서 제외한다.
+  // store_contracts가 아니라 activity_log/coupons/customer_loyalty/reward_catalog처럼
+  // store_id만 text로 들고 있는 테이블들은 join이 아니라 각 쿼리에 개별적으로
+  // "이 store_id들은 빼줘" 필터를 걸어야 해서, 쿼리 하나하나에 손을 대야 한다.
+  const { data: allStoreRows } = await supabase
+    .from('store_contracts')
+    .select('id, store_id, store_name, created_at, is_demo')
+
+  const demoStoreIds = (allStoreRows ?? []).filter((s) => s.is_demo).map((s) => s.store_id)
+  const allStores = (allStoreRows ?? []).filter((s) => !s.is_demo)
+
+  /** 데모 매장 store_id를 제외하는 필터. 데모 매장이 하나도 없으면 그대로 통과 */
+  function excludeDemo<T extends { not: (col: string, op: string, val: string) => T }>(query: T): T {
+    if (demoStoreIds.length === 0) return query
+    return query.not('store_id', 'in', `(${demoStoreIds.join(',')})`)
+  }
+
   const [
-    { data: stores },
     { data: subscriptions },
     participantsResult,
     couponsResult,
@@ -58,78 +74,95 @@ export async function GET(request: Request) {
     cohortResult,
     convertedResult,
   ] = await Promise.all([
-    supabase.from('store_contracts').select('id, store_id, store_name, created_at'),
-    supabase
-      .from('subscriptions')
-      .select('store_id, start_date, end_date, amount_paid, created_at')
-      .order('end_date', { ascending: false }),
-    supabase
-      .from('activity_log')
-      .select('store_id')
-      .eq('event_type', 'game_start')
-      .gte('occurred_at', startUtc)
-      .lt('occurred_at', endUtcExclusive),
-    supabase
-      .from('coupons')
-      .select('amount, issued_at')
-      .gte('issued_at', startUtc)
-      .lt('issued_at', endUtcExclusive),
-    supabase
-      .from('subscriptions')
-      .select('amount_paid')
-      .gte('created_at', startUtc)
-      .lt('created_at', endUtcExclusive),
-    supabase
-      .from('activity_log')
-      .select('occurred_at')
-      .eq('event_type', 'game_start')
-      .gte('occurred_at', startUtc)
-      .lt('occurred_at', endUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('subscriptions')
+        .select('store_id, start_date, end_date, amount_paid, created_at')
+        .order('end_date', { ascending: false }),
+    ),
+    excludeDemo(
+      supabase
+        .from('activity_log')
+        .select('store_id')
+        .eq('event_type', 'game_start')
+        .gte('occurred_at', startUtc)
+        .lt('occurred_at', endUtcExclusive),
+    ),
+    excludeDemo(
+      supabase
+        .from('coupons')
+        .select('amount, issued_at')
+        .gte('issued_at', startUtc)
+        .lt('issued_at', endUtcExclusive),
+    ),
+    excludeDemo(
+      supabase
+        .from('subscriptions')
+        .select('amount_paid')
+        .gte('created_at', startUtc)
+        .lt('created_at', endUtcExclusive),
+    ),
+    excludeDemo(
+      supabase
+        .from('activity_log')
+        .select('occurred_at')
+        .eq('event_type', 'game_start')
+        .gte('occurred_at', startUtc)
+        .lt('occurred_at', endUtcExclusive),
+    ),
 
     // 전체 가입 회원수 (신규 카카오 인증 완료 기준, 매장 합산)
-    supabase
-      .from('customer_loyalty')
-      .select('store_id', { count: 'exact', head: true })
-      .gte('kakao_first_login_at', startUtc)
-      .lt('kakao_first_login_at', endUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('customer_loyalty')
+        .select('store_id', { count: 'exact', head: true })
+        .gte('kakao_first_login_at', startUtc)
+        .lt('kakao_first_login_at', endUtcExclusive),
+    ),
 
     // 당근 단골 클릭수 (전체 합산, 클릭 기준 — 실제 단골추가 확정 아님)
-    supabase
-      .from('activity_log')
-      .select('id', { count: 'exact', head: true })
-      .eq('event_type', 'daangn_click')
-      .gte('occurred_at', startUtc)
-      .lt('occurred_at', endUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('activity_log')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_type', 'daangn_click')
+        .gte('occurred_at', startUtc)
+        .lt('occurred_at', endUtcExclusive),
+    ),
 
     // 리워드 유형별 등록 비율 (전체 매장, 활성 리워드 기준 — 기간 무관 스냅샷)
-    supabase.from('reward_catalog').select('reward_type').eq('active', true),
+    excludeDemo(supabase.from('reward_catalog').select('reward_type').eq('active', true)),
 
     // 쿠폰 사용통계: 이번 구간에 "사용 처리"된 쿠폰
-    supabase
-      .from('coupons')
-      .select('used_at')
-      .eq('status', 'used')
-      .gte('used_at', startUtc)
-      .lt('used_at', endUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('coupons')
+        .select('used_at')
+        .eq('status', 'used')
+        .gte('used_at', startUtc)
+        .lt('used_at', endUtcExclusive),
+    ),
 
     // 재방문 통계: 직전 동일기간에 신규 유입된 코호트
-    supabase
-      .from('customer_loyalty')
-      .select('store_id', { count: 'exact', head: true })
-      .gte('first_seen_at', prevStartUtc)
-      .lt('first_seen_at', prevEndUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('customer_loyalty')
+        .select('store_id', { count: 'exact', head: true })
+        .gte('first_seen_at', prevStartUtc)
+        .lt('first_seen_at', prevEndUtcExclusive),
+    ),
 
     // 그 코호트 중 이번 구간에 재방문(방문기록 갱신)한 수
-    supabase
-      .from('customer_loyalty')
-      .select('store_id', { count: 'exact', head: true })
-      .gte('first_seen_at', prevStartUtc)
-      .lt('first_seen_at', prevEndUtcExclusive)
-      .gte('last_visit_at', startUtc)
-      .lt('last_visit_at', endUtcExclusive),
+    excludeDemo(
+      supabase
+        .from('customer_loyalty')
+        .select('store_id', { count: 'exact', head: true })
+        .gte('first_seen_at', prevStartUtc)
+        .lt('first_seen_at', prevEndUtcExclusive)
+        .gte('last_visit_at', startUtc)
+        .lt('last_visit_at', endUtcExclusive),
+    ),
   ])
-
-  const allStores = stores ?? []
 
   // 매장별 최신 구독(end_date가 가장 최근인 row)만 남긴다 — subscriptions가 "이용기간"의 진실 원천
   const latestSubByStore = new Map<string, { start_date: string; end_date: string }>()

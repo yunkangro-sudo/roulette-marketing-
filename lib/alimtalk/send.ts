@@ -15,6 +15,7 @@
  */
 
 import { createServerClient } from '@/lib/supabase/server'
+import { isDemoStore } from '@/lib/store/isDemoStore'
 
 export type MessageType =
   | 'coupon_issued'
@@ -47,6 +48,7 @@ type BlockReason =
   | 'daily_limit'
   | 'weekly_limit'
   | 'resend_interval'
+  | 'demo_store'
 
 interface CheckResult {
   allowed: boolean
@@ -60,6 +62,12 @@ interface CheckResult {
  */
 export async function checkSendPermission(payload: AlimtalkPayload): Promise<CheckResult> {
   const supabase = createServerClient()
+
+  // ── 0단계: 샘플(데모) 매장이면 무조건 차단 ────────────────
+  // 영업 시연용 가짜 손님 데이터에 실제 발송 로직이 걸리는 사고를 막기 위한 방어코드.
+  if (await isDemoStore(payload.storeId)) {
+    return { allowed: false, reason: 'demo_store' }
+  }
 
   // ── 1·2단계: 동의 여부 ────────────────────────────────────
   const { data: consent } = await supabase

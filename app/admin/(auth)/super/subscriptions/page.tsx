@@ -9,8 +9,9 @@ export default async function SuperSubscriptionsPage() {
   if (!['agency', 'super_admin'].includes(account.role)) redirect('/admin/events')
 
   const supabase = createServerClient()
+  // 실제 입금 확인용 화면이라 샘플(데모) 매장은 제외 — 가짜 결제 기록이 섞이면 헷갈림
   const [{ data: companies }, { data: subscriptions }] = await Promise.all([
-    supabase.from('store_contracts').select('id, store_id, store_name'),
+    supabase.from('store_contracts').select('id, store_id, store_name').eq('is_demo', false),
     supabase
       .from('subscriptions')
       .select('id, store_id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')

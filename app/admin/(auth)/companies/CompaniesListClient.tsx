@@ -12,14 +12,18 @@ export interface CompanyListItem {
   contractor_name: string | null
   subscriptionEndDate: string | null
   status: 'trial' | 'active' | 'grace' | 'expired'
+  is_demo: boolean
 }
 
-const STATUS_FILTERS: { value: 'all' | CompanyListItem['status']; label: string }[] = [
+type FilterValue = 'all' | CompanyListItem['status'] | 'demo'
+
+const STATUS_FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'all',     label: '전체' },
   { value: 'active',  label: '정상' },
   { value: 'grace',   label: '유예' },
   { value: 'expired', label: '만료' },
   { value: 'trial',   label: '체험' },
+  { value: 'demo',    label: '샘플' },
 ]
 
 const STATUS_BADGE: Record<CompanyListItem['status'], { label: string; className: string }> = {
@@ -31,11 +35,17 @@ const STATUS_BADGE: Record<CompanyListItem['status'], { label: string; className
 
 export default function CompaniesListClient({ companies }: { companies: CompanyListItem[] }) {
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | CompanyListItem['status']>('all')
+  const [statusFilter, setStatusFilter] = useState<FilterValue>('all')
 
   const filtered = useMemo(() => {
     return companies.filter((c) => {
-      if (statusFilter !== 'all' && c.status !== statusFilter) return false
+      // "샘플" 탭에서만 데모 매장 노출 — 그 외 모든 탭(전체 포함)에서는 숨긴다
+      if (statusFilter === 'demo') {
+        if (!c.is_demo) return false
+      } else {
+        if (c.is_demo) return false
+        if (statusFilter !== 'all' && c.status !== statusFilter) return false
+      }
       if (search.trim() && !c.store_name.toLowerCase().includes(search.trim().toLowerCase())) return false
       return true
     })
@@ -86,6 +96,9 @@ export default function CompaniesListClient({ companies }: { companies: CompanyL
                     <div className="flex items-center flex-wrap gap-2 mb-1">
                       <span className="font-bold text-gray-900">{c.store_name}</span>
                       <span className="text-xs text-gray-400 font-mono">{c.store_id}</span>
+                      {c.is_demo && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-600">샘플</span>
+                      )}
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badge.className}`}>{badge.label}</span>
                     </div>
                     <p className="text-sm text-gray-600">

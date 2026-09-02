@@ -6,12 +6,14 @@ const BASE_URL = 'https://www.dgting.co.kr'
 /**
  * homepage_enabled가 false인 매장의 /b/{slug}는 사이트맵에서 제외한다.
  * business_entity row가 없는 매장은 기본값(true)으로 취급하므로 포함한다.
+ * is_demo=true인 영업 시연용 샘플 매장도 검색엔진에 노출되면 안 되므로 제외한다
+ * (noindex 메타태그는 이미 크롤링된 이후의 방어선이라, sitemap 단계에서 먼저 걸러낸다).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createServerClient()
 
   const [contractsRes, entitiesRes] = await Promise.all([
-    supabase.from('store_contracts').select('store_id, updated_at'),
+    supabase.from('store_contracts').select('store_id, updated_at, is_demo'),
     supabase.from('business_entity').select('store_id, homepage_enabled'),
   ])
 
@@ -20,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   )
 
   const businessPages: MetadataRoute.Sitemap = (contractsRes.data ?? [])
-    .filter((c) => !disabledStoreIds.has(c.store_id))
+    .filter((c) => !disabledStoreIds.has(c.store_id) && !c.is_demo)
     .map((c) => ({
       url: `${BASE_URL}/b/${c.store_id}`,
       lastModified: c.updated_at ?? undefined,

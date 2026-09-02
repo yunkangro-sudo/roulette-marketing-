@@ -333,10 +333,15 @@ export async function persistPendingPlay(params: {
           .maybeSingle(),
         supabase
           .from('store_contracts')
-          .select('daangn_url')
+          .select('daangn_url, is_demo')
           .eq('store_id', pending.storeId)
           .maybeSingle(),
       ])
+      // 샘플(데모) 매장은 실제 카카오 메시지 발송 경로를 태우지 않는다 (이중 방어)
+      if (contract?.is_demo) {
+        await logResult('skipped', '샘플(데모) 매장 — 실제 발송 안 함')
+        return
+      }
       const result = await sendMeMessage(accessToken, {
         storeName: store?.store_name || '매장',
         shortCode: coupon.short_code ?? coupon.id.slice(0, 8).toUpperCase(),
