@@ -2,7 +2,7 @@ import { requireAdminAuth, getAllowedStoreId } from '@/lib/admin/session'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import EventCard from './EventCard'
-import StoreQrCard from './StoreQrCard'
+import StoreQrCard from '../components/StoreQrCard'
 
 export default async function EventsPage({ searchParams }: { searchParams: Promise<{ store_id?: string }> }) {
   const account = await requireAdminAuth()

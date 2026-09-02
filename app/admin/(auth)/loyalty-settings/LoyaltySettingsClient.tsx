@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import StoreSelector from '../components/StoreSelector'
+import StoreQrCard from '../components/StoreQrCard'
 
 interface Props { role: string; storeId: string | null }
 
@@ -376,6 +377,14 @@ export default function LoyaltySettingsClient({ role, storeId }: Props) {
                     ⚠️ 이 URL을 손님이 즐겨찾기해두면, 태그 없이도 하루 1회 적립될 수 있어요. 리워드 가치가 크지 않은 매장에 추천드려요.
                   </p>
                 </div>
+
+                {/* NFC 보완용 QR코드 — 태그 고장/폰 NFC 꺼짐 대비. NFC와 완전히 같은 URL을
+                    QR로도 스캔할 수 있게 해서, 태그 옆에 같이 인쇄해두면 즉시 대체 수단이 된다. */}
+                {selectedStore && (
+                  <div className="mt-4">
+                    <StoreQrCard storeId={selectedStore} purpose="checkin" />
+                  </div>
+                )}
               </div>
             )}
           </div>

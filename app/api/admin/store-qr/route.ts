@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import QRCode from 'qrcode'
 import { requireAdminAuth } from '@/lib/admin/session'
-import { buildPlayUrl } from '@/lib/store/playUrl'
+import { buildPlayUrl, buildCheckinUrl } from '@/lib/store/playUrl'
 
 /**
- * GET /api/admin/store-qr?format=png|svg&download=1&store_id=xxx
+ * GET /api/admin/store-qr?format=png|svg&download=1&store_id=xxx&purpose=play|checkin
+ *
+ * purpose=play(기본)는 게임 참여 QR, purpose=checkin은 NFC 방문적립 보완용 QR —
+ * NFC 태그가 고장나거나 손님 폰의 NFC가 꺼져있을 때 동일한 URL을 카메라로 스캔해서
+ * 똑같이 체크인할 수 있도록 하는 대체 수단이다(별도 로직 없이 URL만 다름).
  *
  * 매장 고정 QR코드를 즉석에서 생성해 반환한다. DB에는 아무것도 저장하지 않는다 —
  * URL이 storeId 하나로 완전히 결정되는 순수 값이라, 저장해두면 오히려 도메인이
@@ -34,7 +38,9 @@ export async function GET(req: Request) {
 
   const format = searchParams.get('format') === 'svg' ? 'svg' : 'png'
   const download = searchParams.get('download') === '1'
-  const playUrl = buildPlayUrl(storeId)
+  const purpose = searchParams.get('purpose') === 'checkin' ? 'checkin' : 'play'
+  const targetUrl = purpose === 'checkin' ? buildCheckinUrl(storeId) : buildPlayUrl(storeId)
+  const filenamePrefix = purpose === 'checkin' ? 'store-checkin-qr' : 'store-qr'
 
   // 코팅지 반사광·테이블 위 지저분함 등 인쇄 환경 대비 최고 단계(H) 에러정정 사용
   const qrOptions = {
@@ -45,15 +51,15 @@ export async function GET(req: Request) {
 
   try {
     if (format === 'svg') {
-      const svg = await QRCode.toString(playUrl, { ...qrOptions, type: 'svg' })
+      const svg = await QRCode.toString(targetUrl, { ...qrOptions, type: 'svg' })
       const headers: Record<string, string> = { 'Content-Type': 'image/svg+xml; charset=utf-8' }
-      if (download) headers['Content-Disposition'] = `attachment; filename="store-qr-${storeId}.svg"`
+      if (download) headers['Content-Disposition'] = `attachment; filename="${filenamePrefix}-${storeId}.svg"`
       return new NextResponse(svg, { headers })
     }
 
-    const buffer = await QRCode.toBuffer(playUrl, { ...qrOptions, type: 'png' })
+    const buffer = await QRCode.toBuffer(targetUrl, { ...qrOptions, type: 'png' })
     const headers: Record<string, string> = { 'Content-Type': 'image/png' }
-    if (download) headers['Content-Disposition'] = `attachment; filename="store-qr-${storeId}.png"`
+    if (download) headers['Content-Disposition'] = `attachment; filename="${filenamePrefix}-${storeId}.png"`
     return new NextResponse(new Uint8Array(buffer), { headers })
   } catch (err) {
     console.error('[store-qr] QR 생성 실패:', err)
