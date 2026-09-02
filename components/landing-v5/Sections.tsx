@@ -128,7 +128,7 @@ export function ProblemSection() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
           <div>
-            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">문제제기</p>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">새 손님보다 중요한 것</p>
             <h2 className="mt-3 text-[34px] leading-tight text-dg-ink md:text-[50px]">
               손님을 데려오는 것까지는
               <br />
@@ -345,7 +345,7 @@ export function HowItWorks({ onCta }: CtaProps) {
     <section id="process" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-6xl md:px-5">
         <div className="px-5 md:px-0">
-          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">작동 원리</p>
+          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">단골이 되는 과정</p>
           <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
         </div>
 
@@ -472,7 +472,7 @@ export function DifferenceSection() {
     <section className="bg-white py-20 md:py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">무엇이 다른가</p>
+          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">게임이 다른 이유</p>
           <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
             게임은 시작일 뿐입니다
             <br />
@@ -519,10 +519,10 @@ export function ProofSection() {
       <div className="bg-[#141414] pb-16 pt-20 text-white md:pb-20 md:pt-28">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
-            <p className="text-[13px] font-semibold tracking-wide text-dg-green">데이터로 증명</p>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green">숫자로 확인하는 변화</p>
             <h2 className="mt-3 text-[32px] md:text-[44px]">게임 한 번이, 단골 한 명이 됩니다</h2>
             <p className="mt-4 text-[15px] leading-relaxed text-white/55">
-              참여자 10명 중 3명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
+              참여자 10명 중 7명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -608,7 +608,7 @@ export function CarrotChannelSection() {
   return (
     <section className="bg-dg-bg py-20 md:py-28">
       <div className="mx-auto max-w-3xl px-5 text-center">
-        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">당근 연동</p>
+        <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">우리 동네 고객과 연결</p>
         <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
           당근에서 고객을 만나고,
           <br />
@@ -686,7 +686,7 @@ export function ChannelTrust() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">채널과 운영</p>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">매장에 맞게 운영하세요</p>
             <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">단골팅 시스템 소개</h2>
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-dg-ink-soft">
               당근, 카카오, 게임, 쿠폰, 데이터 — 앞서 하나씩 살펴본 요소들이 이렇게 하나로 연결됩니다.
@@ -725,9 +725,6 @@ export function ChannelTrust() {
           ))}
         </div>
 
-        <p className="mt-6 text-[12px] text-dg-ink-soft">
-          ※ 카카오·당근마켓은 연동됩니다. 확인되지 않은 제휴 표현은 사용하지 않습니다.
-        </p>
       </div>
     </section>
   )
@@ -811,7 +808,7 @@ export function HomepageServiceSection() {
   ]
 
   return (
-    <section className="bg-white py-20 md:py-28">
+    <section className="bg-dg-green-tint py-20 md:py-28">
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
@@ -833,7 +830,7 @@ export function HomepageServiceSection() {
               {features.map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="flex items-start gap-2.5 border border-dg-line bg-dg-bg p-4"
+                  className="flex items-start gap-2.5 border border-dg-line bg-white p-4"
                   style={{ borderRadius: 6 }}
                 >
                   <Icon size={17} className="mt-0.5 shrink-0 text-dg-green-deep" strokeWidth={1.75} />
@@ -935,7 +932,7 @@ export function PricingSection() {
               >
                 {basic.lockInNote}
               </p>
-              <p className="mt-3 text-[14px] text-dg-ink">
+              <p className="mt-3 text-[16px] font-bold text-dg-ink">
                 + 초기 세팅비 {formatWon(basic.setupFee)} (최초 1회)
               </p>
               <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 포함</p>
@@ -1040,7 +1037,7 @@ export function PricingSection() {
 
         {/* 추가 서비스 — 우리 매장 홈페이지. 이미 만들어져 있는 /b/[storeId] 공개 홈페이지
             기능에 가격을 붙인 부가 상품이라 별도 카드 그리드가 아닌 독립 블록으로 구분한다. */}
-        <div className="mt-14 border-t border-dg-line pt-14">
+        <div className="mt-14 rounded-[24px] bg-white p-6 shadow-[0_16px_40px_rgba(17,17,17,0.06)] sm:p-10 md:p-12">
           <div className="mx-auto max-w-lg text-center">
             <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">추가 서비스 · {HOMEPAGE_SERVICE.name}</p>
             <h3 className="mt-2 whitespace-pre-line text-[24px] font-bold leading-snug text-dg-ink md:text-[28px]">

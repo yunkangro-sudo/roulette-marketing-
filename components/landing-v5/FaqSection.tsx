@@ -14,7 +14,7 @@ export default function FaqSection() {
   const hiddenCount = FAQ_ITEMS.length - VISIBLE_COUNT
 
   return (
-    <section id="faq" className="scroll-mt-20 py-20 md:py-28">
+    <section id="faq" className="scroll-mt-20 bg-white py-20 md:py-28">
       <div className="mx-auto max-w-3xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">궁금한 점</p>
         <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">자주 묻는 질문</h2>

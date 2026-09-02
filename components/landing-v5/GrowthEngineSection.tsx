@@ -42,7 +42,7 @@ export default function GrowthEngineSection() {
         <div
           className="rounded-[24px] border border-dg-green/15 bg-white p-6 shadow-[0_24px_56px_rgba(1,156,135,0.10)] sm:p-10 md:p-14"
         >
-          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">성장 엔진</p>
+          <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">한 번으로 끝나지 않는 이유</p>
           <h2 className="mt-3 text-[28px] leading-tight text-dg-ink md:text-[40px]">
             한 번의 이벤트가,
             <br />
@@ -137,10 +137,6 @@ export default function GrowthEngineSection() {
               </p>
             </div>
           </motion.div>
-
-          <p className="mt-6 text-[12px] text-dg-ink-soft">
-            ※ 위 순환 구조는 이해를 돕기 위한 예시이며, 실제 성과는 매장·업종·운영 방식에 따라 달라질 수 있습니다.
-          </p>
         </div>
       </div>
     </section>
