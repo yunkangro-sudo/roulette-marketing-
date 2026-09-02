@@ -288,6 +288,78 @@ export function HowItWorks({ onCta }: CtaProps) {
   )
 }
 
+/** DifferenceSection 우측 — 실제 관리자 화면 캡처 대신, "데이터를 관리하는 SaaS"라는 메시지를
+ *  증명하는 가상의 통계 카드. 메뉴·탭 없이 핵심 KPI 3개 + 추이 그래프 + 참여 흐름만 담아
+ *  전체 화면 캡처처럼 보이지 않게 한다. 수치는 모두 예시 데이터다. */
+function ImpactDashboardMock() {
+  const kpis = [
+    { label: '게임 참여자', value: '248', unit: '명' },
+    { label: '재방문 고객', value: '86', unit: '명' },
+    { label: '단골 전환', value: '34', unit: '명' },
+  ]
+  const trend = [18, 24, 22, 35, 48, 61, 74, 86]
+  const max = Math.max(...trend)
+  const stepX = 100 / (trend.length - 1)
+  const points = trend.map((v, i) => ({ x: i * stepX, y: 32 - (v / max) * 28 }))
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  const areaPath = `${linePath} L 100 32 L 0 32 Z`
+
+  return (
+    <div>
+      <div className="rounded-2xl border border-dg-line bg-white p-5 shadow-[0_16px_40px_rgba(17,17,17,0.07)] md:p-7">
+        <p className="text-[12px] font-semibold text-dg-ink-soft">이번 달 성과</p>
+
+        <div className="mt-3 grid grid-cols-3 gap-2.5 md:gap-3">
+          {kpis.map((kpi) => (
+            <div key={kpi.label} className="rounded-xl border border-dg-line bg-dg-bg px-3 py-3 md:px-4 md:py-4">
+              <p className="text-[11px] leading-tight text-dg-ink-soft">{kpi.label}</p>
+              <p className="mt-1 text-[22px] font-extrabold leading-none text-dg-ink md:text-[26px]">
+                {kpi.value}
+                <span className="text-[13px] font-bold text-dg-ink-soft">{kpi.unit}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-xl border border-dg-line p-4">
+          <p className="text-[12px] font-semibold text-dg-ink-soft">재방문 고객 추이</p>
+          <div className="mt-2 h-[88px] w-full">
+            <svg viewBox="0 0 100 36" preserveAspectRatio="none" className="h-full w-full overflow-visible">
+              <path d={areaPath} fill="var(--green)" opacity={0.12} />
+              <path d={linePath} fill="none" stroke="var(--green-deep)" strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
+              {points.map((p, i) => (
+                <circle
+                  key={i}
+                  cx={p.x}
+                  cy={p.y}
+                  r={i === points.length - 1 ? 2 : 1.2}
+                  fill="var(--green-deep)"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+            </svg>
+          </div>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between rounded-xl bg-dg-bg px-4 py-3.5 md:px-5">
+          {['게임 참여', '결과 확인', '재방문'].map((step, i, arr) => (
+            <div key={step} className="flex items-center gap-2">
+              <span className="text-[12px] font-bold text-dg-ink md:text-[13px]">{step}</span>
+              {i < arr.length - 1 && (
+                <span className="text-dg-ink-soft/40" aria-hidden="true">
+                  →
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-4 text-center text-[13px] text-dg-ink-soft">참여부터 재방문까지, 한눈에 확인합니다</p>
+    </div>
+  )
+}
+
 export function DifferenceSection() {
   return (
     <section className="bg-white py-20 md:py-28">
@@ -295,33 +367,32 @@ export function DifferenceSection() {
         <div>
           <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">무엇이 다른가</p>
           <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
-            게임으로 끝내지 않습니다
+            게임은 시작일 뿐입니다
+            <br />
+            <span className="text-dg-green-deep">남는 것은 고객입니다</span>
           </h2>
           <div className="mt-8 space-y-6">
             <div>
               <h3 className="text-[20px] text-dg-ink">게임이 목적이 아닙니다</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
-                게임은 고객을 움직이게 만드는 첫 번째 장치입니다.
+                게임은 손님을 움직이게 만드는 첫 번째 이유입니다.
               </p>
             </div>
             <div>
-              <h3 className="text-[20px] text-dg-ink">정보 수집으로 끝나지 않습니다</h3>
+              <h3 className="text-[20px] text-dg-ink">참여에서 끝나지 않습니다</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
-                카카오 로그인과 당근마켓 클릭까지, 참여 이후의 행동을 관리자 화면에서 그대로 확인합니다. &quot;누가
-                참여했는가&quot;가 아니라 &quot;누가 다시 오는가&quot;까지 봅니다.
+                참여 이후의 행동까지 확인하고, 다음 방문으로 연결합니다.
               </p>
             </div>
             <div>
-              <h3 className="text-[20px] text-dg-ink">당근 마케팅도 광고에서 끝내지 않습니다</h3>
+              <h3 className="text-[20px] text-dg-ink">광고로 끝나지 않습니다</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-dg-ink-soft">
-                당근 광고만 돌리면 클릭에서 끝납니다. 단골팅을 더하면, 그 클릭이 게임 참여가 되고, 참여가 단골
-                인증이 되고, 단골 인증이 재방문이 됩니다. 당근 광고비를 안 쓰던 매장도, 이미 당근 광고를 쓰고 있는
-                매장도 — 단골팅으로 그 다음 단계를 만들 수 있습니다.
+                새 손님을 데려오는 것보다, 한 번 온 손님을 다시 오게 만듭니다.
               </p>
             </div>
           </div>
         </div>
-        <ScreenshotSlot shotId="11" />
+        <ImpactDashboardMock />
       </div>
     </section>
   )
