@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
-import { Quote, Megaphone, Eye, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift } from 'lucide-react'
+import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
 import { BasicApplyModal, AeoWaitlistModal, BankRow } from './PricingModals'
@@ -83,12 +83,11 @@ export function ProductShowcase() {
   )
 }
 
-/** 문제제기 섹션 우측 시각물 — "광고→노출→방문" 다음 화살표가 물음표에서 끊기는 다이어그램.
+/** 문제제기 섹션 우측 시각물 — "광고→방문" 다음 화살표가 물음표에서 끊기는 다이어그램.
  *  회색 톤으로만 구성해 "불확실함"을 표현한다(그린은 이 다이어그램 안에는 쓰지 않음 — 문제는 아직 해결 전 상태). */
 function AdUncertaintyDiagram() {
   const chain = [
     { icon: Megaphone, label: '광고' },
-    { icon: Eye, label: '노출' },
     { icon: Footprints, label: '방문' },
   ]
   return (
@@ -109,11 +108,11 @@ function AdUncertaintyDiagram() {
           <span className="flex h-12 w-12 items-center justify-center rounded-full border border-dashed border-dg-ink-soft/25 text-dg-ink-soft/30">
             <HelpCircle size={22} strokeWidth={1.75} />
           </span>
-          <span className="text-[12px] font-semibold text-dg-ink-soft/40">???</span>
+          <span className="text-[12px] font-semibold text-dg-ink-soft/40">그 다음은?</span>
         </div>
       </div>
       <p className="mt-7 text-center text-[13px] leading-relaxed text-dg-ink-soft/80">
-        그 손님이 다시 왔는지, 광고는 알려주지 않습니다
+        광고는 방문을 만들지만, 다시 올 이유까지 만들지는 않습니다
       </p>
     </div>
   )
@@ -127,20 +126,24 @@ export function ProblemSection() {
           <div>
             <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">문제제기</p>
             <h2 className="mt-3 text-[34px] leading-tight text-dg-ink md:text-[50px]">
-              손님이 와도
+              손님을 데려오는 것까지는
               <br />
-              광고비는 이미 나갔습니다
+              가능합니다. 하지만{' '}
+              <span className="text-dg-green-deep">다시 오게 만드는 건 어렵습니다.</span>
             </h2>
             <p className="mt-6 text-[15px] leading-relaxed text-dg-ink-soft md:text-[17px]">
-              네이버, 인스타그램, 당근 광고로 손님을 데려오는 것까지는 가능합니다. 밥을 먹고, 결제하고, 손님은 나갑니다. 그 손님이 다시 왔는지는 광고가 알려주지 않습니다. 사장님은 그 손님이 누구인지도 모릅니다.
+              네이버, 인스타그램, 당근 광고로 새로운 손님을 매장으로 데려올 수는 있습니다. 하지만 한 번 방문한 손님이 다시 돌아오는 과정까지 만들어주는 마케팅은 많지 않습니다.
             </p>
             <div className="relative mt-10 overflow-hidden bg-[#171717] px-6 py-8 pl-8 text-white shadow-[0_20px_44px_rgba(0,0,0,0.28)] md:px-10 md:pl-12" style={{ borderRadius: 6 }}>
               <span className="absolute inset-y-0 left-0 w-1 bg-dg-green" />
-              <Quote size={20} strokeWidth={2.25} className="mb-3 text-dg-green" />
-              <p className="text-[24px] font-extrabold leading-snug tracking-tight md:text-[32px]">
-                한 번 온 손님을 그냥 보내지 않는 것.
+              <p className="text-[13px] font-semibold text-dg-green">문제는 방문 이후입니다</p>
+              <p className="mt-3 text-[24px] font-extrabold leading-snug tracking-tight md:text-[32px]">
+                한 번 온 손님,
                 <br />
-                단골팅은 여기서 시작합니다.
+                다시 만날 방법은 있나요?
+              </p>
+              <p className="mt-4 text-[14px] leading-relaxed text-white/55">
+                광고로 데려온 고객을 다시 연결하는 구조가 필요합니다.
               </p>
             </div>
           </div>
@@ -153,28 +156,39 @@ export function ProblemSection() {
   )
 }
 
-/** 포지셔닝 전환 섹션 좌측 시각물 — 회색 "광고" 아이콘이 화살표를 거쳐 그린 "마케팅" 아이콘으로
- *  전환되는 미니 다이어그램. 문제제기 섹션과 좌우가 반대라 스크롤 리듬이 생긴다. */
-function AdToMarketingDiagram() {
+/** 포지셔닝 전환 섹션 좌측 시각물 — "광고→방문→참여→보상" 흐름이 그린 "재방문"으로 완성되는
+ *  프로세스 다이어그램. 문제제기 섹션의 끊긴 흐름(AdUncertaintyDiagram)과 대비되도록, 같은
+ *  체인 스타일에서 마지막 단계만 그린으로 채워 "이어짐"을 보여준다. */
+function AdToRevisitDiagram() {
+  const chain = [
+    { icon: Megaphone, label: '광고' },
+    { icon: Footprints, label: '방문' },
+    { icon: Smartphone, label: '참여' },
+    { icon: Gift, label: '보상' },
+  ]
   return (
     <div className="rounded-2xl border border-dg-line bg-dg-bg p-8 shadow-[0_20px_48px_rgba(17,17,17,0.06)]">
-      <div className="flex items-center justify-center gap-5">
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-4">
+        {chain.map(({ icon: Icon, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <div className="flex flex-col items-center gap-2">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-dg-ink-soft shadow-sm">
+                <Icon size={20} strokeWidth={1.75} />
+              </span>
+              <span className="text-[12px] font-semibold text-dg-ink-soft">{label}</span>
+            </div>
+            <ArrowRight size={16} className="text-dg-ink-soft/30" />
+          </div>
+        ))}
         <div className="flex flex-col items-center gap-2">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-dg-ink-soft shadow-sm">
-            <Megaphone size={24} strokeWidth={1.75} />
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-dg-green text-dg-ink shadow-sm">
+            <Repeat size={20} strokeWidth={1.75} />
           </span>
-          <span className="text-[13px] font-semibold text-dg-ink-soft">광고</span>
-        </div>
-        <ArrowRight size={20} className="text-dg-ink-soft/30" />
-        <div className="flex flex-col items-center gap-2">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-dg-green text-dg-ink shadow-sm">
-            <Repeat size={24} strokeWidth={1.75} />
-          </span>
-          <span className="text-[13px] font-bold text-dg-ink">마케팅</span>
+          <span className="text-[12px] font-bold text-dg-ink">재방문</span>
         </div>
       </div>
       <p className="mt-7 text-center text-[13px] leading-relaxed text-dg-ink-soft">
-        한 번의 방문에서, 반복되는 방문으로
+        한 번의 방문을 다음 방문으로 연결합니다.
       </p>
     </div>
   )
@@ -198,7 +212,7 @@ export function PositioningSection() {
             </p>
           </div>
           <div className="lg:order-1">
-            <AdToMarketingDiagram />
+            <AdToRevisitDiagram />
           </div>
         </div>
       </div>
