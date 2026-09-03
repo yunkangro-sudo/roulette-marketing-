@@ -826,7 +826,7 @@ export function HomepageServiceSection() {
     { icon: UtensilsCrossed, label: '대표 메뉴 · 서비스' },
     { icon: Star, label: '네이버 · 구글 리뷰 연결' },
     { icon: Navigation, label: '위치 · 영업시간 · 연락처 · 길찾기' },
-    { icon: Sparkles, label: '우리 매장의 자랑 및 홍보 콘텐츠' },
+    { icon: Sparkles, label: 'SEO · AEO 기반 매장 정보 최적화' },
   ]
 
   return (
@@ -834,18 +834,22 @@ export function HomepageServiceSection() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">우리 매장 홈페이지</p>
+            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">
+              우리 매장의 공식 디지털 자산
+            </p>
             <h2 className="mt-3 text-[28px] leading-snug text-dg-ink md:text-[38px]">
               홈페이지를 만드는 게 아닙니다.
               <br />
-              손님이 다시 올 이유가 <span className="text-dg-green-deep">쌓이는 공간</span>을 만듭니다.
+              고객과 <span className="text-dg-green-deep">검색, AI</span>를 연결하는
+              <br />
+              우리 매장의 공식 공간을 만듭니다.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-dg-ink-soft">
-              게임만 하고 떠나는 것이 아닙니다.
+              게임과 쿠폰으로 고객의 재방문을 만들고,
               <br />
-              게임, 쿠폰, 이벤트부터 메뉴, 리뷰, 매장 정보까지
+              매장 정보와 콘텐츠를 체계적으로 쌓아
               <br />
-              고객이 우리 매장을 다시 찾을 이유를 한 곳에 담아드립니다.
+              검색엔진과 AI가 우리 매장을 더 잘 발견하고 이해할 수 있는 기반을 만듭니다.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-3">
@@ -861,17 +865,17 @@ export function HomepageServiceSection() {
               ))}
             </div>
 
-            <p className="mt-8 text-[14px] leading-relaxed text-dg-ink-soft">
-              게임과 혜택으로 방문을 만들고,
+            <p className="mt-8 text-[15px] font-semibold leading-relaxed text-dg-ink">
+              고객에게는 다시 방문할 이유를 만들고,
               <br />
-              매장 홈페이지에서 우리 매장을 다시 기억하게 합니다.
+              검색과 AI에는 우리 매장을 이해할 수 있는 공식 정보를 쌓아갑니다.
             </p>
           </div>
 
           <div>
             <BusinessPageMock />
             <p className="mt-4 text-center text-[13px] text-dg-ink-soft">
-              게임 · 쿠폰 · 매장 정보를 한 곳에 (예시 화면)
+              고객 · 검색 · AI를 연결하는 우리 매장의 공식 홈페이지
             </p>
           </div>
         </div>
