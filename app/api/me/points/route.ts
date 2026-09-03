@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getCustomerSession } from '@/lib/auth/session'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
+import { getStoreAddons } from '@/lib/admin/storeAddons'
 
 /**
  * GET /api/me/points?store_id=xxx
@@ -25,7 +26,7 @@ export async function GET(req: Request) {
 
   const now = new Date().toISOString()
 
-  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes, nfcSettingsRes, stampProgressRes] = await Promise.all([
+  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes, nfcSettingsRes, stampProgressRes, addons] = await Promise.all([
     supabase
       .from('customer_loyalty')
       .select('point_balance, visit_count, last_visit_at')
@@ -93,6 +94,7 @@ export async function GET(req: Request) {
       .eq('store_id', storeId)
       .eq('kakao_user_id', kakaoUserId)
       .maybeSingle(),
+    getStoreAddons(storeId),
   ])
 
   // 미션 + 진행률 합산 — 완료된 미션 제외
@@ -142,6 +144,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     storeName,
     daangnUrl: safeHttpUrl(storeRes.data?.daangn_url),
+    homepageFeatureEnabled: addons.homepageFeatureEnabled,
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },
     catalog:  catalogRes.data ?? [],

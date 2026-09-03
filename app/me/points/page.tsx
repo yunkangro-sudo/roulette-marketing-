@@ -99,6 +99,7 @@ function PointsContent() {
   const [needLogin, setNeedLogin] = useState(false)
   const [storeName, setStoreName] = useState('')
   const [daangnUrl, setDaangnUrl] = useState<string | null>(null)
+  const [homepageFeatureEnabled, setHomepageFeatureEnabled] = useState(false)
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
   const [pointPerVisit, setPointPerVisit] = useState(10)
@@ -130,6 +131,7 @@ function PointsContent() {
       const data = await res.json()
       setStoreName(data.storeName ?? '')
       setDaangnUrl(data.daangnUrl ?? null)
+      setHomepageFeatureEnabled(data.homepageFeatureEnabled === true)
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
       setPointPerVisit(data.settings?.point_per_visit ?? 10)
@@ -202,29 +204,34 @@ function PointsContent() {
   return (
     <div className="min-h-screen bg-[#EFE6D6]">
       <div className="mx-auto max-w-md space-y-5 px-4 py-8">
-        <div className="flex items-center justify-between">
-          <a
-            href={`/play/${encodeURIComponent(storeId)}`}
-            className="inline-flex items-center gap-1 text-sm font-medium text-[#222222]/50 transition-colors hover:text-[#222222]/80"
-          >
-            ← 게임으로 돌아가기
-          </a>
-          <a
-            href={`/b/${encodeURIComponent(storeId)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm font-bold text-[#00C7A7] transition-colors hover:text-[#00b296]"
-          >
-            매장 홈페이지 →
-          </a>
-        </div>
+        <a
+          href={`/play/${encodeURIComponent(storeId)}`}
+          className="inline-flex items-center gap-1 text-sm font-medium text-[#222222]/50 transition-colors hover:text-[#222222]/80"
+        >
+          ← 게임으로 돌아가기
+        </a>
 
         <div>
-          {/* 어느 매장인지 화면 열자마자 바로 인지되도록 업체명을 첫 줄에 꽉 차게, 가장 크게 배치 */}
+          {/* 어느 매장인지 화면 열자마자 바로 인지되도록 업체명을 첫 줄에 꽉 차게, 가장 크게 배치.
+              "매장 홈페이지" 바로가기는 유료 기능 노출 강화를 위해 여기로 옮기고 버튼화했다 —
+              업체명이 길어도 항상 잘리지 않고 보이도록 min-w-0/truncate + shrink-0으로 공간을 분리한다. */}
           {storeName && (
-            <h1 className="truncate text-[28px] font-black leading-tight text-[#222222]">
-              {storeName}
-            </h1>
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="min-w-0 truncate text-[28px] font-black leading-tight text-[#222222]">
+                {storeName}
+              </h1>
+              {homepageFeatureEnabled && (
+                <a
+                  href={`/b/${encodeURIComponent(storeId)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#00C7A7] bg-white px-4 py-2.5 text-sm font-bold text-[#00C7A7] transition-colors hover:bg-[#00C7A7]/10"
+                >
+                  <span aria-hidden>🏠</span>
+                  <span>매장 홈페이지</span>
+                </a>
+              )}
+            </div>
           )}
           <p className="mt-1 text-sm font-semibold text-[#222222]/45">내 쿠폰함</p>
         </div>
