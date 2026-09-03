@@ -128,6 +128,42 @@ export const HOMEPAGE_SERVICE = {
   },
 } as const
 
+/** 요금제 계산기 모달(PricingCalculatorModal)의 상품 데이터.
+ *  값을 여기서 새로 하드코딩하지 않고 PRICING/CONTENT_OPS/HOMEPAGE_SERVICE를 그대로 참조한다 —
+ *  요금제 섹션 카드와 계산기 팝업이 서로 다른 숫자를 보여주는 불일치를 원천적으로 막기 위함. */
+export const CALCULATOR_PRODUCTS = [
+  {
+    id: 1,
+    name: '단골팅 쿠폰 게임 시스템',
+    setupFee: PRICING.basic.setupFee,
+    monthly: PRICING.basic.promoPrice,
+    cardNote: `선착순 마감 후 신규 가입 시 월 ${formatWon(PRICING.basic.regularPrice)}으로 적용됩니다. 지금 가입하시면 마감 이후에도 ${formatWon(
+      PRICING.basic.promoPrice
+    )}이 계속 유지됩니다.`,
+    afterPromoNote: `선착순 마감 후 신규가는 월 ${formatWon(PRICING.basic.regularPrice)} (기존 가입자는 ${formatWon(
+      PRICING.basic.promoPrice
+    )} 유지)`,
+  },
+  {
+    id: 2,
+    name: '당근마켓 컨텐츠 운영',
+    setupFee: CONTENT_OPS.addon.price,
+    monthly: CONTENT_OPS.price,
+    cardNote: null,
+    afterPromoNote: null,
+  },
+  {
+    id: 3,
+    name: '마케팅 미니 홈피 제작',
+    setupFee: HOMEPAGE_SERVICE.setup.price,
+    monthly: 0,
+    cardNote: `가입 후 1년간 무료, 이후 월 ${formatWon(HOMEPAGE_SERVICE.maintenance.price)}으로 자동 전환됩니다.`,
+    afterPromoNote: `가입 후 ${HOMEPAGE_SERVICE.maintenance.promo.freeMonths + 1}개월차부터 월 ${formatWon(
+      HOMEPAGE_SERVICE.maintenance.price
+    )} 자동 청구`,
+  },
+] as const
+
 /** 요금제 섹션 — 요금제 카드와 최종 CTA 사이에 배치하는 런칭 경품 이벤트 블록.
  *  ctaUrl은 단골팅 자체 게임 엔진에 등록된 실제 이벤트 페이지. */
 export const LAUNCH_EVENT = {

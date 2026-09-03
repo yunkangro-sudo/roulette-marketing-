@@ -250,3 +250,21 @@
 .landing-v5 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* "요금제 계산 안내" CTA — 불투명도가 아니라 그림자(glow)만 커졌다 작아져서
+   버튼이 흐려지거나 비활성처럼 보이지 않으면서 시선을 끈다. */
+@keyframes ctaGlowPulse {
+  0%, 100% { box-shadow: 0 10px 26px rgba(0, 199, 167, 0.35); }
+  50% { box-shadow: 0 10px 40px rgba(0, 199, 167, 0.65); }
+}
+
+.landing-v5 .cta-glow-pulse {
+  animation: ctaGlowPulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v5 .cta-glow-pulse {
+    animation: none !important;
+    box-shadow: 0 10px 26px rgba(0, 199, 167, 0.35);
+  }
+}

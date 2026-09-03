@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles } from 'lucide-react'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { BasicApplyModal, ContentOpsModal, HomepageServiceModal, BankRow } from './PricingModals'
+import { ContentOpsModal, HomepageServiceModal, PricingCalculatorModal, BankRow } from './PricingModals'
 import {
   PRICING,
   PRICING_BASIC_DISCOUNT_AMOUNT,
@@ -885,7 +885,7 @@ export function HomepageServiceSection() {
 }
 
 export function PricingSection() {
-  const [applyOpen, setApplyOpen] = useState(false)
+  const [calculatorOpen, setCalculatorOpen] = useState(false)
   const [consultOpen, setConsultOpen] = useState(false)
   const [homepageConsultOpen, setHomepageConsultOpen] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
@@ -1212,15 +1212,16 @@ export function PricingSection() {
             </a>
           </div>
 
-          {/* 최종 CTA */}
+          {/* 최종 CTA — 상품 조합에 따라 결제 금액이 달라지므로 즉시 신청 대신
+              요금제 계산기 팝업(PricingCalculatorModal)으로 먼저 안내한다 */}
           <div className="mx-auto mt-10 max-w-xl">
             <button
               type="button"
-              onClick={() => setApplyOpen(true)}
-              className="min-h-[56px] w-full py-4 text-[17px] font-bold text-dg-ink transition-opacity hover:opacity-90"
+              onClick={() => setCalculatorOpen(true)}
+              className="cta-glow-pulse min-h-[56px] w-full py-4 text-[17px] font-bold text-dg-ink transition-opacity hover:opacity-90"
               style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
             >
-              19,000원 혜택으로 시작하기
+              요금제 계산 안내
             </button>
           </div>
 
@@ -1266,7 +1267,7 @@ export function PricingSection() {
         </div>
       </div>
 
-      {applyOpen && <BasicApplyModal onClose={() => setApplyOpen(false)} />}
+      {calculatorOpen && <PricingCalculatorModal onClose={() => setCalculatorOpen(false)} />}
       {consultOpen && <ContentOpsModal onClose={() => setConsultOpen(false)} />}
       {homepageConsultOpen && <HomepageServiceModal onClose={() => setHomepageConsultOpen(false)} />}
     </section>

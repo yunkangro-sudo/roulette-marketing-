@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { NAV_HEIGHT_PX, NAV_LINKS, SIGNUP_PATH } from '@/lib/landing-v5/config'
+import { PricingCalculatorModal } from './PricingModals'
 
 const LOGIN_PATH = '/admin/login'
 const AEO_PATH = '/aeo'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const [calculatorOpen, setCalculatorOpen] = useState(false)
 
   // 패널 열려있는 동안 배경 스크롤 잠금 + ESC로 닫기 (PricingModals의 useModalChrome과 동일한 규칙)
   useEffect(() => {
@@ -111,18 +113,32 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* 정보성 메뉴 — 리스트 형태 */}
+            {/* 정보성 메뉴 — 리스트 형태. "요금제"만 앵커 스크롤 대신 요금제 계산기 팝업을 연다 */}
             <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3" aria-label="정보 메뉴">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={`/${link.href}`}
-                  onClick={close}
-                  className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {NAV_LINKS.map((link) =>
+                link.href === '#pricing' ? (
+                  <button
+                    key={link.href}
+                    type="button"
+                    onClick={() => {
+                      close()
+                      setCalculatorOpen(true)
+                    }}
+                    className="rounded-lg px-3 py-3 text-left text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <a
+                    key={link.href}
+                    href={`/${link.href}`}
+                    onClick={close}
+                    className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
+                  >
+                    {link.label}
+                  </a>
+                )
+              )}
               <Link
                 href={AEO_PATH}
                 onClick={close}
@@ -149,6 +165,8 @@ export default function Navbar() {
           </aside>
         </div>
       )}
+
+      {calculatorOpen && <PricingCalculatorModal onClose={() => setCalculatorOpen(false)} />}
     </>
   )
 }
