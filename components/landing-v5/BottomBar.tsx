@@ -1,12 +1,8 @@
 'use client'
 
-import { KAKAO_CONSULT_URL, SIGNUP_PATH } from '@/lib/landing-v5/config'
+import { KAKAO_CONSULT_URL, SIGNUP_PATH, DEMO_PLAY_URL } from '@/lib/landing-v5/config'
 
-type Props = {
-  onDemo: () => void
-}
-
-export default function BottomBar({ onDemo }: Props) {
+export default function BottomBar() {
   const kakaoReady = Boolean(KAKAO_CONSULT_URL)
 
   return (
@@ -17,19 +13,22 @@ export default function BottomBar({ onDemo }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <a
           href={kakaoReady ? KAKAO_CONSULT_URL : SIGNUP_PATH}
+          target={kakaoReady ? '_blank' : undefined}
+          rel={kakaoReady ? 'noopener noreferrer' : undefined}
           className="flex h-12 items-center justify-center text-[14px] font-bold text-dg-ink"
           style={{ background: '#FEE500', borderRadius: 4 }}
         >
           카톡 상담하기
         </a>
-        <button
-          type="button"
-          onClick={onDemo}
+        <a
+          href={DEMO_PLAY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex h-12 items-center justify-center text-[14px] font-bold text-dg-ink"
           style={{ borderRadius: 4, background: '#00C7A7' }}
         >
           체험하기
-        </button>
+        </a>
       </div>
     </div>
   )

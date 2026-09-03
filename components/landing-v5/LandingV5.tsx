@@ -64,7 +64,7 @@ export default function LandingV5() {
         <FinalCta onCta={() => setFinalApplyOpen(true)} onPreview={() => setAdminPreviewOpen(true)} />
       </main>
       <Footer />
-      <BottomBar onDemo={openDemo} />
+      <BottomBar />
       {demoOpen && <DemoModal onClose={() => setDemoOpen(false)} />}
       {adminPreviewOpen && (
         <AdminPreviewModal onClose={() => setAdminPreviewOpen(false)} onApply={goToPricing} />

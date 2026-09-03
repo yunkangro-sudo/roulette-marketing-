@@ -5,9 +5,12 @@
 
 export const NAV_HEIGHT_PX = 64
 
-export const KAKAO_CONSULT_URL = ''
+export const KAKAO_CONSULT_URL = 'https://pf.kakao.com/_fxnKxaX'
 
 export const SIGNUP_PATH = '/signup'
+
+/** 모바일 하단바 "체험하기" — 데모 모달 대신 실제 게임 체험 매장으로 바로 연결한다. */
+export const DEMO_PLAY_URL = 'https://www.dgting.co.kr/play/ca-01'
 
 export const PRICING = {
   basic: {
@@ -89,7 +92,9 @@ export const CONTENT_OPS = {
  *  기능에 가격을 붙여 파는 상품. 초기 제작비(1회)와 월 유지비를 명확히 분리해서 보여준다. */
 export const HOMEPAGE_SERVICE = {
   name: '검색과 AI를 위한 우리 매장 홈페이지',
-  headline: '검색에서 찾히고, AI가 참고할 수 있는\n우리 매장의 공식 홈페이지를 만드세요',
+  headline: '손님들이 후기도 쓰고, 검색엔진에 잘 노출되고, AI가 인용 참고하는\n"마케팅 미니홈피"를 만드세요',
+  /** 헤드라인에서 강조색(민트 굵게)으로 표시할 부분 — Sections.tsx가 headline을 이 값으로 split해서 렌더한다 */
+  headlineHighlight: '마케팅 미니홈피',
   differentiator:
     '독립 도메인 기반 홈페이지에 매장 정보를 체계적으로 구축하고\n네이버·구글 검색 등록과 SEO·AEO 최적화를 통해\n검색과 AI 시대를 준비하는 우리 매장만의 디지털 자산을 만듭니다.',
   setup: {
@@ -178,7 +183,7 @@ export const LAUNCH_EVENT = {
     'AEO 홈페이지 제작 서비스 무료 쿠폰',
   ],
   note: '참여하신 모든 분께 경품이 있습니다',
-  ctaLabel: '이벤트 참여하기',
+  ctaLabel: '단골팅 이벤트 참여하기',
   ctaUrl: 'https://www.dgting.co.kr/play/dgting',
 } as const
 

@@ -1067,7 +1067,16 @@ export function PricingSection() {
           <div className="mx-auto max-w-lg text-center">
             <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">추가 서비스 · {HOMEPAGE_SERVICE.name}</p>
             <h3 className="mt-2 whitespace-pre-line text-[24px] font-bold leading-snug text-dg-ink md:text-[28px]">
-              {HOMEPAGE_SERVICE.headline}
+              {(() => {
+                const [before, after] = HOMEPAGE_SERVICE.headline.split(HOMEPAGE_SERVICE.headlineHighlight)
+                return (
+                  <>
+                    {before}
+                    <span className="font-extrabold text-dg-green-deep">{HOMEPAGE_SERVICE.headlineHighlight}</span>
+                    {after}
+                  </>
+                )
+              })()}
             </h3>
             <p className="mx-auto mt-4 whitespace-pre-line text-[13.5px] leading-relaxed text-dg-ink-soft">
               {HOMEPAGE_SERVICE.differentiator}
@@ -1094,10 +1103,10 @@ export function PricingSection() {
 
             <article className="relative border-2 border-dg-gold bg-gradient-to-b from-dg-cream to-white p-6" style={{ borderRadius: 10 }}>
               <span
-                className="inline-block bg-dg-gold-deep px-3 py-1 text-[11px] font-bold text-white"
+                className="badge-glow-pulse inline-block bg-dg-gold-deep px-4 py-2 text-[14px] font-extrabold text-white sm:text-[15px]"
                 style={{ borderRadius: 999 }}
               >
-                {HOMEPAGE_SERVICE.maintenance.promo.badge}
+                🔥 {HOMEPAGE_SERVICE.maintenance.promo.badge}
               </span>
               <p className="mt-3 text-[21px] font-bold leading-snug text-dg-ink sm:text-[23px]">
                 {HOMEPAGE_SERVICE.maintenance.promo.headline}
@@ -1146,10 +1155,10 @@ export function PricingSection() {
               <span aria-hidden>→</span> <span className="font-num text-dg-green-deep">0원</span>
             </p>
             <span
-              className="mt-2.5 inline-block bg-dg-gold-deep px-3.5 py-1.5 text-[13px] font-bold text-white"
+              className="badge-glow-pulse mt-3 inline-block bg-dg-gold-deep px-5 py-2.5 text-[15px] font-extrabold text-white sm:text-[16px]"
               style={{ borderRadius: 999 }}
             >
-              {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
+              ⏰ {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
             </span>
           </div>
 
@@ -1168,7 +1177,7 @@ export function PricingSection() {
               className="min-h-[52px] w-full max-w-sm border-2 border-dg-ink bg-white px-8 text-[15px] font-bold text-dg-ink transition-colors hover:bg-dg-cream sm:w-auto"
               style={{ borderRadius: 6 }}
             >
-              1년 유지비 무료 혜택 신청하기
+              상담 신청하기
             </button>
             <p className="mt-2.5 text-[12px] text-dg-ink-soft">조기 종료될 수 있는 프로모션입니다</p>
           </div>
@@ -1205,7 +1214,7 @@ export function PricingSection() {
               href={LAUNCH_EVENT.ctaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 flex min-h-[52px] w-full items-center justify-center bg-dg-gold text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+              className="event-cta-shift mt-5 flex min-h-[52px] w-full items-center justify-center bg-dg-gold text-[16px] font-extrabold text-white transition-opacity hover:opacity-90"
               style={{ borderRadius: 6 }}
             >
               {LAUNCH_EVENT.ctaLabel}

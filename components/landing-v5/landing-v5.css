@@ -268,3 +268,36 @@
     box-shadow: 0 10px 26px rgba(0, 199, 167, 0.35);
   }
 }
+
+/* "한정 프로모션" / "조기 종료 예정" 배지 — 글자 크기만으론 시선을 못 끌어서
+   골드 글로우를 은은하게 펄스시켜 혜택이 크다는 인상을 더한다. */
+@keyframes badgeGlowPulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(184, 134, 47, 0.4); }
+  50% { box-shadow: 0 4px 24px rgba(184, 134, 47, 0.75); }
+}
+
+.landing-v5 .badge-glow-pulse {
+  animation: badgeGlowPulse 1.8s ease-in-out infinite;
+}
+
+/* "단골팅 이벤트 참여하기" 버튼 — 골드 ↔ 오렌지로 배경색이 은은하게 순환하며
+   페이지에서 가장 먼저 눈에 띄도록 한다. */
+@keyframes eventCtaColorShift {
+  0%, 100% { background-color: var(--gold); }
+  50% { background-color: var(--carrot); }
+}
+
+.landing-v5 .event-cta-shift {
+  animation: eventCtaColorShift 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v5 .badge-glow-pulse {
+    animation: none !important;
+    box-shadow: 0 4px 14px rgba(184, 134, 47, 0.4);
+  }
+  .landing-v5 .event-cta-shift {
+    animation: none !important;
+    background-color: var(--gold);
+  }
+}
