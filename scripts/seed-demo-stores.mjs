@@ -321,16 +321,13 @@ const STORES = [
   },
 ]
 
-const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
-await client.connect()
-
 function todayStr(offsetDays = 0) {
   const d = new Date()
   d.setDate(d.getDate() + offsetDays)
   return d.toISOString().slice(0, 10)
 }
 
-async function wipeExisting(storeId) {
+async function wipeExisting(client, storeId) {
   const { rows: eventRows } = await client.query('select id from events where store_id = $1', [storeId])
   for (const e of eventRows) {
     await client.query('delete from prize_tiers where event_id = $1', [e.id])
@@ -349,11 +346,11 @@ async function wipeExisting(storeId) {
   await client.query('delete from store_contracts where store_id = $1', [storeId])
 }
 
-async function seedStore(def) {
+async function seedStore(client, def) {
   const storeId = def.slug
   const storeName = `(샘플) ${def.name}`
 
-  await wipeExisting(storeId)
+  await wipeExisting(client, storeId)
 
   const contractStart = todayStr(-14)
   const contractEnd = todayStr(365)
@@ -454,10 +451,25 @@ async function seedStore(def) {
   console.log(`✅ ${storeName} (${storeId}) 생성 완료`)
 }
 
-for (const def of STORES) {
-  await seedStore(def)
+/**
+ * Phase 1 콘텐츠 시드 실행 — CLI(`node scripts/seed-demo-stores.mjs`)와
+ * 슈퍼관리자 "샘플 레퍼런스" 재생성 API(app/api/admin/super/demo-stores/regenerate)
+ * 양쪽에서 동일 로직을 재사용하기 위해 pg.Client를 주입받는 함수로 분리했다.
+ */
+export async function runDemoStoresSeed(client, storeIds) {
+  const targets = storeIds && storeIds.length > 0 ? STORES.filter((s) => storeIds.includes(s.slug)) : STORES
+  for (const def of targets) {
+    await seedStore(client, def)
+  }
+  return { count: targets.length, password: DEMO_PASSWORD }
 }
 
-console.log(`\n총 ${STORES.length}개 샘플 매장 생성 완료. 로그인 정보: demo-{slug}@dgting.co.kr / ${DEMO_PASSWORD}`)
-
-await client.end()
+// CLI로 직접 실행했을 때만(= API 라우트에서 import된 게 아니라
+// `node scripts/seed-demo-stores.mjs`로 실행했을 때만) 자체적으로 커넥션을 열고 실행한다.
+if (process.argv[1]?.replace(/\\/g, '/').endsWith('seed-demo-stores.mjs')) {
+  const client = new pg.Client({ connectionString: process.env.DATABASE_URL })
+  await client.connect()
+  const { count, password } = await runDemoStoresSeed(client)
+  console.log(`\n총 ${count}개 샘플 매장 생성 완료. 로그인 정보: demo-{slug}@dgting.co.kr / ${password}`)
+  await client.end()
+}

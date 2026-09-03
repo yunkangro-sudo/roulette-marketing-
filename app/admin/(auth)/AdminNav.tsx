@@ -32,6 +32,7 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
         { href: '/admin/super/dashboard',     label: '전체 대시보드' },
         { href: '/admin/companies',           label: '업체 리스트' },
         { href: '/admin/super/subscriptions', label: '업체 구독관리' },
+        { href: '/admin/super/demo-stores',   label: '샘플 레퍼런스' },
       ]
     : isAdvertiser
     ? [
