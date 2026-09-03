@@ -9,10 +9,15 @@ export interface SubscriptionListItem {
   storeName: string
   latest: Subscription | null
   history: Subscription[]
+  homepageFeatureEnabled: boolean
+  homepageFeatureEnabledAt: string | null
 }
 
-const STATUS_FILTERS: { value: 'all' | PaymentStatus; label: string }[] = [
+type SubscriptionFilterValue = 'all' | PaymentStatus | 'pending'
+
+const STATUS_FILTERS: { value: SubscriptionFilterValue; label: string }[] = [
   { value: 'all',     label: '전체' },
+  { value: 'pending', label: '승인대기' },
   { value: 'paid',    label: '입금확인' },
   { value: 'unpaid',  label: '미입금' },
   { value: 'overdue', label: '연체' },
@@ -34,7 +39,7 @@ function downloadCsv(items: SubscriptionListItem[]) {
   const rows = items.map((item) => {
     const s = item.latest
     const period = s ? `${s.start_date} ~ ${s.end_date}` : ''
-    const status = s ? STATUS_BADGE[s.payment_status].label : '미설정'
+    const status = s ? STATUS_BADGE[s.payment_status].label : '승인대기'
     return [
       item.storeName,
       s?.plan_name ?? '',
@@ -59,12 +64,16 @@ function downloadCsv(items: SubscriptionListItem[]) {
 
 export default function SubscriptionsListClient({ items }: { items: SubscriptionListItem[] }) {
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | PaymentStatus>('all')
+  const [statusFilter, setStatusFilter] = useState<SubscriptionFilterValue>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
-      if (statusFilter !== 'all' && item.latest?.payment_status !== statusFilter) return false
+      if (statusFilter === 'pending') {
+        if (item.latest !== null) return false
+      } else if (statusFilter !== 'all' && item.latest?.payment_status !== statusFilter) {
+        return false
+      }
       if (search.trim() && !item.storeName.toLowerCase().includes(search.trim().toLowerCase())) return false
       return true
     })
@@ -113,7 +122,7 @@ export default function SubscriptionsListClient({ items }: { items: Subscription
         <div className="space-y-3">
           {filtered.map((item) => {
             const s = item.latest
-            const badge = s ? STATUS_BADGE[s.payment_status] : { label: '미설정', className: 'bg-gray-100 text-gray-400' }
+            const badge = s ? STATUS_BADGE[s.payment_status] : { label: '승인대기', className: 'bg-amber-100 text-amber-700' }
             const isOpen = expandedId === item.companyId
             return (
               <div key={item.companyId} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -128,9 +137,14 @@ export default function SubscriptionsListClient({ items }: { items: Subscription
                         <span className="font-bold text-gray-900">{item.storeName}</span>
                         <span className="text-xs text-gray-400 font-mono">{item.storeId}</span>
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badge.className}`}>{badge.label}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          item.homepageFeatureEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                        }`}>
+                          🏠 홈페이지 {item.homepageFeatureEnabled ? 'ON' : 'OFF'}
+                        </span>
                       </div>
                       <p className="text-sm text-gray-600">
-                        {s ? `${s.plan_name} · ${s.start_date} ~ ${s.end_date}` : '등록된 구독 이력 없음 (무제한 체험)'}
+                        {s ? `${s.plan_name} · ${s.start_date} ~ ${s.end_date}` : '등록된 구독 이력 없음 (승인대기 — 새 결제 등록 시 승인)'}
                       </p>
                       {s?.payment_date && <p className="text-xs text-gray-400 mt-0.5">입금일: {s.payment_date}</p>}
                     </div>
@@ -146,7 +160,13 @@ export default function SubscriptionsListClient({ items }: { items: Subscription
 
                 {isOpen && (
                   <div className="border-t border-gray-100 px-5 py-4 bg-gray-50/50">
-                    <CompanySubscriptionsPanel companyId={item.companyId} initialSubscriptions={item.history} bare />
+                    <CompanySubscriptionsPanel
+                      companyId={item.companyId}
+                      initialSubscriptions={item.history}
+                      initialHomepageFeatureEnabled={item.homepageFeatureEnabled}
+                      initialHomepageFeatureEnabledAt={item.homepageFeatureEnabledAt}
+                      bare
+                    />
                   </div>
                 )}
               </div>

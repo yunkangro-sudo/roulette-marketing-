@@ -50,7 +50,7 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
       <main className="flex min-h-screen items-center justify-center bg-[#F7F5F0] px-6 text-center">
         <div>
           <p className="text-2xl font-black text-[#222222]">{data.storeName}</p>
-          <p className="mt-3 text-sm text-[#222222]/50">홈페이지 준비중입니다</p>
+          <p className="mt-3 text-sm text-[#222222]/50">준비중인 페이지예요</p>
         </div>
       </main>
     )

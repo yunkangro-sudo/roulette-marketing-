@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAdminAuth } from '@/lib/admin/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSubscriptionStatus } from '@/lib/admin/subscription'
+import { getStoreAddons } from '@/lib/admin/storeAddons'
 import CompanyInfoClient from './CompanyInfoClient'
 
 /**
@@ -16,7 +17,7 @@ export default async function CompanyInfoPage() {
   const storeId = account.storeId
   const supabase = createServerClient()
 
-  const [{ data: company }, { data: subscriptions }, subscriptionStatus] = await Promise.all([
+  const [{ data: company }, { data: subscriptions }, subscriptionStatus, addons] = await Promise.all([
     supabase.from('store_contracts').select('*').eq('store_id', storeId).maybeSingle(),
     supabase
       .from('subscriptions')
@@ -24,6 +25,7 @@ export default async function CompanyInfoPage() {
       .eq('store_id', storeId)
       .order('end_date', { ascending: false }),
     getSubscriptionStatus(storeId),
+    getStoreAddons(storeId),
   ])
 
   if (!company) redirect('/admin/dashboard')
@@ -33,6 +35,8 @@ export default async function CompanyInfoPage() {
       company={company}
       subscriptions={subscriptions ?? []}
       subscriptionStatus={subscriptionStatus}
+      homepageFeatureEnabled={addons.homepageFeatureEnabled}
+      homepageFeatureEnabledAt={addons.homepageFeatureEnabledAt}
     />
   )
 }

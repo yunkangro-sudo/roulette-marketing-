@@ -4,6 +4,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
 import { getLiveStats } from '@/lib/business-page/trustMetrics'
 import { resolveBusinessType } from '@/lib/business-page/businessTypeLabels'
+import { getSubscriptionStatus } from '@/lib/admin/subscription'
+import { getStoreAddons } from '@/lib/admin/storeAddons'
 import BusinessPageView from './BusinessPageView'
 
 interface Props {
@@ -13,7 +15,7 @@ interface Props {
 async function loadData(storeId: string) {
   const supabase = createServerClient()
 
-  const [contractRes, entityRes, mediaRes, faqRes, linksRes, eventRes, productsRes, rewardCountRes] = await Promise.all([
+  const [contractRes, entityRes, mediaRes, faqRes, linksRes, eventRes, productsRes, rewardCountRes, subscription, addons] = await Promise.all([
     supabase
       .from('store_contracts')
       .select('store_name, address, phone, website, daangn_url, kakao_channel_url, is_demo')
@@ -26,16 +28,24 @@ async function loadData(storeId: string) {
     supabase.from('events').select('id, name').eq('store_id', storeId).eq('status', 'active').maybeSingle(),
     supabase.from('business_products').select('name, image_url, price, description').eq('store_id', storeId).order('sort_order'),
     supabase.from('reward_catalog').select('id', { count: 'exact', head: true }).eq('store_id', storeId).eq('active', true),
+    getSubscriptionStatus(storeId),
+    getStoreAddons(storeId),
   ])
 
   if (!contractRes.data) return null
 
+  // 이용기간 유예(7일) 초과 시 "지금 진행중인 이벤트" 섹션이 자연히 숨겨지도록 이벤트를
+  // 못 찾은 것처럼 취급한다 (아래 eventName/tierLabels가 비어 기존 조건부 렌더링 재사용).
+  // /play/[storeId]/page.tsx와 동일한 판단 기준.
+  const isAccessBlocked = subscription.status === 'expired'
+  const effectiveEvent = isAccessBlocked ? null : eventRes.data
+
   let tiers: { label: string }[] = []
-  if (eventRes.data) {
+  if (effectiveEvent) {
     const { data } = await supabase
       .from('prize_tiers')
       .select('label')
-      .eq('event_id', eventRes.data.id)
+      .eq('event_id', effectiveEvent.id)
       .neq('label', '꽝')
       .order('amount', { ascending: true })
     tiers = data ?? []
@@ -62,6 +72,13 @@ async function loadData(storeId: string) {
 
   const liveStats = entity.show_trust_metrics ? await getLiveStats(storeId) : null
 
+  // 매장 홈페이지는 유료 애드온(store_addons.homepage_feature_enabled)이 켜져있어야 하고,
+  // 그 위에 광고주 본인이 끄고 켤 수 있는 business_entity.homepage_enabled도 true여야 공개된다.
+  // 결제 게이트(상위)가 false면 광고주의 설정값과 무관하게 무조건 "준비중" 화면으로 대체 —
+  // 이 값이 false로 내려가면 BusinessPageView가 즉시 "준비중" 화면을 반환하므로
+  // onlinePlayEnabled(게임 진입 버튼)도 자연히 함께 숨겨진다 (상위-하위 스위치 관계).
+  const homepageEnabled = addons.homepageFeatureEnabled && entity.homepage_enabled !== false
+
   return {
     storeId,
     storeName: contractRes.data.store_name || storeId,
@@ -70,8 +87,8 @@ async function loadData(storeId: string) {
     phone: contractRes.data.phone ?? null,
     daangnUrl: safeHttpUrl(contractRes.data.daangn_url),
     kakaoChannelUrl: safeHttpUrl(contractRes.data.kakao_channel_url),
-    homepageEnabled: entity.homepage_enabled !== false,
-    onlinePlayEnabled: entity.online_play_enabled === true,
+    homepageEnabled,
+    onlinePlayEnabled: homepageEnabled && entity.online_play_enabled === true,
     category: entity.category as string | null,
     description: entity.description as string | null,
     tagline: entity.tagline as string | null,
@@ -88,7 +105,7 @@ async function loadData(storeId: string) {
     storePhotos: (mediaRes.data ?? []).filter((m) => m.media_type === 'STORE').map((m) => m.url),
     faq: faqRes.data ?? [],
     externalLinks: linksRes.data ?? [],
-    eventName: eventRes.data?.name ?? null,
+    eventName: effectiveEvent?.name ?? null,
     tierLabels: tiers.map((t) => t.label),
     products: productsRes.data ?? [],
     activeRewardCount: rewardCountRes.count ?? 0,

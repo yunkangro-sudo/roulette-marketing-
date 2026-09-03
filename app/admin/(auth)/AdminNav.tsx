@@ -15,7 +15,14 @@ const ROLE_LABEL: Record<string, string> = {
 
 type NavLink = { href: string; label: string; highlight?: boolean }
 
-export default function AdminNav({ account }: { account: NonNullable<AdminSessionData['account']> }) {
+export default function AdminNav({
+  account,
+  homepageFeatureEnabled,
+}: {
+  account: NonNullable<AdminSessionData['account']>
+  /** 광고주(대리접속 포함) 전용 — 매장 홈페이지 유료 기능이 켜져 있어야 메뉴에 노출된다 */
+  homepageFeatureEnabled?: boolean
+}) {
   const router = useRouter()
   const { role } = account
   const [menuOpen, setMenuOpen] = useState(false)
@@ -44,7 +51,8 @@ export default function AdminNav({ account }: { account: NonNullable<AdminSessio
         { href: '/admin/loyalty-settings',  label: '포인트 정책' },
         { href: '/admin/reward-catalog',    label: '리워드 관리' },
         { href: '/admin/coupons',           label: '쿠폰 관리' },
-        { href: '/admin/business-page',     label: '매장 홈페이지' },
+        // 매장 홈페이지는 유료 애드온 — 슈퍼관리자가 켜주기 전까지 메뉴 자체를 숨긴다
+        ...(homepageFeatureEnabled ? [{ href: '/admin/business-page', label: '매장 홈페이지' }] : []),
         { href: '/staff',                   label: '계산대 →', highlight: true },
       ]
     : []

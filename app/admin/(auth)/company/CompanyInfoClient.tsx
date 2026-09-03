@@ -31,7 +31,7 @@ interface SubscriptionStatus {
 }
 
 const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus['status'], { label: string; className: string }> = {
-  trial:   { label: '무제한 체험 (구독 이력 없음)', className: 'bg-blue-100 text-blue-700' },
+  trial:   { label: '승인대기 (입금 확인중)',       className: 'bg-amber-100 text-amber-700' },
   active:  { label: '정상 이용중',                 className: 'bg-green-100 text-green-700' },
   grace:   { label: '만료 · 유예기간',             className: 'bg-orange-100 text-orange-700' },
   expired: { label: '이용기간 만료',               className: 'bg-red-100 text-red-700' },
@@ -48,9 +48,17 @@ interface Props {
   company: Company
   subscriptions: Subscription[]
   subscriptionStatus: SubscriptionStatus
+  homepageFeatureEnabled: boolean
+  homepageFeatureEnabledAt: string | null
 }
 
-export default function CompanyInfoClient({ company, subscriptions, subscriptionStatus }: Props) {
+export default function CompanyInfoClient({
+  company,
+  subscriptions,
+  subscriptionStatus,
+  homepageFeatureEnabled,
+  homepageFeatureEnabledAt,
+}: Props) {
   const [tab, setTab] = useState<Tab>('basic')
 
   return (
@@ -122,7 +130,12 @@ export default function CompanyInfoClient({ company, subscriptions, subscription
           </div>
 
           {/* 구독(이용기간) 이력 — 읽기전용 */}
-          <CompanySubscriptionsPanel initialSubscriptions={subscriptions} readOnly />
+          <CompanySubscriptionsPanel
+            initialSubscriptions={subscriptions}
+            initialHomepageFeatureEnabled={homepageFeatureEnabled}
+            initialHomepageFeatureEnabledAt={homepageFeatureEnabledAt}
+            readOnly
+          />
         </div>
       )}
 

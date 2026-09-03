@@ -35,7 +35,7 @@ interface SubscriptionStatus {
 }
 
 const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus['status'], { label: string; className: string }> = {
-  trial:   { label: '무제한 체험 (구독 이력 없음)', className: 'bg-blue-100 text-blue-700' },
+  trial:   { label: '승인대기 (접근 차단됨)',       className: 'bg-amber-100 text-amber-700' },
   active:  { label: '정상 이용중',                 className: 'bg-green-100 text-green-700' },
   grace:   { label: '만료 · 유예기간',             className: 'bg-orange-100 text-orange-700' },
   expired: { label: '이용기간 만료 (접근 차단됨)',   className: 'bg-red-100 text-red-700' },
@@ -54,9 +54,18 @@ interface Props {
   subscriptionStatus: SubscriptionStatus
   /** 슈퍼관리자만 "위험 구역"(업체 완전 삭제)을 볼 수 있음 — agency는 계약 관리는 가능하지만 데이터 파괴는 불가 */
   isSuperAdmin: boolean
+  homepageFeatureEnabled: boolean
+  homepageFeatureEnabledAt: string | null
 }
 
-export default function CompanyDetailTabsClient({ company, subscriptions, subscriptionStatus, isSuperAdmin }: Props) {
+export default function CompanyDetailTabsClient({
+  company,
+  subscriptions,
+  subscriptionStatus,
+  isSuperAdmin,
+  homepageFeatureEnabled,
+  homepageFeatureEnabledAt,
+}: Props) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('basic')
   const [entering, setEntering] = useState(false)
@@ -133,7 +142,12 @@ export default function CompanyDetailTabsClient({ company, subscriptions, subscr
 
       {tab === 'basic' && <CompanyForm mode="edit" initial={company} hideChrome />}
       {tab === 'subscription' && (
-        <CompanySubscriptionsPanel companyId={company.id} initialSubscriptions={subscriptions} />
+        <CompanySubscriptionsPanel
+          companyId={company.id}
+          initialSubscriptions={subscriptions}
+          initialHomepageFeatureEnabled={homepageFeatureEnabled}
+          initialHomepageFeatureEnabledAt={homepageFeatureEnabledAt}
+        />
       )}
       {tab === 'summary' && <CompanySummaryPanel storeId={company.store_id} />}
 

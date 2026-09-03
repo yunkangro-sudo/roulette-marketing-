@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireAdminAuth } from '@/lib/admin/session'
+import { canAccessHomepageFeature } from '@/lib/admin/storeAddons'
 import { resolveBusinessType } from '@/lib/business-page/businessTypeLabels'
+
+const FEATURE_DISABLED_ERROR = '이 기능은 아직 활성화되지 않았어요. 담당자에게 문의해주세요.'
 
 const MAX_PRODUCTS = 6
 
@@ -25,6 +28,9 @@ export async function GET(req: Request) {
   const storeId = resolveStoreId(account, searchParams.get('store_id'))
   if (!storeId) {
     return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
+  }
+  if (!(await canAccessHomepageFeature(account, storeId))) {
+    return NextResponse.json({ error: FEATURE_DISABLED_ERROR }, { status: 403 })
   }
 
   const supabase = createServerClient()
@@ -103,6 +109,9 @@ export async function POST(req: Request) {
   const storeId = resolveStoreId(account, store_id)
   if (!storeId) {
     return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
+  }
+  if (!(await canAccessHomepageFeature(account, storeId))) {
+    return NextResponse.json({ error: FEATURE_DISABLED_ERROR }, { status: 403 })
   }
 
   const productsInput: ProductInput[] = Array.isArray(products)

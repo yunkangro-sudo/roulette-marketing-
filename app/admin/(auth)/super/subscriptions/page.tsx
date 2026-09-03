@@ -1,4 +1,5 @@
 import { requireAdminAuth } from '@/lib/admin/session'
+import { getStoreAddonsBulk } from '@/lib/admin/storeAddons'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import SubscriptionsListClient, { type SubscriptionListItem } from './SubscriptionsListClient'
@@ -26,14 +27,19 @@ export default async function SuperSubscriptionsPage() {
     subsByStore.set(s.store_id, list)
   }
 
+  const addonsByStore = await getStoreAddonsBulk((companies ?? []).map((c) => c.store_id))
+
   const items: SubscriptionListItem[] = (companies ?? []).map((c) => {
     const history = subsByStore.get(c.store_id) ?? []
+    const addons = addonsByStore.get(c.store_id)
     return {
       companyId: c.id,
       storeId: c.store_id,
       storeName: c.store_name,
       latest: history[0] ?? null,
       history,
+      homepageFeatureEnabled: addons?.homepageFeatureEnabled ?? false,
+      homepageFeatureEnabledAt: addons?.homepageFeatureEnabledAt ?? null,
     }
   })
 

@@ -1,6 +1,7 @@
 import { requireAdminAuth } from '@/lib/admin/session'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSubscriptionStatus } from '@/lib/admin/subscription'
+import { getStoreAddons } from '@/lib/admin/storeAddons'
 import { redirect, notFound } from 'next/navigation'
 import CompanyDetailTabsClient from '../CompanyDetailTabsClient'
 
@@ -28,13 +29,14 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
     .eq('role', 'advertiser')
     .maybeSingle()
 
-  const [{ data: subscriptions }, subscriptionStatus] = await Promise.all([
+  const [{ data: subscriptions }, subscriptionStatus, addons] = await Promise.all([
     supabase
       .from('subscriptions')
       .select('id, plan_name, amount_paid, start_date, end_date, memo, created_at, payment_date, payment_status')
       .eq('store_id', company.store_id)
       .order('end_date', { ascending: false }),
     getSubscriptionStatus(company.store_id),
+    getStoreAddons(company.store_id),
   ])
 
   return (
@@ -43,6 +45,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       subscriptions={subscriptions ?? []}
       subscriptionStatus={subscriptionStatus}
       isSuperAdmin={account.role === 'super_admin'}
+      homepageFeatureEnabled={addons.homepageFeatureEnabled}
+      homepageFeatureEnabledAt={addons.homepageFeatureEnabledAt}
     />
   )
 }

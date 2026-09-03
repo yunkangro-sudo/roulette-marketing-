@@ -31,14 +31,28 @@ interface Props {
   readOnly?: boolean
   /** 목록에서 펼쳐볼 때 카드 chrome(테두리/그림자)을 생략하고 내용만 노출 */
   bare?: boolean
+  /** 매장 홈페이지 유료 기능 게이팅 초기값 (store_addons). readOnly 화면에선 상태 배지로만 노출 */
+  initialHomepageFeatureEnabled?: boolean
+  initialHomepageFeatureEnabledAt?: string | null
 }
 
 const todayStr = () => new Date().toISOString().slice(0, 10)
 
 /** 업체 상세 "이용기간·결제" 탭 — 구독 이력 리스트 + (수퍼관리자 전용) 갱신 등록 폼. 슈퍼관리자 "업체 구독관리" 목록에서도 재사용 */
-export default function CompanySubscriptionsPanel({ companyId, initialSubscriptions, readOnly, bare }: Props) {
+export default function CompanySubscriptionsPanel({
+  companyId,
+  initialSubscriptions,
+  readOnly,
+  bare,
+  initialHomepageFeatureEnabled = false,
+  initialHomepageFeatureEnabledAt = null,
+}: Props) {
   const router = useRouter()
   const [subList, setSubList] = useState<Subscription[]>(initialSubscriptions)
+  const [homepageFeatureEnabled, setHomepageFeatureEnabled] = useState(initialHomepageFeatureEnabled)
+  const [homepageFeatureEnabledAt, setHomepageFeatureEnabledAt] = useState(initialHomepageFeatureEnabledAt)
+  const [homepageToggling, setHomepageToggling] = useState(false)
+  const [homepageError, setHomepageError] = useState('')
   const [subForm, setSubForm] = useState({
     plan_name: 'Basic',
     amount_paid: 0,
@@ -81,6 +95,29 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
     }
   }
 
+  async function handleToggleHomepageFeature() {
+    if (!companyId) return
+    setHomepageError('')
+    setHomepageToggling(true)
+    const nextEnabled = !homepageFeatureEnabled
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/homepage-feature`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: nextEnabled }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setHomepageError(data.error ?? '처리 실패'); return }
+      setHomepageFeatureEnabled(data.homepageFeatureEnabled)
+      setHomepageFeatureEnabledAt(data.homepageFeatureEnabledAt)
+      router.refresh()
+    } catch {
+      setHomepageError('네트워크 오류가 발생했습니다')
+    } finally {
+      setHomepageToggling(false)
+    }
+  }
+
   async function handleConfirmPayment(subId: string) {
     if (!companyId) return
     setConfirmingId(subId)
@@ -103,6 +140,41 @@ export default function CompanySubscriptionsPanel({ companyId, initialSubscripti
 
   return (
     <div className={bare ? 'space-y-4' : 'bg-white rounded-xl border border-gray-200 p-5 space-y-4'}>
+      {/* 매장 홈페이지 유료 기능 게이팅 — subscriptions 이력과 별개 개념(store_addons)이라 별도 블록으로 구분 */}
+      <div className={`flex items-start justify-between gap-4 rounded-lg ${bare ? 'bg-gray-50 px-3 py-2.5' : 'bg-gray-50 px-4 py-3'}`}>
+        <div>
+          <p className="text-xs font-semibold text-gray-700">매장 홈페이지 기능</p>
+          <p className="mt-0.5 text-[11px] text-gray-400">
+            {homepageFeatureEnabled
+              ? `활성화됨${homepageFeatureEnabledAt ? ` · ${homepageFeatureEnabledAt.slice(0, 10)}` : ''}`
+              : '비활성화 (결제 확인 전)'}
+          </p>
+          {homepageError && <p className="mt-1 text-[11px] text-red-500">{homepageError}</p>}
+        </div>
+        {readOnly || !companyId ? (
+          <span className={`shrink-0 self-center text-[11px] font-bold px-2.5 py-1 rounded-full ${
+            homepageFeatureEnabled ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'
+          }`}>
+            {homepageFeatureEnabled ? '사용 가능' : '미사용'}
+          </span>
+        ) : (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={homepageFeatureEnabled}
+            onClick={handleToggleHomepageFeature}
+            disabled={homepageToggling}
+            className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+              homepageFeatureEnabled ? 'bg-orange-500' : 'bg-gray-300'
+            }`}
+          >
+            <span className={`inline-block h-6 w-6 rounded-full bg-white shadow mt-0.5 transition-transform ${
+              homepageFeatureEnabled ? 'translate-x-5' : 'translate-x-0.5'
+            }`} />
+          </button>
+        )}
+      </div>
+
       {!bare && <h2 className="text-sm font-bold text-gray-700">구독(이용기간) 이력</h2>}
 
       {readOnly && (

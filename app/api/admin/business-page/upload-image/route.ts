@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import sharp from 'sharp'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireAdminAuth } from '@/lib/admin/session'
+import { canAccessHomepageFeature } from '@/lib/admin/storeAddons'
 
 /**
  * 매장 홈페이지(/b/{slug}) 사진 업로드 API — reward-catalog/upload-image와 동일 패턴
@@ -34,6 +35,9 @@ export async function POST(req: Request) {
   const storeId = resolveStoreId(account, formData.get('store_id')?.toString() ?? null)
 
   if (!storeId) return NextResponse.json({ error: 'store_id가 필요합니다' }, { status: 400 })
+  if (!(await canAccessHomepageFeature(account, storeId))) {
+    return NextResponse.json({ error: '이 기능은 아직 활성화되지 않았어요. 담당자에게 문의해주세요.' }, { status: 403 })
+  }
   if (!(file instanceof File)) {
     return NextResponse.json({ error: '이미지 파일이 필요합니다' }, { status: 400 })
   }
