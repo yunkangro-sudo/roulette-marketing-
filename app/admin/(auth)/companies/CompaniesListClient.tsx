@@ -22,12 +22,12 @@ const STATUS_FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'active',  label: '정상' },
   { value: 'grace',   label: '유예' },
   { value: 'expired', label: '만료' },
-  { value: 'trial',   label: '체험' },
+  { value: 'trial',   label: '승인대기' },
   { value: 'demo',    label: '샘플' },
 ]
 
 const STATUS_BADGE: Record<CompanyListItem['status'], { label: string; className: string }> = {
-  trial:   { label: '무제한 체험',   className: 'bg-blue-100 text-blue-600' },
+  trial:   { label: '승인대기',      className: 'bg-amber-100 text-amber-700' },
   active:  { label: '정상',          className: 'bg-green-100 text-green-600' },
   grace:   { label: '유예기간',      className: 'bg-orange-100 text-orange-600' },
   expired: { label: '이용기간 만료', className: 'bg-red-100 text-red-600' },
@@ -102,7 +102,7 @@ export default function CompaniesListClient({ companies }: { companies: CompanyL
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badge.className}`}>{badge.label}</span>
                     </div>
                     <p className="text-sm text-gray-600">
-                      이용기간: {c.subscriptionEndDate ? `~ ${c.subscriptionEndDate}` : '설정된 구독 없음 (무제한 체험)'}
+                      이용기간: {c.subscriptionEndDate ? `~ ${c.subscriptionEndDate}` : '설정된 구독 없음 (승인대기)'}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       담당자: {c.manager_name || '-'} · 계약자: {c.contractor_name || '-'}

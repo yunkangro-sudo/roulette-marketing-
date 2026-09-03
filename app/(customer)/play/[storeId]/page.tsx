@@ -5,6 +5,7 @@ import ResultLockedScreen from '@/components/play/ResultLockedScreen'
 import FlowPreview from '@/components/play/FlowPreview'
 import DeviceFrame from '@/components/play/DeviceFrame'
 import { safeHttpUrl } from '@/lib/store/profileUrls'
+import { getSubscriptionStatus } from '@/lib/admin/subscription'
 
 interface Props {
   params: Promise<{ storeId: string }>
@@ -34,12 +35,22 @@ export default async function PlayPage({ params, searchParams }: Props) {
   }
   const supabase = createServerClient()
 
-  const { data: event, error } = await supabase
-    .from('events')
-    .select('id, name, status, challenge_frequency')
-    .eq('store_id', storeId)
-    .eq('status', 'active')
-    .maybeSingle()
+  // 이용기간 유예(7일) 초과 시 손님 화면도 "이벤트 없음"으로 자연스럽게 전환한다 —
+  // events row 자체는 건드리지 않고, 조회 자체를 건너뛰어 PlayFlow의 기존 !event
+  // 분기("현재 진행중인 이벤트가 없어요")를 그대로 재사용한다. 정상/유예 기간에는
+  // 손님 경험에 아무 영향 없음. 승인대기(subscriptions row 없음)는 애초에 관리자에서
+  // 이벤트를 만들 수 없으므로 별도 분기 없이도 자연히 이벤트가 없다.
+  const subscription = await getSubscriptionStatus(storeId)
+  const isAccessBlocked = subscription.status === 'expired'
+
+  const { data: event, error } = isAccessBlocked
+    ? { data: null, error: null }
+    : await supabase
+        .from('events')
+        .select('id, name, status, challenge_frequency')
+        .eq('store_id', storeId)
+        .eq('status', 'active')
+        .maybeSingle()
 
   // 업체명은 store_contracts(관리자 "업체 정보" 화면에서 실제로 입력·관리되는 테이블)가 정답 소스다.
   // store_settings.store_name은 광고비/객단가 설정용 레거시 컬럼이라 실제 매장 대부분 비어있어서

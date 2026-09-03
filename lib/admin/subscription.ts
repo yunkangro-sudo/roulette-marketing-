@@ -6,8 +6,15 @@ import { createServerClient } from '@/lib/supabase/server'
  * 진실의 원천은 subscriptions 테이블 — 매장당 여러 row가 쌓이고(갱신 이력),
  * end_date가 가장 최근인 row를 "현재 구독"으로 간주한다.
  *
- * subscriptions row가 아예 없는 매장(신규 등록 직후 등)은 차단하지 않고
- * 무제한 체험(trial)으로 처리한다 — 기존 매장이 갑자기 막히는 사고를 막기 위함.
+ * ── 'trial' = 승인대기 (2026-09 가입승인 게이트 도입 이후 의미 변경) ──
+ * subscriptions row가 아예 없는 매장은 'trial'로 분류된다. 과거에는 이 상태를
+ * "무제한 체험"으로 취급해 관리자 기능을 전부 열어줬지만, 이는 회원가입 완료 즉시
+ * 입금 확인 없이 서비스를 무제한 이용할 수 있는 구멍이었다. 지금은 middleware.ts에서
+ * 'trial'을 'expired'와 동일한 카테고리로 취급해 차단한다 — 신규 가입(/api/signup)은
+ * subscriptions row를 만들지 않으므로 항상 'trial'로 시작하고, 슈퍼관리자가 "새 결제
+ * 등록"(POST /api/admin/companies/[id]/subscriptions)으로 최초 구독 row를 넣어주는
+ * 순간이 곧 "승인"이 되어 'active'로 전환된다. status 값 자체는 하위호환을 위해
+ * 'trial'을 그대로 쓰지만, 화면 라벨은 전부 "승인대기"로 표시한다.
  */
 export type SubscriptionStatusKind = 'trial' | 'active' | 'grace' | 'expired'
 
@@ -81,7 +88,7 @@ export async function getSubscriptionStatus(storeId: string | null | undefined):
 /**
  * "매장 전용" 경로 — /staff(계산대)는 절대 포함하지 않는다 (이미 발급된 쿠폰은 이용기간과
  * 무관하게 사용 가능해야 함). 두 가지 목적으로 쓰인다:
- *   1. advertiser 이용기간 만료 차단 (middleware.ts)
+ *   1. advertiser 이용기간 만료('expired') + 승인대기('trial') 차단 (middleware.ts)
  *   2. 대리접속(impersonation) 없는 super_admin/agency의 접근 차단 → /admin/companies로 이동
  */
 export const SUBSCRIPTION_GATED_PATH_PREFIXES = [
