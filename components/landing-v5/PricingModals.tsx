@@ -418,12 +418,12 @@ export function HomepageServiceModal({ onClose }: Props) {
     <ModalShell
       onClose={onClose}
       labelId="homepage-service-title"
-      title={phase === 'done' ? '상담 신청 완료' : '홈페이지 제작 상담'}
+      title={phase === 'done' ? '신청 완료' : '1년 유지비 무료 혜택 신청'}
     >
       {phase !== 'done' ? (
         <div className="space-y-4">
           <p className="text-[13px] leading-relaxed text-dg-ink-soft">
-            매장 정보를 남겨주시면, 담당자가 홈페이지 제작 상담을 위해 연락드려요.
+            매장 정보를 남겨주시면, 담당자가 홈페이지 제작과 첫 1년 유지비 무료 혜택 안내를 위해 연락드려요.
           </p>
           <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
           <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />

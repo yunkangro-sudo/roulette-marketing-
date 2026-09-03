@@ -1092,13 +1092,34 @@ export function PricingSection() {
               </ul>
             </article>
 
-            <article className="border border-dg-line bg-dg-bg p-6" style={{ borderRadius: 10 }}>
-              <p className="text-[12px] font-bold text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.label}</p>
-              <p className="mt-1 whitespace-nowrap font-num text-[28px] font-bold text-dg-ink sm:text-[30px]">
-                {formatWon(HOMEPAGE_SERVICE.maintenance.price)}
-                <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">/ {HOMEPAGE_SERVICE.maintenance.note}</span>
+            <article className="relative border-2 border-dg-gold bg-gradient-to-b from-dg-cream to-white p-6" style={{ borderRadius: 10 }}>
+              <span
+                className="inline-block bg-dg-gold-deep px-3 py-1 text-[11px] font-bold text-white"
+                style={{ borderRadius: 999 }}
+              >
+                {HOMEPAGE_SERVICE.maintenance.promo.badge}
+              </span>
+              <p className="mt-3 text-[21px] font-bold leading-snug text-dg-ink sm:text-[23px]">
+                {HOMEPAGE_SERVICE.maintenance.promo.headline}
               </p>
-              <p className="mt-4 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.maintenance.title}</p>
+
+              <div className="mt-3 flex items-end gap-2">
+                <span className="font-num text-[14px] text-dg-ink-soft line-through">
+                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)} / {HOMEPAGE_SERVICE.maintenance.note}
+                </span>
+              </div>
+              <p className="mt-0.5 font-num text-[38px] font-bold leading-none text-dg-green-deep sm:text-[42px]">
+                0원<span className="ml-1.5 text-[15px] font-semibold text-dg-ink-soft">/ 월</span>
+              </p>
+              <p className="mt-2 text-[13px] font-bold text-dg-green-deep">
+                최초 {HOMEPAGE_SERVICE.maintenance.promo.freeMonths}개월 전액 면제
+              </p>
+
+              <p className="mt-4 whitespace-pre-line text-[13.5px] leading-relaxed text-dg-ink-soft">
+                {HOMEPAGE_SERVICE.maintenance.promo.description}
+              </p>
+
+              <p className="mt-5 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.maintenance.title}</p>
               <ul className="mt-3 space-y-1.5">
                 {HOMEPAGE_SERVICE.maintenance.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
@@ -1107,8 +1128,38 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
+
+              <p className="mt-4 text-[12px] text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.promo.resumeNote}</p>
             </article>
           </div>
+
+          {/* 프로모션 긴급성 강조 — 두 카드와 별개로, 혜택 금액과 종료 가능성을 한 번 더 도장 찍듯 확인시킨다 */}
+          <div
+            className="mx-auto mt-5 max-w-3xl border-2 border-dg-gold bg-dg-cream p-5 text-center"
+            style={{ borderRadius: 10 }}
+          >
+            <p className="text-[16px] font-bold text-dg-ink sm:text-[18px]">
+              1년 유지비{' '}
+              <span className="font-num text-dg-ink-soft line-through">
+                {formatWon(HOMEPAGE_SERVICE.maintenance.promo.annualOriginal)}
+              </span>{' '}
+              <span aria-hidden>→</span> <span className="font-num text-dg-green-deep">0원</span>
+            </p>
+            <span
+              className="mt-2.5 inline-block bg-dg-gold-deep px-3.5 py-1.5 text-[13px] font-bold text-white"
+              style={{ borderRadius: 999 }}
+            >
+              {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
+            </span>
+          </div>
+
+          <p className="mx-auto mt-8 max-w-2xl text-center text-[14px] leading-relaxed text-dg-ink-soft">
+            홈페이지 하나가 단순한 소개 페이지가 아닙니다.
+            <br />
+            검색엔진과 AI가 우리 매장을 발견하고 이해할 수 있는
+            <br />
+            공식 정보의 기준점이 됩니다.
+          </p>
 
           <div className="mx-auto mt-6 max-w-3xl text-center">
             <button
@@ -1117,8 +1168,9 @@ export function PricingSection() {
               className="min-h-[52px] w-full max-w-sm border-2 border-dg-ink bg-white px-8 text-[15px] font-bold text-dg-ink transition-colors hover:bg-dg-cream sm:w-auto"
               style={{ borderRadius: 6 }}
             >
-              홈페이지 제작 상담받기
+              1년 유지비 무료 혜택 신청하기
             </button>
+            <p className="mt-2.5 text-[12px] text-dg-ink-soft">조기 종료될 수 있는 프로모션입니다</p>
           </div>
         </div>
 
