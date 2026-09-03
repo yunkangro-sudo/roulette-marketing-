@@ -516,7 +516,7 @@ export function ProofSection() {
   return (
     <section id="proof" className="scroll-mt-20">
       {/* 상단 블록 — 데이터로 증명 (어두운 톤) */}
-      <div className="bg-[#141414] pb-16 pt-20 text-white md:pb-20 md:pt-28">
+      <div className="bg-[#141414] pb-24 pt-20 text-white md:pb-32 md:pt-28">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
             <p className="text-[13px] font-semibold tracking-wide text-dg-green">숫자로 확인하는 변화</p>
@@ -554,7 +554,22 @@ export function ProofSection() {
               ))}
             </div>
           </div>
-          <ScreenshotSlot shotId="10" tone="dark" fit="contain" maxWidth={320} />
+          {/* 실제 이미지 비율 그대로(h-auto) 렌더링 — 고정 폰 프레임(9:19.5)을 쓰면
+              정사각형에 가까운 리포트 이미지 위아래로 검은 여백이 생겨 제거했다. */}
+          <div className="mx-auto w-full" style={{ maxWidth: 360 }}>
+            <div
+              className="overflow-hidden rounded-[10px] border border-white/12"
+              style={{ boxShadow: '0 24px 60px rgba(0,0,0,0.45), 0 0 40px -8px rgba(0,199,167,0.25)' }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/landing-v5/screens/10-report.png"
+                alt="게임 참여자·쿠폰 발급·쿠폰 사용 등 실제 성과 리포트 예시"
+                className="block h-auto w-full"
+              />
+            </div>
+            <p className="mt-3 text-center text-[13px] text-white/55">성과리포트 예시</p>
+          </div>
         </div>
       </div>
 
@@ -569,7 +584,7 @@ export function ProofSection() {
       </div>
 
       {/* 하단 블록 — 매장 손익 계산 (밝은 톤) */}
-      <div className="bg-white pb-20 md:pb-28">
+      <div className="bg-white pb-20 pt-16 md:pb-28 md:pt-24">
         <div className="mx-auto max-w-6xl px-5">
           <h3 className="text-center text-[22px] font-bold text-dg-ink md:text-[26px]">
             우리 매장이라면 얼마나 달라질까요?
