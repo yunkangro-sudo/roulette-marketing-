@@ -266,9 +266,9 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '10': {
     id: '10',
-    src: '/landing-v5/screens/07-wallet.webp',
-    label: '당첨 쿠폰함',
-    caption: '받은 혜택을 한눈에',
+    src: '/landing-v5/screens/10-report.png',
+    label: '성과 리포트',
+    caption: '성과리포트 예시',
   },
   '11': {
     id: '11',

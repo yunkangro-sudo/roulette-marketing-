@@ -558,8 +558,15 @@ export function ProofSection() {
         </div>
       </div>
 
-      {/* 전환 구간 — 증명(어두운 톤) → 손익 계산(밝은 톤)으로 자연스럽게 이어지도록 */}
-      <div className="h-16 bg-gradient-to-b from-[#141414] to-white md:h-20" aria-hidden />
+      {/* 전환 구간 — 예전의 64~80px 회색 그라데이션 블록이 그림자처럼 보이는 문제가 있어
+          제거하고, 두 블록이 하나의 흐름임을 알려주는 얇은 그린 포인트 라인만 남긴다. */}
+      <div className="relative h-px bg-white/10">
+        <span
+          className="absolute left-1/2 top-1/2 h-[3px] w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-dg-green"
+          style={{ boxShadow: '0 0 12px 1px rgba(0,199,167,0.55)' }}
+          aria-hidden
+        />
+      </div>
 
       {/* 하단 블록 — 매장 손익 계산 (밝은 톤) */}
       <div className="bg-white pb-20 md:pb-28">
