@@ -20,6 +20,11 @@ interface Coupon {
 interface Props {
   role: string
   storeId: string | null
+  /** 대시보드 "쿠폰 현황" 탭에 임베드될 때 true — 자체 기간 필터 UI를 숨기고 부모가 내려주는 range를 사용한다 */
+  embedded?: boolean
+  range?: Range
+  customFrom?: string
+  customTo?: string
 }
 
 const RANGE_OPTIONS: { value: Range; label: string }[] = [
@@ -50,10 +55,19 @@ function formatDateTime(iso: string | null): string {
   return new Date(iso).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-export default function CouponStatusClient({ storeId }: Props) {
-  const [range, setRange] = useState<Range>('month')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
+export default function CouponStatusClient({
+  storeId,
+  embedded = false,
+  range: externalRange,
+  customFrom: externalCustomFrom,
+  customTo: externalCustomTo,
+}: Props) {
+  const [ownRange, setOwnRange] = useState<Range>('month')
+  const [ownCustomFrom, setOwnCustomFrom] = useState('')
+  const [ownCustomTo, setOwnCustomTo] = useState('')
+  const range = embedded ? externalRange ?? 'month' : ownRange
+  const customFrom = embedded ? externalCustomFrom ?? '' : ownCustomFrom
+  const customTo = embedded ? externalCustomTo ?? '' : ownCustomTo
   const [status, setStatus] = useState<StatusFilter>('all')
   const [coupons, setCoupons] = useState<Coupon[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -127,28 +141,32 @@ export default function CouponStatusClient({ storeId }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* 필터 */}
+      {/* 필터 — embedded일 때는 대시보드 상단의 공통 기간 필터를 그대로 쓰므로 자체 UI를 숨긴다 */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <div className="flex gap-2 overflow-x-auto">
-          {RANGE_OPTIONS.map((opt) => (
-            <button key={opt.value} onClick={() => setRange(opt.value)}
-              className={`shrink-0 text-sm font-semibold px-3 py-2 rounded-lg transition-colors ${
-                range === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-              }`}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {range === 'custom' && (
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
-              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-            <span className="text-gray-400 text-center sm:text-left shrink-0">~</span>
-            <input type="date" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)}
-              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-          </div>
+        {!embedded && (
+          <>
+            <div className="flex gap-2 overflow-x-auto">
+              {RANGE_OPTIONS.map((opt) => (
+                <button key={opt.value} onClick={() => setOwnRange(opt.value)}
+                  className={`shrink-0 text-sm font-semibold px-3 py-2 rounded-lg transition-colors ${
+                    range === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                  }`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {range === 'custom' && (
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <input type="date" value={customFrom} onChange={(e) => setOwnCustomFrom(e.target.value)}
+                  className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+                <span className="text-gray-400 text-center sm:text-left shrink-0">~</span>
+                <input type="date" value={customTo} min={customFrom} onChange={(e) => setOwnCustomTo(e.target.value)}
+                  className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+              </div>
+            )}
+          </>
         )}
-        <div className="flex gap-2 overflow-x-auto border-t border-gray-100 pt-3">
+        <div className={`flex gap-2 overflow-x-auto ${!embedded ? 'border-t border-gray-100 pt-3' : ''}`}>
           {STATUS_OPTIONS.map((opt) => (
             <button key={opt.value} onClick={() => setStatus(opt.value)}
               className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${

@@ -13,7 +13,40 @@ const ROLE_LABEL: Record<string, string> = {
   super_admin: '슈퍼관리자',
 }
 
-type NavLink = { href: string; label: string; highlight?: boolean }
+type NavLink = {
+  href: string
+  label: string
+  /** 강조 버튼 스타일 — solid-green: 최우선 액션(이벤트 관리), solid-orange: 기존 계산대 버튼 톤 계승(게임실행) */
+  variant?: 'solid-green' | 'solid-orange'
+  /** 계산대 검증처럼 부가적인 보조 링크 — 작고 흐린 텍스트로 표시 */
+  muted?: boolean
+  external?: boolean
+}
+
+const SOLID_BUTTON_CLASS: Record<'solid-green' | 'solid-orange', string> = {
+  'solid-green': 'bg-emerald-500 hover:bg-emerald-600 text-white',
+  'solid-orange': 'bg-orange-500 hover:bg-orange-600 text-white',
+}
+
+function linkClassName(link: NavLink): string {
+  if (link.variant) {
+    return `${SOLID_BUTTON_CLASS[link.variant]} whitespace-nowrap px-3.5 py-1.5 rounded-lg font-bold transition-colors`
+  }
+  if (link.muted) {
+    return 'whitespace-nowrap text-xs text-gray-400 hover:text-gray-600 transition-colors'
+  }
+  return 'whitespace-nowrap hover:text-orange-500 transition-colors'
+}
+
+function mobileLinkClassName(link: NavLink): string {
+  if (link.variant) {
+    return `${SOLID_BUTTON_CLASS[link.variant]} block px-3 py-3 rounded-lg font-bold text-base text-center transition-colors`
+  }
+  if (link.muted) {
+    return 'block px-3 py-2 rounded-lg text-sm text-gray-400 active:bg-gray-100 transition-colors'
+  }
+  return 'block px-3 py-3 rounded-lg text-base font-medium text-gray-700 active:bg-gray-100 transition-colors'
+}
 
 export default function AdminNav({
   account,
@@ -43,17 +76,16 @@ export default function AdminNav({
       ]
     : isAdvertiser
     ? [
+        { href: '/admin/events',            label: '이벤트 관리', variant: 'solid-green' },
         { href: '/admin/dashboard',         label: '대시보드' },
         { href: '/admin/company',           label: '업체 정보' },
-        { href: '/admin/events',            label: '이벤트 관리' },
         { href: '/admin/members',           label: '회원 관리' },
-        { href: '/admin/report',            label: '성과 리포트' },
         { href: '/admin/loyalty-settings',  label: '포인트 정책' },
         { href: '/admin/reward-catalog',    label: '리워드 관리' },
-        { href: '/admin/coupons',           label: '쿠폰 관리' },
         // 매장 홈페이지는 유료 애드온 — 슈퍼관리자가 켜주기 전까지 메뉴 자체를 숨긴다
         ...(homepageFeatureEnabled ? [{ href: '/admin/business-page', label: '매장 홈페이지' }] : []),
-        { href: '/staff',                   label: '계산대 →', highlight: true },
+        { href: '/staff',                   label: '계산대 검증', muted: true },
+        { href: `/play/${account.storeId}`, label: '게임실행 ↗', variant: 'solid-orange', external: true },
       ]
     : []
 
@@ -76,14 +108,14 @@ export default function AdminNav({
           </Link>
 
           {/* ── 데스크톱 메뉴 (640px 이상) ── */}
-          <div className="hidden sm:flex items-center gap-4 text-sm font-medium text-gray-600">
+          <div className="hidden sm:flex items-center gap-5 text-sm font-medium text-gray-600">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={link.highlight
-                  ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 px-3 py-1 rounded-lg font-semibold transition-colors'
-                  : 'hover:text-orange-500 transition-colors'}
+                target={link.external ? '_blank' : undefined}
+                rel={link.external ? 'noopener noreferrer' : undefined}
+                className={linkClassName(link)}
               >
                 {link.label}
               </Link>
@@ -136,9 +168,9 @@ export default function AdminNav({
               key={link.href}
               href={link.href}
               onClick={handleLinkClick}
-              className={link.highlight
-                ? 'block bg-orange-50 text-orange-600 px-3 py-3 rounded-lg font-semibold text-base active:bg-orange-100 transition-colors'
-                : 'block px-3 py-3 rounded-lg text-base font-medium text-gray-700 active:bg-gray-100 transition-colors'}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              className={mobileLinkClassName(link)}
             >
               {link.label}
             </Link>

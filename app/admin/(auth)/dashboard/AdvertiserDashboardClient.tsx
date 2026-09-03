@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import MiniLineChart from '@/components/admin/MiniLineChart'
 import MiniDoughnutChart from '@/components/admin/MiniDoughnutChart'
+import CouponsTabsClient from '@/app/admin/(auth)/coupons/CouponsTabsClient'
+import ReportClient from '@/app/admin/(auth)/report/ReportClient'
 
 type Range = 'today' | 'week' | 'month' | 'custom'
+type Tab = 'overview' | 'coupons' | 'report'
 
 interface SubscriptionStatus {
   status: 'trial' | 'active' | 'grace' | 'expired'
@@ -40,7 +44,7 @@ const RANGE_OPTIONS: { value: Range; label: string }[] = [
 ]
 
 const SUBSCRIPTION_LABEL: Record<SubscriptionStatus['status'], { label: string; className: string }> = {
-  trial:   { label: '무제한 체험 중', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  trial:   { label: '승인대기',      className: 'bg-amber-50 text-amber-700 border-amber-200' },
   active:  { label: '정상 이용중',   className: 'bg-green-50 text-green-700 border-green-200' },
   grace:   { label: '유예기간',      className: 'bg-orange-50 text-orange-700 border-orange-200' },
   expired: { label: '이용기간 만료', className: 'bg-red-50 text-red-700 border-red-200' },
@@ -48,7 +52,18 @@ const SUBSCRIPTION_LABEL: Record<SubscriptionStatus['status'], { label: string; 
 
 const TIER_COLORS = ['#f97316', '#3b82f6', '#10b981', '#a855f7', '#ef4444', '#eab308', '#6366f1']
 
-export default function AdvertiserDashboardClient() {
+const TAB_OPTIONS: { value: Tab; label: string }[] = [
+  { value: 'overview', label: '개요' },
+  { value: 'coupons',  label: '쿠폰 현황' },
+  { value: 'report',   label: '성과 리포트' },
+]
+
+export default function AdvertiserDashboardClient({ storeId }: { storeId: string | null }) {
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab')
+  const [tab, setTab] = useState<Tab>(
+    initialTab === 'coupons' || initialTab === 'report' ? initialTab : 'overview'
+  )
   const [range, setRange] = useState<Range>('today')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -110,61 +125,87 @@ export default function AdvertiserDashboardClient() {
         </div>
       )}
 
-      {/* 기간 토글 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        <div className="flex gap-2">
-          {RANGE_OPTIONS.map((opt) => (
-            <button key={opt.value} onClick={() => setRange(opt.value)}
-              className={`flex-1 text-sm font-semibold py-2 rounded-lg transition-colors ${
-                range === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-              }`}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {range === 'custom' && (
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
-              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-            <span className="text-gray-400 text-center sm:text-left shrink-0">~</span>
-            <input type="date" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)}
-              className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-          </div>
-        )}
+      {/* 서브탭 */}
+      <div className="flex gap-1 border-b border-gray-200">
+        {TAB_OPTIONS.map((opt) => (
+          <button key={opt.value} onClick={() => setTab(opt.value)}
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap ${
+              tab === opt.value ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}>
+            {opt.label}
+          </button>
+        ))}
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {/* 공통 기간 필터 — 개요/쿠폰 현황 탭에서만 사용. 성과 리포트는 연/월 단위라 성격이 달라 자체 선택기를 쓴다 */}
+      {tab !== 'report' && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+          <div className="flex gap-2">
+            {RANGE_OPTIONS.map((opt) => (
+              <button key={opt.value} onClick={() => setRange(opt.value)}
+                className={`flex-1 text-sm font-semibold py-2 rounded-lg transition-colors ${
+                  range === opt.value ? 'bg-orange-500 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                }`}>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {range === 'custom' && (
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
+                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+              <span className="text-gray-400 text-center sm:text-left shrink-0">~</span>
+              <input type="date" value={customTo} min={customFrom} onChange={(e) => setCustomTo(e.target.value)}
+                className="w-full sm:flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            </div>
+          )}
+        </div>
+      )}
 
-      {loading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
-      ) : data ? (
+      {tab === 'overview' && (
         <>
-          {/* KPI 카드 */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <KpiCard label="게임 참여자" value={`${data.kpi.participants.toLocaleString()}명`} />
-            <KpiCard label="쿠폰 지급액" value={`${data.kpi.couponAmount.toLocaleString()}원`} />
-            <KpiCard label="신규 회원" value={`${data.kpi.newMembers.toLocaleString()}명`} />
-            <KpiCard label="카카오 로그인" value={`${data.kpi.kakaoLogins.toLocaleString()}건`} />
-            <KpiCard label="당근 클릭" value={`${data.kpi.daangnClicks.toLocaleString()}건`} note="클릭 기준(실제 단골추가 확정 아님)" />
-          </div>
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
 
-          {/* 라인차트: 일별 참여자 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-sm font-bold text-gray-900 mb-4">일별 게임 참여자</h2>
-            <MiniLineChart data={data.dailyParticipants.map((d) => ({ label: d.date, value: d.count }))} />
-          </div>
+          {loading ? (
+            <div className="text-center py-16 text-gray-400 text-sm">불러오는 중...</div>
+          ) : data ? (
+            <>
+              {/* KPI 카드 */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <KpiCard label="게임 참여자" value={`${data.kpi.participants.toLocaleString()}명`} />
+                <KpiCard label="쿠폰 지급액" value={`${data.kpi.couponAmount.toLocaleString()}원`} />
+                <KpiCard label="신규 회원" value={`${data.kpi.newMembers.toLocaleString()}명`} />
+                <KpiCard label="카카오 로그인" value={`${data.kpi.kakaoLogins.toLocaleString()}건`} />
+                <KpiCard label="당근 클릭" value={`${data.kpi.daangnClicks.toLocaleString()}건`} note="클릭 기준(실제 단골추가 확정 아님)" />
+              </div>
 
-          {/* 도넛차트: 티어별 당첨 분포 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h2 className="text-sm font-bold text-gray-900 mb-4">경품 티어별 당첨 분포</h2>
-            <MiniDoughnutChart
-              data={data.tierDistribution.map((t, i) => ({
-                label: t.label, value: t.count, color: TIER_COLORS[i % TIER_COLORS.length],
-              }))}
-            />
-          </div>
+              {/* 라인차트: 일별 참여자 */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="text-sm font-bold text-gray-900 mb-4">일별 게임 참여자</h2>
+                <MiniLineChart data={data.dailyParticipants.map((d) => ({ label: d.date, value: d.count }))} />
+              </div>
+
+              {/* 도넛차트: 티어별 당첨 분포 */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5">
+                <h2 className="text-sm font-bold text-gray-900 mb-4">경품 티어별 당첨 분포</h2>
+                <MiniDoughnutChart
+                  data={data.tierDistribution.map((t, i) => ({
+                    label: t.label, value: t.count, color: TIER_COLORS[i % TIER_COLORS.length],
+                  }))}
+                />
+              </div>
+            </>
+          ) : null}
         </>
-      ) : null}
+      )}
+
+      {tab === 'coupons' && (
+        <CouponsTabsClient role="advertiser" storeId={storeId} embedded range={range} customFrom={customFrom} customTo={customTo} />
+      )}
+
+      {tab === 'report' && (
+        <ReportClient role="advertiser" storeId={storeId} embedded />
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { requireAdminAuth } from '@/lib/admin/session'
 import { redirect } from 'next/navigation'
 import AdvertiserDashboardClient from './AdvertiserDashboardClient'
@@ -12,5 +13,9 @@ import AdvertiserDashboardClient from './AdvertiserDashboardClient'
 export default async function DashboardPage() {
   const account = await requireAdminAuth()
   if (account.role !== 'advertiser') redirect('/admin/companies')
-  return <AdvertiserDashboardClient />
+  return (
+    <Suspense fallback={<div className="max-w-4xl mx-auto px-4 py-8 text-gray-400">로딩 중...</div>}>
+      <AdvertiserDashboardClient storeId={account.storeId} />
+    </Suspense>
+  )
 }
