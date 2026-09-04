@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles } from 'lucide-react'
+import BrandLogo from '@/components/BrandLogo'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
 import { ContentOpsModal, HomepageServiceModal, PricingCalculatorModal, BankRow } from './PricingModals'
@@ -1353,9 +1354,7 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid gap-10 sm:grid-cols-3">
           <div>
-            <p className="font-han text-[28px] text-dg-ink">
-              단골<span className="text-dg-green">팅</span>
-            </p>
+            <BrandLogo className="h-12 w-auto" />
             <p className="mt-3 max-w-[220px] text-[14px] leading-relaxed text-dg-ink-soft">
               손님을 모으는 게 아니라
               <br />

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import BrandLogo from '@/components/BrandLogo'
 import type { AdminSessionData } from '@/lib/admin/session'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -104,7 +104,7 @@ export default function AdminNav({
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-5">
           <Link href={homeHref} className="shrink-0 flex items-center" aria-label="관리자 첫 화면으로 이동">
-            <Image src="/logo.png" alt="단골팅" width={945} height={487} priority className="h-7 w-auto" />
+            <BrandLogo priority className="h-8 w-auto" />
           </Link>
 
           {/* ── 데스크톱 메뉴 (640px 이상) ── */}

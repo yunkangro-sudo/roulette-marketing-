@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import BrandLogo from '@/components/BrandLogo'
 import '@/components/landing-v5/landing-v5.css'
 import { AeoWaitlistModal } from '@/components/landing-v5/PricingModals'
 import { PRICING, formatWon } from '@/lib/landing-v5/config'
@@ -19,8 +20,8 @@ export default function AeoPlaceholderPage() {
     <div className="landing-v5 flex min-h-screen flex-col">
       <header className="border-b border-dg-line px-5 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <Link href="/" className="font-han text-[20px] text-dg-ink">
-            단골<span className="text-dg-green">팅</span>
+          <Link href="/" className="flex items-center" aria-label="단골팅 홈">
+            <BrandLogo className="h-9 w-auto" />
           </Link>
           <Link href="/" className="text-[13px] font-semibold text-dg-ink-soft transition-colors hover:text-dg-ink">
             ← 홈으로
