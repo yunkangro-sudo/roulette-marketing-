@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
   const { error: updateError } = await supabase
     .from('store_accounts')
-    .update({ password_hash: passwordHash, updated_at: new Date().toISOString() })
+    .update({ password_hash: passwordHash })
     .eq('id', targetAccount.id)
 
   if (updateError) {
