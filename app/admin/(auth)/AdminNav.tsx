@@ -104,7 +104,7 @@ export default function AdminNav({
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-5">
           <Link href={homeHref} className="shrink-0 flex items-center" aria-label="관리자 첫 화면으로 이동">
-            <BrandLogo priority className="h-8 w-auto" />
+            <BrandLogo priority size="md" />
           </Link>
 
           {/* ── 데스크톱 메뉴 (640px 이상) ── */}

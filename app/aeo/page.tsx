@@ -21,7 +21,7 @@ export default function AeoPlaceholderPage() {
       <header className="border-b border-dg-line px-5 py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <Link href="/" className="flex items-center" aria-label="단골팅 홈">
-            <BrandLogo className="h-9 w-auto" />
+            <BrandLogo size="lg" />
           </Link>
           <Link href="/" className="text-[13px] font-semibold text-dg-ink-soft transition-colors hover:text-dg-ink">
             ← 홈으로

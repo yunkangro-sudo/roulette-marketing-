@@ -51,7 +51,7 @@ function LoginForm() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
-            <BrandLogo priority className="h-14 w-auto" />
+            <BrandLogo priority size="xl" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">관리자 로그인</h1>
           <p className="text-sm text-gray-500 mt-1">단골마케팅 내부 관리자 전용</p>

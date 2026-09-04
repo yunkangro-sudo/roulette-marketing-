@@ -48,7 +48,7 @@ export default function Navbar() {
           {/* 다른 페이지(회원가입 등)에서도 재사용되므로 항상 홈 기준 절대경로(/#top)로 이동 —
               홈에서는 같은 경로라 그냥 앵커 스크롤처럼 동작하고, 다른 페이지에서는 홈으로 이동 후 스크롤된다 */}
           <a href="/#top" className="flex items-center" aria-label="단골팅 홈">
-            <BrandLogo priority className="h-9 w-auto" />
+            <BrandLogo priority size="lg" />
           </a>
 
           <button

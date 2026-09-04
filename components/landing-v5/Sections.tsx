@@ -1354,7 +1354,7 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid gap-10 sm:grid-cols-3">
           <div>
-            <BrandLogo className="h-12 w-auto" />
+            <BrandLogo size="lg" />
             <p className="mt-3 max-w-[220px] text-[14px] leading-relaxed text-dg-ink-soft">
               손님을 모으는 게 아니라
               <br />
