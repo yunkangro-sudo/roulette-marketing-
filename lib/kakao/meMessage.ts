@@ -41,7 +41,9 @@ export async function sendMeMessage(
   if (!accessToken) return { ok: false, reason: 'no_access_token' }
 
   const appUrl   = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.dgting.co.kr').trim()
-  const playUrl  = `${appUrl}/play/${payload.storeId}`
+  // "매장에서 사용하기"는 게임(랜딩) 페이지가 아니라 발급된 쿠폰을 보여주는 내 쿠폰함으로 보낸다 —
+  // 직원이 쿠폰 코드를 확인해야 하는 화면이 바로 나와야 매장에서 실제로 쓰기 편하다.
+  const pointsUrl = `${appUrl}/me/points?store_id=${encodeURIComponent(payload.storeId)}`
   const validStr = payload.validUntil
     ? new Date(payload.validUntil).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
     : '기간 제한 없음'
@@ -58,9 +60,9 @@ export async function sendMeMessage(
     ? `${appUrl}/api/go/daangn?store=${encodeURIComponent(payload.storeId)}`
     : null
   const buttons = [
-    { title: '매장에서 사용하기', link: { web_url: playUrl, mobile_web_url: playUrl } },
+    { title: '매장에서 사용하기', link: { web_url: pointsUrl, mobile_web_url: pointsUrl } },
     ...(daangnRedirectUrl
-      ? [{ title: '당근마켓 후기 남기고 쿠폰받기', link: { web_url: daangnRedirectUrl, mobile_web_url: daangnRedirectUrl } }]
+      ? [{ title: '당근마켓 후기 남기기', link: { web_url: daangnRedirectUrl, mobile_web_url: daangnRedirectUrl } }]
       : []),
   ]
 
@@ -77,8 +79,8 @@ export async function sendMeMessage(
       `매장에서 직원에게 이 코드를 보여주세요.`,
     ].join('\n'),
     link: {
-      web_url:        playUrl,
-      mobile_web_url: playUrl,
+      web_url:        pointsUrl,
+      mobile_web_url: pointsUrl,
     },
     buttons,
   }
