@@ -76,6 +76,8 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [fixedValidityStart, setFixedValidityStart] = useState('')
   const [fixedValidityEnd, setFixedValidityEnd] = useState('')
   const [tierMode, setTierMode] = useState<PrizeTierMode>('quantity')
+  const [longTermMode, setLongTermMode] = useState(false)
+  const [resetCycle, setResetCycle] = useState<'weekly' | 'monthly'>('weekly')
   const [tiers, setTiers] = useState<Tier[]>(
     copyData?.tiers?.length
       ? copyData.tiers.map((t: Omit<Tier, 'amount'> & { amount: number }) => ({
@@ -142,7 +144,7 @@ export default function NewEventForm({ role, storeId }: Props) {
       const res = await fetch('/api/admin/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+          body: JSON.stringify({
           store_id: finalStoreId,
           name,
           display_start_date: startDate,
@@ -154,6 +156,8 @@ export default function NewEventForm({ role, storeId }: Props) {
             ? `${fixedValidityStart}~${fixedValidityEnd}`
             : validityValue,
           prize_tier_mode: tierMode,
+          long_term_mode: tierMode === 'quantity' && longTermMode,
+          reset_cycle: tierMode === 'quantity' && longTermMode ? resetCycle : null,
           tiers: tiers.map((t) => ({
             label: t.label,
             amount: Number(t.amount),
@@ -257,6 +261,60 @@ export default function NewEventForm({ role, storeId }: Props) {
           </p>
         </div>
 
+        {/* 장기 운영 모드 */}
+        {tierMode === 'quantity' && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-bold text-gray-900">장기 운영 모드</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={longTermMode}
+                onClick={() => setLongTermMode((v) => !v)}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  longTermMode ? 'bg-orange-500' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    longTermMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              노출 기간은 길게 두고, 경품 예산(수량)만 매주·매달 자동으로 다시 채우고 싶을 때 켜세요.
+              (예: 상시 진행 이벤트 + 매주 예산 리셋)
+            </p>
+            {longTermMode && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => setResetCycle('weekly')}
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    resetCycle === 'weekly'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  매주 리셋
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResetCycle('monthly')}
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    resetCycle === 'monthly'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  매달 리셋
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 예상 참여자 수 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <label className="block text-sm font-bold text-gray-900 mb-1">하루 예상 참여자 수</label>
@@ -337,8 +395,8 @@ export default function NewEventForm({ role, storeId }: Props) {
           </div>
           <p className="text-xs text-gray-400 mb-4">
             {tierMode === 'quantity'
-              ? '수량을 입력하면 확률이 자동으로 계산됩니다 (합계 100% 자동 보장)'
-              : '티어별 확률(%)을 직접 입력합니다. 합계가 100%가 아니어도 저장 시 비율대로 자동 보정됩니다.'}
+              ? '수량을 입력하면 확률이 자동으로 계산되고, 매일 자정 실제 참여 데이터로 다시 조정됩니다 (합계 100% 자동 보장)'
+              : '티어별 확률(%)을 직접 입력합니다. 합계가 100%가 아니어도 저장 시 비율대로 자동 보정됩니다. (직접 입력 모드는 자동 재조정·장기 운영 대상이 아니에요)'}
           </p>
           <div className="space-y-3">
             {tiers.map((tier, i) => (
@@ -381,6 +439,11 @@ export default function NewEventForm({ role, storeId }: Props) {
                           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-orange-500" />
                         <span className="text-xs text-gray-400">개</span>
                       </div>
+                      {longTermMode && (
+                        <p className="text-xs text-orange-500 mt-1">
+                          이 수량은 한 주기({resetCycle === 'weekly' ? '매주' : '매달'})마다 다시 채워져요.
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 text-center">
                       <p className="text-xs text-gray-400 mb-1">확률</p>

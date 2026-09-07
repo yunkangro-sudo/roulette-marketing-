@@ -77,6 +77,8 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 052 | [`052_business_page_v2.sql`](./052_business_page_v2.sql) | 매장 공개 홈페이지 확장 — `business_entity`에 `business_type`(업종, 라벨 매핑용)/`parking_info`/`pet_friendly`/`store_pride_points` 추가, 신규 `business_products`(대표 상품/메뉴/서비스, 3~6개 제한은 앱 레벨 검증) 테이블. `online_play_enabled` 기본값/소유권과 slug 구조는 GPT 지시문 검토 후 기존 결정 유지, "매장 소식"(당근 자동발행) 섹션은 원본 기능 부재로 이번 범위 제외 |
 | 053 | [`053_demo_store_isolation.sql`](./053_demo_store_isolation.sql) | 영업 시연용 샘플 매장 격리 장치 — `store_contracts.is_demo`(기본 false) 추가. true인 매장은 슈퍼관리자 전체 집계/sitemap/업체 리스트 기본 탭에서 제외, 알림톡·카카오 발송 함수에서도 조기 차단 |
 | 054 | [`054_business_entity_hero_copy.sql`](./054_business_entity_hero_copy.sql) | 매장 홈페이지 히어로 커스터마이징 — `business_entity.tagline`(메인 카피, 줄바꿈 유지)/`game_cta_label`(게임 버튼 문구) 추가, 비어있으면 기존 기본 문구 유지 |
+| 055 | [`055_store_addons.sql`](./055_store_addons.sql) | 매장 애드온(유료 부가기능) 게이팅 — `store_addons` 테이블 추가 |
+| 056 | [`056_long_term_mode.sql`](./056_long_term_mode.sql) | 경품 확률 자동 재조정 + "장기 운영" 모드 — `events`에 `long_term_mode`(기본 false)/`reset_cycle`(`weekly`\|`monthly`, nullable)/`current_cycle_start`(date, nullable) 컬럼 추가. 매일 자정(KST) 배치(`/api/cron/probability-rebalance`)가 실측 참여 데이터 기반으로 `prize_tiers.computed_probability`를 재계산하고, 장기 운영 이벤트는 캘린더 주기 경계마다 `remaining_quantity`를 리필함 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

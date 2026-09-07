@@ -46,8 +46,12 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const supabase = createServerClient()
 
-  // 기존 이벤트 조회 (권한 확인 + 상태 이력용)
-  const { data: existing } = await supabase.from('events').select('store_id, status').eq('id', id).single()
+  // 기존 이벤트 조회 (권한 확인 + 상태 이력 + 장기 운영 모드 전환 판단용)
+  const { data: existing } = await supabase
+    .from('events')
+    .select('store_id, status, display_start_date, prize_tier_mode, long_term_mode, reset_cycle')
+    .eq('id', id)
+    .single()
   if (!existing) return NextResponse.json({ error: '이벤트를 찾을 수 없습니다' }, { status: 404 })
 
   const allowedStoreId = getAllowedStoreId(session.account)
@@ -64,6 +68,8 @@ export async function PATCH(req: Request, { params }: Params) {
     coupon_validity_type,
     coupon_validity_value,
     status,
+    long_term_mode,
+    reset_cycle,
   } = body
 
   const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
@@ -80,6 +86,39 @@ export async function PATCH(req: Request, { params }: Params) {
   if (coupon_validity_type !== undefined) updateData.coupon_validity_type = coupon_validity_type
   if (coupon_validity_value !== undefined) updateData.coupon_validity_value = String(coupon_validity_value)
   if (status !== undefined) updateData.status = status
+
+  // ── 장기 운영 모드 토글 처리 ─────────────────────────────────
+  // (확률 자동 재조정 대상인 quantity 모드에서만 지원 — percent 모드는 대상 제외)
+  if (long_term_mode !== undefined || reset_cycle !== undefined) {
+    const nextLongTerm = long_term_mode !== undefined ? Boolean(long_term_mode) : existing.long_term_mode
+    const nextResetCycle: 'weekly' | 'monthly' | null = nextLongTerm
+      ? (reset_cycle === 'monthly' ? 'monthly' : reset_cycle === 'weekly' ? 'weekly' : existing.reset_cycle ?? 'weekly')
+      : null
+
+    if (nextLongTerm && existing.prize_tier_mode === 'percent') {
+      return NextResponse.json(
+        { error: '장기 운영 모드는 "수량으로 입력" 방식에서만 사용할 수 있습니다. 경품 티어 입력 방식을 먼저 변경해주세요.' },
+        { status: 400 }
+      )
+    }
+
+    updateData.long_term_mode = nextLongTerm
+    updateData.reset_cycle = nextResetCycle
+
+    const turningOn = nextLongTerm && !existing.long_term_mode
+    const cycleChanged = nextLongTerm && existing.long_term_mode && existing.reset_cycle !== nextResetCycle
+
+    if (!nextLongTerm) {
+      // 꺼질 때는 사이클 앵커를 비운다 — 다음에 다시 켜면 그 시점부터 새로 시작
+      updateData.current_cycle_start = null
+    } else if (turningOn || cycleChanged) {
+      const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+      const startDate = display_start_date ?? existing.display_start_date
+      // 이미 진행 중인 이벤트에서 켜면 "지금부터"가 첫 주기 시작(짧은 첫 주기),
+      // 아직 시작 전이면 노출 시작일부터 (한 번도 리셋 안 된 상태 그대로 시작)
+      updateData.current_cycle_start = today > startDate ? today : startDate
+    }
+  }
 
   const { data, error } = await supabase.from('events').update(updateData).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: '수정 실패: ' + error.message }, { status: 500 })

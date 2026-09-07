@@ -55,6 +55,8 @@ interface Event {
   coupon_validity_type: string
   coupon_validity_value: string
   prize_tier_mode?: PrizeTierMode
+  long_term_mode?: boolean
+  reset_cycle?: 'weekly' | 'monthly' | null
   prize_tiers: PrizeTier[]
 }
 
@@ -86,6 +88,8 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [relativeDays, setRelativeDays] = useState(
     event.coupon_validity_type === 'relative_days' ? event.coupon_validity_value : '14'
   )
+  const [longTermMode, setLongTermMode] = useState(event.long_term_mode ?? false)
+  const [resetCycle, setResetCycle] = useState<'weekly' | 'monthly'>(event.reset_cycle ?? 'weekly')
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -278,6 +282,8 @@ export default function EditEventForm({ event }: { event: Event }) {
           challenge_frequency: challengeFrequency,
           coupon_validity_type: validityType,
           coupon_validity_value,
+          long_term_mode: event.prize_tier_mode !== 'percent' && longTermMode,
+          reset_cycle: event.prize_tier_mode !== 'percent' && longTermMode ? resetCycle : null,
         }),
       })
       const data = await res.json()
@@ -410,6 +416,60 @@ export default function EditEventForm({ event }: { event: Event }) {
             {CHALLENGE_FREQUENCY_OPTIONS.find((o) => o.value === challengeFrequency)?.desc}
           </p>
         </div>
+
+        {/* 장기 운영 모드 */}
+        {event.prize_tier_mode !== 'percent' && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-bold text-gray-900">장기 운영 모드</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={longTermMode}
+                onClick={() => setLongTermMode((v) => !v)}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                  longTermMode ? 'bg-orange-500' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    longTermMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              노출 기간은 길게 두고, 경품 예산(수량)만 매주·매달 자동으로 다시 채우고 싶을 때 켜세요.
+              끄면 다음 저장부터 일반 방식(전체 노출 기간 기준)으로 돌아갑니다.
+            </p>
+            {longTermMode && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => setResetCycle('weekly')}
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    resetCycle === 'weekly'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  매주 리셋
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResetCycle('monthly')}
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    resetCycle === 'monthly'
+                      ? 'border-orange-500 bg-orange-50 text-orange-600'
+                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                  }`}
+                >
+                  매달 리셋
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 예상 참여자 수 */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -561,6 +621,11 @@ export default function EditEventForm({ event }: { event: Event }) {
                       <p className="text-xs text-gray-400 mt-1">
                         {isNew ? '저장하면 등록됩니다' : `지급됨 ${issued}개 · 잔여 ${tier.remaining_quantity}개`}
                       </p>
+                      {longTermMode && (
+                        <p className="text-xs text-orange-500 mt-1">
+                          이 수량은 한 주기({resetCycle === 'weekly' ? '매주' : '매달'})마다 다시 채워져요.
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 text-center">
                       <p className="text-xs text-gray-400 mb-1">저장 시 확률</p>

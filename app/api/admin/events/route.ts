@@ -63,6 +63,18 @@ export async function POST(request: Request) {
 
   const prizeTierMode: PrizeTierMode = body.prize_tier_mode === 'percent' ? 'percent' : 'quantity'
 
+  // 장기 운영 모드 — 확률 자동 재조정 대상인 quantity 모드에서만 지원
+  const longTermMode = Boolean(body.long_term_mode)
+  const resetCycle: 'weekly' | 'monthly' | null = longTermMode
+    ? (body.reset_cycle === 'monthly' ? 'monthly' : 'weekly')
+    : null
+  if (longTermMode && prizeTierMode !== 'quantity') {
+    return NextResponse.json(
+      { error: '장기 운영 모드는 "수량으로 입력" 방식에서만 사용할 수 있습니다' },
+      { status: 400 }
+    )
+  }
+
   const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
   if (challenge_frequency && !VALID_FREQUENCIES.includes(challenge_frequency)) {
     return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
@@ -138,6 +150,11 @@ export async function POST(request: Request) {
       coupon_validity_type: coupon_validity_type ?? 'relative_days',
       coupon_validity_value: String(coupon_validity_value ?? '14'),
       prize_tier_mode: prizeTierMode,
+      long_term_mode: longTermMode,
+      reset_cycle: resetCycle,
+      // 첫 주기 시작일 = 이벤트 노출 시작일 (주/월 중간에 시작해도 첫 주기가 짧게
+      // 처리되도록, 캘린더 경계 정렬은 배치의 resolveCycle()이 매일 계산해서 처리한다)
+      current_cycle_start: longTermMode ? display_start_date : null,
     })
     .select('id')
     .single()

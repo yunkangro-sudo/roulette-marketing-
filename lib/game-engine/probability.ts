@@ -52,3 +52,28 @@ export function computeTierProbabilities(
   const raw = totalQuantities.map((q) => computeRawTierProbability(q, expectedParticipants))
   return normalizeProbabilities(raw)
 }
+
+/**
+ * 매일 자정(KST) 배치 전용 — "잔여 수량" 기반 확률 재계산.
+ * 등록/수정 시점 계산(computeTierProbabilities)은 total_quantity(준비한 총량)를
+ * 쓰지만, 이 함수는 remaining_quantity(지금까지 나간 걸 뺀 나머지)를 쓴다.
+ * "남은 기간 동안 남은 재고를 남은 예상 손님에게 어떻게 나눠줄까"를 매일
+ * 다시 계산하는 것이므로, 이미 지급된 몫은 분모(예상 참여자)에서든 분자(재고)에서든
+ * 다시 계산할 필요가 없다 — remaining_quantity만 보면 된다.
+ *
+ * expectedRemainingParticipants가 0 이하(예: 데이터 이상으로 남은 기간·평균이 깨진 경우)면
+ * 나누기 대신 잔여 수량 비율 그대로 정규화한다 — 확률 합계가 0이 되어 추첨이
+ * 아예 불가능해지는 사고(drawPrizeTier가 던지는 에러)를 막기 위한 안전장치다.
+ */
+export function computeTierProbabilitiesFromRemaining(
+  remainingQuantities: number[],
+  expectedRemainingParticipants: number
+): number[] {
+  const raw = remainingQuantities.map((q) => {
+    const safeQty = Math.max(0, q)
+    return expectedRemainingParticipants > 0
+      ? (safeQty / expectedRemainingParticipants) * 100
+      : safeQty
+  })
+  return normalizeProbabilities(raw)
+}
