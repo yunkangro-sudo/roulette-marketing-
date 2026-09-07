@@ -32,9 +32,14 @@ export default function StoreQrCard({ storeId, purpose = 'play' }: Props) {
   const [copied, setCopied] = useState(false)
   const copy = COPY[purpose]
 
-  const pngSrc = `/api/admin/store-qr?format=png&purpose=${purpose}&store_id=${encodeURIComponent(storeId)}`
+  // 과거 vercel.app 폴백 버그 시절에 브라우저에 캐시된 옛 QR 이미지가 남아있을 수 있어
+  // 화면 미리보기(img)는 매 마운트마다 캐시버스터를 붙여 무조건 새로 받아온다.
+  // 다운로드 링크는 파일명이 고정이라 버스터를 붙이지 않아도 되지만(서버가 no-store로
+  // 응답하므로 항상 최신), 혹시 몰라 동일하게 붙여준다.
+  const cacheBuster = useMemo(() => Date.now(), [])
+  const pngSrc = `/api/admin/store-qr?format=png&purpose=${purpose}&store_id=${encodeURIComponent(storeId)}&v=${cacheBuster}`
   const pngDownloadHref = `${pngSrc}&download=1`
-  const svgDownloadHref = `/api/admin/store-qr?format=svg&purpose=${purpose}&download=1&store_id=${encodeURIComponent(storeId)}`
+  const svgDownloadHref = `/api/admin/store-qr?format=svg&purpose=${purpose}&download=1&store_id=${encodeURIComponent(storeId)}&v=${cacheBuster}`
 
   const targetUrl = useMemo(() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.dgting.co.kr'

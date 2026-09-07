@@ -19,6 +19,12 @@ import { buildPlayUrl, buildCheckinUrl } from '@/lib/store/playUrl'
  * super_admin/agency는 대리접속 중이거나 store_id 쿼리로 조회(이벤트 관리 화면과 동일 패턴).
  */
 
+// 이 라우트는 절대 캐시되면 안 된다 — 과거 vercel.app 폴백 버그 시절에 브라우저/CDN에
+// 캐시된 옛 QR 이미지가 코드를 고친 후에도 계속 재사용되는 사고가 있었다(요청 URL이
+// store_id 하나로 고정되어 있어서 캐시 키가 항상 동일하기 때문). force-dynamic +
+// no-store 헤더로 매 요청마다 무조건 새로 생성해서 응답한다.
+export const dynamic = 'force-dynamic'
+
 function resolveStoreId(account: { role: string; storeId: string | null }, provided: string | null): string | null {
   if (account.role === 'advertiser') return account.storeId
   return provided
@@ -52,13 +58,19 @@ export async function GET(req: Request) {
   try {
     if (format === 'svg') {
       const svg = await QRCode.toString(targetUrl, { ...qrOptions, type: 'svg' })
-      const headers: Record<string, string> = { 'Content-Type': 'image/svg+xml; charset=utf-8' }
+      const headers: Record<string, string> = {
+        'Content-Type': 'image/svg+xml; charset=utf-8',
+        'Cache-Control': 'no-store, must-revalidate',
+      }
       if (download) headers['Content-Disposition'] = `attachment; filename="${filenamePrefix}-${storeId}.svg"`
       return new NextResponse(svg, { headers })
     }
 
     const buffer = await QRCode.toBuffer(targetUrl, { ...qrOptions, type: 'png' })
-    const headers: Record<string, string> = { 'Content-Type': 'image/png' }
+    const headers: Record<string, string> = {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'no-store, must-revalidate',
+    }
     if (download) headers['Content-Disposition'] = `attachment; filename="${filenamePrefix}-${storeId}.png"`
     return new NextResponse(new Uint8Array(buffer), { headers })
   } catch (err) {
