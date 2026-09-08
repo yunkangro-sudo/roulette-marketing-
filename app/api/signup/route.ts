@@ -112,6 +112,7 @@ export async function POST(req: Request) {
     email: email.trim(),
     business_type: businessType || null,
     message: message?.trim() || null,
+    source: 'signup_self',
     status: 'converted',
   })
   if (inquiryError) {
