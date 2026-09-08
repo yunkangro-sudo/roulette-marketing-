@@ -340,7 +340,7 @@ function PointsContent() {
                             : 'cursor-not-allowed bg-[#222222]/8 text-[#222222]/35'
                         } disabled:opacity-50`}
                       >
-                        {redeeming === reward.id ? '처리 중...' : '교환하기'}
+                        {redeeming === reward.id ? '처리 중...' : '사용하기'}
                       </button>
                     </div>
                   </div>

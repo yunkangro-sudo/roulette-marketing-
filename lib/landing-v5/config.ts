@@ -16,7 +16,7 @@ export const PRICING = {
   basic: {
     id: 'basic',
     name: '베이직',
-    regularPrice: 39_000,
+    regularPrice: 49_000,
     promoPrice: 19_000,
     setupFee: 275_000,
     ribbonLabel: '🔥 얼리버드 100개 매장 한정',

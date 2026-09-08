@@ -347,7 +347,11 @@ export function HowItWorks({ onCta }: CtaProps) {
       <div className="mx-auto max-w-6xl md:px-5">
         <div className="px-5 md:px-0">
           <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">단골이 되는 과정</p>
-          <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">게임 한 판이, 다음 방문의 이유가 됩니다</h2>
+          <h2 className="mt-3 text-[32px] text-dg-ink md:text-[44px]">
+            게임 한 판이,
+            <br />
+            다음 방문의 이유가 됩니다
+          </h2>
         </div>
 
         {/* PC: 3열 그리드 유지 / 모바일: 가로 스와이프 캐러셀로 전환 */}
@@ -521,7 +525,11 @@ export function ProofSection() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
             <p className="text-[13px] font-semibold tracking-wide text-dg-green">숫자로 확인하는 변화</p>
-            <h2 className="mt-3 text-[32px] md:text-[44px]">게임 한 번이, 단골 한 명이 됩니다</h2>
+            <h2 className="mt-3 text-[32px] md:text-[44px]">
+              게임 한 번이,
+              <br />
+              단골 한 명이 됩니다
+            </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-white/55">
               참여자 10명 중 7명은 당근 단골 추가를 눌러요. 매장 규모가 커질수록 그만큼 더 늘어나요.
             </p>
@@ -734,7 +742,12 @@ export function ChannelTrust() {
               </div>
             </div>
           </div>
-          <ChannelVideoEmbed />
+          <div>
+            <p className="mx-auto mb-3 max-w-[300px] text-center text-[15px] font-bold text-dg-ink">
+              당근마켓 단골이 많으면 좋은 이유?
+            </p>
+            <ChannelVideoEmbed />
+          </div>
         </div>
 
         <p className="mt-14 text-[13px] font-semibold tracking-wide text-dg-green-deep">전체 흐름 요약</p>
@@ -839,11 +852,9 @@ export function HomepageServiceSection() {
               우리 매장의 공식 디지털 자산
             </p>
             <h2 className="mt-3 text-[28px] leading-snug text-dg-ink md:text-[38px]">
-              홈페이지를 만드는 게 아닙니다.
+              리뷰와 <span className="text-dg-green-deep">검색, AI</span>를 연결하는 우리
               <br />
-              고객과 <span className="text-dg-green-deep">검색, AI</span>를 연결하는
-              <br />
-              우리 매장의 공식 공간을 만듭니다.
+              매장의 공식 공간을 만듭니다.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-dg-ink-soft">
               게임과 쿠폰으로 고객의 재방문을 만들고,
@@ -904,12 +915,19 @@ export function PricingSection() {
     <section id="pricing" className="scroll-mt-20 py-20 md:py-28">
       <div className="mx-auto max-w-5xl px-5">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
-        <h2 className="leading-snug text-dg-ink" style={{ fontSize: 'clamp(21px, 5.6vw, 44px)' }}>
-          <span className="mt-3 block whitespace-nowrap">지금 시작하는 100개 매장만</span>
-          <span className="mt-1 block whitespace-nowrap text-dg-green-deep">월 19,000원으로 시작하세요</span>
+        <h2 className="leading-snug text-dg-ink">
+          <span className="mt-3 block whitespace-nowrap" style={{ fontSize: 'clamp(25px, 6.7vw, 53px)' }}>
+            지금 시작하는 100개 매장만
+          </span>
+          <span
+            className="mt-1 block whitespace-nowrap text-dg-green-deep"
+            style={{ fontSize: 'clamp(21px, 5.6vw, 44px)' }}
+          >
+            월 19,000원으로 시작하세요
+          </span>
         </h2>
         <p className="mt-4 text-[15px] text-dg-ink-soft">
-          월 39,000원 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
+          월 {formatWon(PRICING.basic.regularPrice)} 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -1292,7 +1310,7 @@ export function FinalCta({ onCta, onPreview }: CtaProps & { onPreview?: () => vo
         <h2 className="mt-3 text-[28px] leading-tight text-dg-ink sm:text-[34px] md:text-[52px]">
           광고비를 더 쓰기 전에,
           <br />
-          지금 온 손님부터 다시 오게 하세요
+          지금 온 손님을 다시 오게 하세요
         </h2>
         <p className="mt-5 text-[15px] leading-relaxed sm:text-[16px]" style={{ color: 'rgba(34,34,34,0.75)' }}>
           단골팅은 한 번 방문한 손님이
@@ -1306,7 +1324,7 @@ export function FinalCta({ onCta, onPreview }: CtaProps & { onPreview?: () => vo
           <p className="text-[13px] font-bold text-dg-ink">선착순 100개 업체 한정</p>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-2">
             <span className="font-num text-[16px] font-medium text-dg-ink/50 line-through decoration-2">
-              월 39,000원
+              월 {formatWon(PRICING.basic.regularPrice)}
             </span>
             <span className="text-dg-ink/50">→</span>
             <span className="whitespace-nowrap font-num text-[30px] font-bold text-dg-ink sm:text-[38px]">

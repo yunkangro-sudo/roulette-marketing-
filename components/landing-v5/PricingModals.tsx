@@ -2,7 +2,14 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { Check, Copy, X } from 'lucide-react'
-import { BANK_ACCOUNT, CALCULATOR_PRODUCTS, PRICING, WELCOME_GIFT_LABEL, formatWon } from '@/lib/landing-v5/config'
+import {
+  BANK_ACCOUNT,
+  CALCULATOR_PRODUCTS,
+  PRICING,
+  PRICING_BASIC_DISCOUNT_PERCENT,
+  WELCOME_GIFT_LABEL,
+  formatWon,
+} from '@/lib/landing-v5/config'
 
 type Props = {
   onClose: () => void
@@ -624,7 +631,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
             <p className="text-[14px] font-bold leading-snug text-white sm:text-[15px]">
               지금이 가장 쌉니다 — 선착순 100개 업체 한정 프로모션 진행 중
             </p>
-            <p className="mt-1 text-[12.5px] font-semibold text-white/90">정가 39,000원 → 19,000원, 51% 할인</p>
+            <p className="mt-1 text-[12.5px] font-semibold text-white/90">
+              정가 {formatWon(PRICING.basic.regularPrice)} → 19,000원, {PRICING_BASIC_DISCOUNT_PERCENT}% 할인
+            </p>
           </div>
 
           {/* 상품 선택 카드 3개 */}
