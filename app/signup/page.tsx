@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import '@/components/landing-v5/landing-v5.css'
 import Navbar from '@/components/landing-v5/Navbar'
+import { BankRow } from '@/components/landing-v5/PricingModals'
+import { BANK_ACCOUNT, PRICING_BASIC_TODAY_TOTAL, formatWon } from '@/lib/landing-v5/config'
 
 type Step = 'form' | 'success'
 
@@ -13,10 +14,17 @@ const BUSINESS_TYPES = [
 ]
 
 export default function SignupPage() {
-  const router = useRouter()
   const [step, setStep] = useState<Step>('form')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState<string | null>(null)
+
+  function copy(text: string, key: string) {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(key)
+      window.setTimeout(() => setCopied((c) => (c === key ? null : c)), 1500)
+    })
+  }
 
   const [form, setForm] = useState({
     storeName:       '',
@@ -83,23 +91,80 @@ export default function SignupPage() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4">
+      <div className="landing-v5 min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4 py-12">
         <div className="bg-white rounded-3xl border border-[#E4E8ED] p-10 max-w-md w-full text-center shadow-sm">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-5">
             ✅
           </div>
           <h1 className="text-2xl font-bold text-[#14151A] mb-2">가입 완료!</h1>
           <p className="text-[#6B7280] text-sm leading-relaxed mb-6">
-            <strong className="text-[#14151A]">{form.email}</strong> 계정으로 가입이 완료되었고,<br />
-            <strong className="text-[#14151A]">30일 무료 체험</strong>이 자동으로 시작되었습니다.<br />
-            지금 바로 이벤트를 만들어보세요.
+            <strong className="text-[#14151A]">{form.email}</strong> 계정으로 가입이 완료되었습니다.
           </p>
+
+          {/* 입금 안내 블록 — 요금제 섹션 BasicApplyModal과 동일한 형식 재사용 */}
+          <div id="deposit-info" className="text-left">
+            <div
+              className="flex items-center gap-2 bg-dg-green-tint px-4 py-3 text-[13px] font-bold text-dg-green-deep"
+              style={{ borderRadius: 8 }}
+            >
+              <span className="text-base">🔔</span>
+              입금 확인 후 바로 이용 가능합니다
+            </div>
+            <p className="mt-2.5 text-[12.5px] leading-relaxed text-dg-ink-soft">
+              아래 계좌로 입금해 주시면, 확인 즉시 서비스 이용이 시작됩니다.
+            </p>
+
+            <div className="mt-3 space-y-3 border border-dg-line bg-dg-bg p-4" style={{ borderRadius: 8 }}>
+              <BankRow
+                label="은행"
+                value={BANK_ACCOUNT.bank}
+                copied={copied === 'bank'}
+                onCopy={() => copy(BANK_ACCOUNT.bank, 'bank')}
+              />
+              <BankRow
+                label="계좌번호"
+                value={BANK_ACCOUNT.account}
+                copied={copied === 'account'}
+                onCopy={() => copy(BANK_ACCOUNT.account, 'account')}
+              />
+              <BankRow
+                label="예금주"
+                value={BANK_ACCOUNT.holder}
+                copied={copied === 'holder'}
+                onCopy={() => copy(BANK_ACCOUNT.holder, 'holder')}
+              />
+              <BankRow
+                label="입금 금액"
+                value={formatWon(PRICING_BASIC_TODAY_TOTAL)}
+                copied={copied === 'amount'}
+                onCopy={() => copy(String(PRICING_BASIC_TODAY_TOTAL), 'amount')}
+              />
+            </div>
+
+            <p className="mt-3 text-[12.5px] text-dg-ink-soft">
+              입금자명은 <b className="font-semibold text-dg-ink">매장명</b>으로 해주세요
+            </p>
+          </div>
+
           <button
-            onClick={() => router.push('/admin/events')}
-            className="block w-full bg-[#3D5AFE] hover:opacity-90 text-white font-semibold py-3 rounded-xl transition-all text-sm mb-3"
+            onClick={() => document.getElementById('deposit-info')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            className="block w-full bg-[#3D5AFE] hover:opacity-90 text-white font-semibold py-3 rounded-xl transition-all text-sm mt-6 mb-3"
           >
             지금 바로 시작하기 →
           </button>
+
+          <p className="text-center text-xs text-[#9CA3AF] mb-1">
+            결제 전 요금제를 다시 확인하고 싶다면{' '}
+            <a
+              href="/#pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#3D5AFE] hover:underline"
+            >
+              요금제 보기 →
+            </a>
+          </p>
+
           <a href="/"
             className="block w-full text-[#6B7280] hover:text-[#14151A] font-medium py-2 text-sm transition-colors">
             홈으로 돌아가기
@@ -116,15 +181,32 @@ export default function SignupPage() {
       <div className="max-w-2xl mx-auto px-4 pb-12 pt-24">
         {/* 타이틀 */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-[#3D5AFE]/10 text-[#3D5AFE] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-            🚀 무료 회원가입
+          <div className="inline-flex items-center gap-2 bg-[#3D5AFE]/10 text-[#3D5AFE] text-xs font-semibold px-3 py-1.5 rounded-full mb-3">
+            회원가입
+          </div>
+          <div
+            className="badge-glow-pulse inline-flex items-center gap-1.5 bg-dg-gold-deep text-white text-[13px] font-extrabold px-4 py-2 mb-4"
+            style={{ borderRadius: 999 }}
+          >
+            🔥 선착순 100개 업체 한정 프로모션 진행 중
           </div>
           <h1 className="text-3xl font-bold text-[#14151A] mb-3">
             단골 손님을 만드는 첫 걸음
           </h1>
           <p className="text-[#6B7280] text-base leading-relaxed">
-            가입 즉시 30일 무료 체험이 시작되고, 바로 이벤트를 만들 수 있어요.<br />
-            설치·설정은 언제든 담당자가 무료로 도와드립니다.
+            가입 후 입금이 확인되면 바로 이벤트를 만들 수 있어요.<br />
+            직접 모든 메뉴를 설정할 수도 있고, 담당자 요청 시 모든 메뉴를 만들어 드립니다.
+          </p>
+          <p className="mt-3 text-sm text-[#6B7280]">
+            요금이 궁금하신가요?{' '}
+            <a
+              href="/#pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#3D5AFE] hover:underline"
+            >
+              요금제 확인하기 →
+            </a>
           </p>
         </div>
 
@@ -270,6 +352,10 @@ export default function SignupPage() {
             </button>
 
             <p className="text-center text-xs text-[#9CA3AF]">
+              가입 완료 후 입금 안내가 이어집니다
+            </p>
+
+            <p className="text-center text-xs text-[#9CA3AF]">
               가입 시 <a href="/privacy" className="underline hover:text-[#6B7280]">개인정보처리방침</a>에 동의하는 것으로 간주합니다
             </p>
           </form>
@@ -278,7 +364,7 @@ export default function SignupPage() {
         {/* 하단 혜택 요약 */}
         <div className="mt-8 grid grid-cols-3 gap-4">
           {[
-            { icon: '🆓', title: '무료 체험', desc: '30일 무료\n추가 비용 없음' },
+            { icon: '✅', title: '간편 가입', desc: '5분 완료\n복잡한 서류 없음' },
             { icon: '⚡', title: '빠른 설치', desc: '가입 즉시\n바로 운영 시작' },
             { icon: '🙋', title: '전담 지원', desc: '담당자 1:1\n직접 컨설팅' },
           ].map(({ icon, title, desc }) => (
