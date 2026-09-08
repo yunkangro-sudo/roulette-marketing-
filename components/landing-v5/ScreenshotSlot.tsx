@@ -44,7 +44,7 @@ export default function ScreenshotSlot({ shotId, caption, className = '', tone =
         )}
       </div>
       {showCaption && (
-        <figcaption className={`mt-3 text-center text-[13px] ${tone === 'dark' ? 'text-white/55' : 'text-dg-ink-soft'}`}>
+        <figcaption className={`mt-1.5 text-center text-[13px] ${tone === 'dark' ? 'text-white/55' : 'text-dg-ink-soft'}`}>
           {showCaption}
         </figcaption>
       )}

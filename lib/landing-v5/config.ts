@@ -275,7 +275,7 @@ export type ScreenshotSlotConfig = {
 export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   '01': {
     id: '01',
-    src: '/landing-v5/screens/01-entry.webp',
+    src: '/landing-v5/screens/01-entry.jpg',
     label: '게임 진입 화면',
     caption: 'QR 찍고 바로 시작',
   },
@@ -287,7 +287,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '04': {
     id: '04',
-    src: '/landing-v5/screens/04-result.webp',
+    src: '/landing-v5/screens/04-result.jpg',
     label: '결과 확인 화면',
     caption: '카카오 로그인 후 선물 공개',
   },
@@ -311,7 +311,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '09': {
     id: '09',
-    src: '/landing-v5/screens/09-follow.webp',
+    src: '/landing-v5/screens/09-follow.jpg',
     label: '당근마켓 단골 인증',
     caption: '당근마켓에서 단골 추가',
   },

@@ -290,14 +290,16 @@ function HowItWorksMobileCarousel({ steps }: { steps: typeof HOW_IT_WORKS_STEPS 
         {steps.map((step) => (
           <article
             key={step.n}
-            className="w-[88%] shrink-0 snap-start border border-dg-line bg-white p-4"
+            className="w-[88%] shrink-0 snap-start border border-dg-line bg-white p-2"
             style={{ borderRadius: 6 }}
           >
-            <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
-            <h3 className="mt-2 text-[19px] text-dg-ink">{step.title}</h3>
-            <p className="mt-1.5 line-clamp-2 text-[14px] leading-relaxed text-dg-ink-soft">{step.body}</p>
-            <div className="mt-4 flex justify-center">
-              <ScreenshotSlot shotId={step.shot} maxWidth={160} />
+            <div className="px-1">
+              <p className="font-num text-[12px] tracking-widest text-dg-green-deep">{step.n}</p>
+              <h3 className="mt-1 text-[19px] text-dg-ink">{step.title}</h3>
+              <p className="mt-1 line-clamp-2 text-[14px] leading-snug text-dg-ink-soft">{step.body}</p>
+            </div>
+            <div className="mt-2 flex justify-center">
+              <ScreenshotSlot shotId={step.shot} fit="contain" />
             </div>
           </article>
         ))}
@@ -309,7 +311,7 @@ function HowItWorksMobileCarousel({ steps }: { steps: typeof HOW_IT_WORKS_STEPS 
         aria-label="이전 단계"
         disabled={isFirst}
         onClick={() => scrollToIndex(index - 1)}
-        className="absolute left-1 top-[92px] flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
+        className="absolute left-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
         style={{ borderRadius: 999 }}
       >
         <ChevronLeft size={18} strokeWidth={2} />
@@ -319,7 +321,7 @@ function HowItWorksMobileCarousel({ steps }: { steps: typeof HOW_IT_WORKS_STEPS 
         aria-label="다음 단계"
         disabled={isLast}
         onClick={() => scrollToIndex(index + 1)}
-        className="absolute right-1 top-[92px] flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
+        className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center border border-dg-line bg-white/90 text-dg-ink shadow-[0_4px_12px_rgba(17,17,17,0.10)] transition-opacity disabled:opacity-25"
         style={{ borderRadius: 999 }}
       >
         <ChevronRight size={18} strokeWidth={2} />
@@ -362,7 +364,7 @@ export function HowItWorks({ onCta }: CtaProps) {
               <h3 className="mt-3 text-[22px] text-dg-ink">{step.title}</h3>
               <p className="mt-3 min-h-[64px] text-[15px] leading-relaxed text-dg-ink-soft">{step.body}</p>
               <div className="mt-6">
-                <ScreenshotSlot shotId={step.shot} />
+                <ScreenshotSlot shotId={step.shot} fit="contain" />
               </div>
             </article>
           ))}
