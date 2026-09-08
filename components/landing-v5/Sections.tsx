@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles } from 'lucide-react'
 import BrandLogo from '@/components/BrandLogo'
@@ -17,11 +18,10 @@ import {
   BANK_ACCOUNT,
   KAKAO_CONSULT_URL,
   SIGNUP_PATH,
+  DEMO_PLAY_URL,
   formatMonthlyPrice,
   formatWon,
 } from '@/lib/landing-v5/config'
-
-type CtaProps = { onCta: () => void }
 
 /** 인형뽑기 게임 프레임과 무관한 실사 이미지(QR 스탠드, 쿠폰함, 카카오톡 캡처)를 담는 카드 —
  *  원본 비율이 제각각이라도 카드 박스 크기(3:4)는 통일하고, object-contain으로 잘림 없이 담는다. */
@@ -64,18 +64,18 @@ export function ProductShowcase() {
         {/* 손님이 매장에서 실제로 마주치는 3가지 접점 — QR / 쿠폰함 / 카톡 알림 (게임 플레이 흐름은 03번 섹션에서 별도로 다룸) */}
         <div className="mt-12 flex gap-8 overflow-x-auto pb-4 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
           <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
-            <TouchpointCard src="/landing-v5/screens/06-qr.webp" alt="매장 테이블에 놓인 단골팅 QR 코드 스탠드" />
+            <TouchpointCard src="/landing-v5/screens/06-qr.jpg" alt="매장 테이블에 놓인 단골팅 QR 코드 포스터" />
             <h3 className="mt-5 text-[17px] font-bold text-white">테이블 QR 코드</h3>
             <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">매장 어디서나, QR 하나로 시작</p>
           </div>
           <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
-            <TouchpointCard src="/landing-v5/screens/07-wallet.webp" alt="포인트 잔액과 리워드 교환 목록이 보이는 내 쿠폰함 화면" />
+            <TouchpointCard src="/landing-v5/screens/07-wallet.png" alt="포인트 잔액과 리워드 교환 목록이 보이는 내 쿠폰함 화면" />
             <h3 className="mt-5 text-[17px] font-bold text-white">당첨 쿠폰함</h3>
             <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">받은 혜택을 한눈에</p>
           </div>
           <div className="min-w-[240px] flex-shrink-0 text-center sm:min-w-0">
             <TouchpointCard
-              src="/landing-v5/screens/08-kakao.webp"
+              src="/landing-v5/screens/08-kakao.png"
               alt="카카오 알림톡으로 도착한 매장 쿠폰 발급 안내 메시지"
               cardBg="bg-white"
             />
@@ -341,7 +341,7 @@ function HowItWorksMobileCarousel({ steps }: { steps: typeof HOW_IT_WORKS_STEPS 
   )
 }
 
-export function HowItWorks({ onCta }: CtaProps) {
+export function HowItWorks() {
   const steps = HOW_IT_WORKS_STEPS
 
   return (
@@ -387,14 +387,15 @@ export function HowItWorks({ onCta }: CtaProps) {
               복잡한 앱 설치도, 어려운 세팅도 없습니다. QR 하나로 시작하는 가장 쉬운 재방문 설계입니다.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onCta}
+          <a
+            href={DEMO_PLAY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex min-h-[44px] w-fit shrink-0 items-center gap-2 rounded-full bg-dg-green px-6 py-3 text-[14px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green active:translate-y-0"
           >
-            궁금하면, 단골팅
+            체험하기
             <span aria-hidden="true">→</span>
-          </button>
+          </a>
         </article>
         </div>
       </div>
@@ -643,7 +644,7 @@ export function CarrotChannelSection() {
       <div className="mx-auto max-w-3xl px-5 text-center">
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">우리 동네 고객과 연결</p>
         <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
-          당근에서 고객을 만나고,
+          <span className="font-extrabold text-dg-carrot">당근</span>에서 고객을 만나고,
           <br />
           게임으로 다시 연결합니다
         </h2>
@@ -768,71 +769,6 @@ export function ChannelTrust() {
   )
 }
 
-/** 실제 매장(고객 개인정보 포함)을 캡처하지 않도록, /b/[storeId] 화면 구조를 예시 데이터로
- *  재구성한 목업. 숫자·매장명은 모두 예시이며 특정 업체 정보를 담지 않는다. */
-function BusinessPageMock() {
-  return (
-    <div
-      className="relative mx-auto w-full max-w-[280px] overflow-hidden border border-dg-line bg-dg-bg shadow-[0_20px_48px_rgba(0,0,0,0.18)]"
-      style={{ aspectRatio: '9 / 19.5', borderRadius: 12 }}
-    >
-      <div className="flex h-full flex-col overflow-hidden">
-        <div className="bg-dg-ink px-4 pb-5 pt-7 text-center">
-          <div className="mx-auto h-9 w-9 rounded-full bg-white/15" />
-          <p className="mt-2.5 text-[13px] font-black text-white">OO 매장</p>
-          <p className="mt-0.5 text-[10px] font-semibold text-white/55">카페 · 디저트</p>
-          <div className="mx-auto mt-3.5 rounded-full bg-dg-green py-2 text-[10.5px] font-bold text-dg-ink">
-            게임하고 쿠폰받기
-          </div>
-        </div>
-
-        <div className="flex-1 space-y-2 px-3 py-3">
-          <div className="rounded-lg bg-white p-2.5 shadow-sm">
-            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">지금 받을 수 있는 혜택</p>
-            <div className="grid grid-cols-3 gap-1.5 text-center">
-              {['🎮 게임', '🎫 쿠폰', '⭐ 리워드'].map((label) => (
-                <div key={label} className="rounded-md bg-dg-bg py-2 text-[8px] font-bold text-dg-ink">
-                  {label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-2.5 shadow-sm">
-            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">대표 메뉴</p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="aspect-square rounded-md bg-dg-bg" />
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-2.5 shadow-sm">
-            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">매장 정보</p>
-            <div className="space-y-1 text-[8px] leading-relaxed text-dg-ink-soft">
-              <p>위치 · OO시 OO로 12</p>
-              <p>영업시간 · 매일 10:00~21:00</p>
-              <p>연락처 · 0507-0000-0000</p>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-2.5 shadow-sm">
-            <p className="mb-1.5 text-[9px] font-bold text-dg-ink">리뷰 남기기</p>
-            <div className="flex gap-1.5">
-              <div className="flex-1 rounded-full border border-dg-line py-1.5 text-center text-[8px] font-bold text-dg-ink">
-                네이버
-              </div>
-              <div className="flex-1 rounded-full border border-dg-line py-1.5 text-center text-[8px] font-bold text-dg-ink">
-                구글
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /** "우리 매장 홈페이지"(/b/[storeId], 이미 구현된 기능) 소개 섹션 — 당근 연동/채널 흐름 설명이
  *  끝난 뒤, 요금제로 넘어가기 전에 부가 자산으로서 홈페이지를 짧게 소개한다. */
 export function HomepageServiceSection() {
@@ -854,9 +790,7 @@ export function HomepageServiceSection() {
               우리 매장의 공식 디지털 자산
             </p>
             <h2 className="mt-3 text-[28px] leading-snug text-dg-ink md:text-[38px]">
-              리뷰와 <span className="text-dg-green-deep">검색, AI</span>를 연결하는 우리
-              <br />
-              매장의 공식 공간을 만듭니다.
+              리뷰와 <span className="text-dg-green-deep">검색, AI</span>를 연결하는 우리 매장의 공식 공간을 만듭니다.
             </h2>
             <p className="mt-5 text-[15px] leading-relaxed text-dg-ink-soft">
               게임과 쿠폰으로 고객의 재방문을 만들고,
@@ -887,7 +821,12 @@ export function HomepageServiceSection() {
           </div>
 
           <div>
-            <BusinessPageMock />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/landing-v5/homepage-mockup.jpg"
+              alt="우리 매장의 미니홈피가 구글·네이버 검색과 AI 추천에 노출되는 모습을 보여주는 목업"
+              className="mx-auto h-auto w-full max-w-[380px]"
+            />
             <p className="mt-4 text-center text-[13px] text-dg-ink-soft">
               고객 · 검색 · AI를 연결하는 우리 매장의 공식 홈페이지
             </p>
@@ -1304,7 +1243,7 @@ export function PricingSection() {
   )
 }
 
-export function FinalCta({ onCta, onPreview }: CtaProps & { onPreview?: () => void }) {
+export function FinalCta() {
   return (
     <section className="bg-dg-green py-20 md:py-28">
       <div className="mx-auto max-w-4xl px-5 text-center">
@@ -1340,27 +1279,13 @@ export function FinalCta({ onCta, onPreview }: CtaProps & { onPreview?: () => vo
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onCta}
-          className="mt-8 min-h-[56px] w-full max-w-md bg-white px-8 py-4 text-[16px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 sm:w-auto"
+        <Link
+          href={SIGNUP_PATH}
+          className="mt-8 inline-flex min-h-[56px] w-full max-w-md items-center justify-center bg-white px-8 py-4 text-[16px] font-bold text-dg-ink transition-transform hover:-translate-y-0.5 sm:w-auto"
           style={{ borderRadius: 6 }}
         >
-          월 19,000원 혜택으로 시작하기
-        </button>
-        <p className="mt-3 text-[12.5px]" style={{ color: 'rgba(34,34,34,0.6)' }}>
-          복잡한 계약 없이 바로 시작할 수 있습니다
-        </p>
-
-        {onPreview && (
-          <button
-            type="button"
-            onClick={onPreview}
-            className="mt-4 text-[13px] font-semibold text-dg-ink/70 underline underline-offset-2 transition-colors hover:text-dg-ink"
-          >
-            가입 전에 관리자 화면이 궁금하다면 미리보기 →
-          </button>
-        )}
+          신청하기
+        </Link>
       </div>
     </section>
   )

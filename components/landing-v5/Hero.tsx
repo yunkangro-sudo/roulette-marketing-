@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { HERO_ROTATOR_WORDS } from '@/lib/landing-v5/config'
-
-type Props = {
-  onCta: () => void
-}
+import { HERO_ROTATOR_WORDS, DEMO_PLAY_URL } from '@/lib/landing-v5/config'
 
 /**
  * 모바일 우선: 헤드라인(로테이터)이 항상 이미지보다 먼저 오도록 DOM 순서를
@@ -14,7 +10,7 @@ type Props = {
  * 모바일은 92vh로 첫 화면 임팩트를 주고, 데스크톱은 콘텐츠 높이에 맞춰
  * 상하 여백을 줄여 다음 섹션이 살짝 보이게 한다.
  */
-export default function Hero({ onCta }: Props) {
+export default function Hero() {
   const [wordIndex, setWordIndex] = useState(0)
 
   useEffect(() => {
@@ -63,10 +59,12 @@ export default function Hero({ onCta }: Props) {
 
           <div className="mt-8 flex justify-start">
             <a
-              href="#service"
+              href={DEMO_PLAY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-dg-ink px-8 py-3 text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dg-green active:translate-y-0"
             >
-              궁금하면, 단골팅
+              체험하기
               <span aria-hidden="true">→</span>
             </a>
           </div>

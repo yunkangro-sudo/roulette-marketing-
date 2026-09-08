@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
-import { NAV_HEIGHT_PX, NAV_LINKS, SIGNUP_PATH } from '@/lib/landing-v5/config'
+import { NAV_HEIGHT_PX, NAV_LINKS, SIGNUP_PATH, KAKAO_CONSULT_URL } from '@/lib/landing-v5/config'
 import BrandLogo from '@/components/BrandLogo'
 import { PricingCalculatorModal } from './PricingModals'
 
@@ -162,14 +162,16 @@ export default function Navbar() {
               className="shrink-0 border-t border-dg-line p-5"
               style={{ paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' }}
             >
-              <Link
-                href={SIGNUP_PATH}
+              <a
+                href={KAKAO_CONSULT_URL || SIGNUP_PATH}
+                target={KAKAO_CONSULT_URL ? '_blank' : undefined}
+                rel={KAKAO_CONSULT_URL ? 'noopener noreferrer' : undefined}
                 onClick={close}
                 className="flex h-12 w-full items-center justify-center bg-dg-green text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
                 style={{ borderRadius: 6 }}
               >
                 상담 신청하기
-              </Link>
+              </a>
             </div>
           </aside>
         </div>

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import './landing-v5.css'
 import Navbar from './Navbar'
 import Hero from './Hero'
@@ -23,35 +22,19 @@ import {
 import ClientsSection from './ClientsSection'
 import FaqSection from './FaqSection'
 import BottomBar from './BottomBar'
-import DemoModal from './DemoModal'
-import AdminPreviewModal from './AdminPreviewModal'
-import { BasicApplyModal } from './PricingModals'
 import { SHOW_CLIENT_SHOWCASE } from '@/lib/landing-v5/config'
 
 export default function LandingV5() {
-  const [demoOpen, setDemoOpen] = useState(false)
-  const [adminPreviewOpen, setAdminPreviewOpen] = useState(false)
-  const [finalApplyOpen, setFinalApplyOpen] = useState(false)
-  const openDemo = () => setDemoOpen(true)
-
-  function goToPricing() {
-    setAdminPreviewOpen(false)
-    // 모달이 실제로 닫혀 body 스크롤 잠금이 풀린 뒤에 스크롤해야 정상 동작한다.
-    window.setTimeout(() => {
-      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 60)
-  }
-
   return (
     <div className="landing-v5 min-h-screen">
       <Navbar />
       <main>
-        <Hero onCta={openDemo} />
+        <Hero />
         <ClientLogoStrip />
         <ProductShowcase />
         <ProblemSection />
         <PositioningSection />
-        <HowItWorks onCta={openDemo} />
+        <HowItWorks />
         <GrowthEngineSection />
         <DifferenceSection />
         <ProofSection />
@@ -61,15 +44,10 @@ export default function LandingV5() {
         <HomepageServiceSection />
         <PricingSection />
         <FaqSection />
-        <FinalCta onCta={() => setFinalApplyOpen(true)} onPreview={() => setAdminPreviewOpen(true)} />
+        <FinalCta />
       </main>
       <Footer />
       <BottomBar />
-      {demoOpen && <DemoModal onClose={() => setDemoOpen(false)} />}
-      {adminPreviewOpen && (
-        <AdminPreviewModal onClose={() => setAdminPreviewOpen(false)} onApply={goToPricing} />
-      )}
-      {finalApplyOpen && <BasicApplyModal onClose={() => setFinalApplyOpen(false)} />}
     </div>
   )
 }
