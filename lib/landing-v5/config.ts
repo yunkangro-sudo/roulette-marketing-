@@ -225,16 +225,16 @@ export type Client = {
 
 /** 실제 로고 파일이 준비되면 logoUrl에 경로만 채우면 자동으로 이미지로 렌더링된다. */
 export const CLIENTS: Client[] = [
-  { name: '설빙', logoUrl: null, category: '카페·디저트' },
-  { name: '던킨도너츠', logoUrl: null, category: '카페·디저트' },
-  { name: '배스킨라빈스', logoUrl: null, category: '카페·디저트' },
-  { name: '맘스터치', logoUrl: null, category: '버거·패스트푸드' },
-  { name: '버거킹', logoUrl: null, category: '버거·패스트푸드' },
-  { name: 'KFC', logoUrl: null, category: '버거·패스트푸드' },
   { name: '촌놈칩스', logoUrl: null, category: '분식·스낵' },
-  { name: '노걸대', logoUrl: null, category: '분식·스낵' },
-  { name: '죠스떡볶이', logoUrl: null, category: '분식·스낵' },
-  { name: '신전떡볶이', logoUrl: null, category: '분식·스낵' },
+  { name: '모서릿집', logoUrl: null, category: '분식·스낵' },
+  { name: '미진숯불막창', logoUrl: null, category: '분식·스낵' },
+  { name: '카옵션', logoUrl: null, category: '분식·스낵' },
+  { name: '정육집', logoUrl: null, category: '분식·스낵' },
+  { name: '육플러스참숯', logoUrl: null, category: '분식·스낵' },
+  { name: '대학인', logoUrl: null, category: '분식·스낵' },
+  { name: '에스유', logoUrl: null, category: '분식·스낵' },
+  { name: '아트산업', logoUrl: null, category: '분식·스낵' },
+  { name: '깐띠아모', logoUrl: null, category: '분식·스낵' },
 ]
 
 export const CLIENT_CATEGORIES: ClientCategory[] = ['카페·디저트', '버거·패스트푸드', '분식·스낵']
