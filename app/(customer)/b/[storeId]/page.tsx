@@ -130,7 +130,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: `https://www.dgting.co.kr/b/${storeId}`,
-      images: data.coverUrl ? [data.coverUrl] : data.logoUrl ? [data.logoUrl] : undefined,
+      // 매장이 커버/로고를 아직 안 올렸으면 SNS 공유 시 미리보기가 텅 비어 보이므로
+      // 단골팅 기본 대표 이미지(app/opengraph-image.png 파일 컨벤션 경로)로 대체한다.
+      images: [data.coverUrl ?? data.logoUrl ?? 'https://www.dgting.co.kr/opengraph-image.png'],
       type: 'website',
     },
   }

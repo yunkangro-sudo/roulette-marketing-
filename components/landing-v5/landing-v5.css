@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=JetBrains+Mono:wght@400;500;700&display=swap");
-@import url("https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css");
+/* 폰트 @import는 app/globals.css에서 전역으로 이미 로드하므로 여기서 중복 요청하지 않는다
+   (동일 CDN URL을 두 CSS 파일에서 각각 @import하면 렌더링 차단 체인이 중복 발생 — CWV 저하 원인). */
 
 .landing-v5 {
   --green: #00c7a7;

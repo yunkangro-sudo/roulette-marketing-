@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: '이용약관 · 단골마케팅',
+  title: '이용약관 · 단골팅',
   description: '아크웍스(ARK WORKS) 서비스 이용약관',
 }
 
@@ -15,7 +15,7 @@ export default function TermsPage() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm bg-gradient-to-br from-yellow-400 to-orange-500">
               🥕
             </div>
-            <span className="font-bold text-white">단골마케팅</span>
+            <span className="font-bold text-white">단골팅</span>
           </Link>
           <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
             ← 홈으로

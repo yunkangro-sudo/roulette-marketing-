@@ -162,8 +162,13 @@ export default function BusinessPageView({ data }: { data: BusinessPageData }) {
         {/* 매장 사진 */}
         {data.storePhotos.length > 0 && (
           <section className="grid grid-cols-3 gap-2">
-            {data.storePhotos.map((url) => (
-              <img key={url} src={url} alt="" className="aspect-square w-full rounded-xl object-cover" />
+            {data.storePhotos.map((url, i) => (
+              <img
+                key={url}
+                src={url}
+                alt={`${data.storeName} 매장 사진 ${i + 1}`}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
             ))}
           </section>
         )}

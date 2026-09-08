@@ -1,4 +1,6 @@
 import LandingV5 from '@/components/landing-v5/LandingV5'
+import { FAQ_ITEMS } from '@/lib/landing-v5/config'
+import { buildFaqPageJsonLd, buildOrganizationJsonLd, buildSoftwareApplicationJsonLd } from '@/lib/seo/jsonld'
 
 export const metadata = {
   title: '단골팅 — 손님을 모으는 게 아니라, 다시 오게 만듭니다',
@@ -7,5 +9,23 @@ export const metadata = {
 }
 
 export default function HomePage() {
-  return <LandingV5 />
+  const jsonLdBlocks = [
+    buildOrganizationJsonLd(),
+    buildSoftwareApplicationJsonLd(),
+    buildFaqPageJsonLd(FAQ_ITEMS),
+  ]
+
+  return (
+    <>
+      {jsonLdBlocks.map((jsonLd, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      ))}
+      <LandingV5 />
+    </>
+  )
 }
