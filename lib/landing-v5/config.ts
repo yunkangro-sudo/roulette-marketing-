@@ -15,7 +15,7 @@ export const DEMO_PLAY_URL = 'https://www.dgting.co.kr/play/ca-01'
 export const PRICING = {
   basic: {
     id: 'basic',
-    name: '베이직',
+    name: '단골마케팅',
     regularPrice: 49_000,
     promoPrice: 19_000,
     setupFee: 290_000,
@@ -52,7 +52,7 @@ export const PRICING_BASIC_DISCOUNT_PERCENT = Math.round(
 /** 정가 대비 프로모션가 할인액(원) — 요금제 카드에 "매월 20,000원 할인"처럼 원화로 노출. */
 export const PRICING_BASIC_DISCOUNT_AMOUNT = PRICING.basic.regularPrice - PRICING.basic.promoPrice
 
-/** 베이직 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료(프로모션가). */
+/** 단골마케팅 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료(프로모션가). */
 export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.promoPrice
 
 /** 요금제 섹션 두 번째 카드 — "AEO마케팅(준비중)" 카드를 대체하는 실제 판매 중인
@@ -60,7 +60,7 @@ export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.
  *  즉시 결제가 아닌 리드(상담 신청) 수집 흐름을 탄다. */
 export const CONTENT_OPS = {
   id: 'content-ops',
-  name: '당근 콘텐츠 성장 운영',
+  name: '당근마케팅',
   tagline: '당근 안에서 우리 매장을 계속 발견하게 만드는 콘텐츠 운영',
   price: 330_000,
   items: [
@@ -95,7 +95,7 @@ export const CONTENT_OPS = {
   },
 } as const
 
-/** "당근마켓 컨텐츠 운영" 하위 4개 항목 — /growth/danggeun 페이지의 서비스 카드 4개와
+/** "당근마케팅" 하위 4개 항목 — /growth/danggeun 페이지의 서비스 카드 4개와
  *  요금제 계산기의 02번 그룹 체크박스 4개가 동일한 상품·동일한 금액을 보여줘야 하므로
  *  이름·가격·원시 빈도 표기를 여기 한 곳에서만 정의하고 두 화면이 그대로 참조한다.
  *  최종 문구(예: "· 발행" 등 꾸밈)는 화면마다 톤이 달라 각자 조합하되, 숫자는 절대 다시
@@ -138,12 +138,7 @@ export const CONTENT_OPS_ADDONS = [
 /** 요금제 섹션의 "추가 서비스" 영역 — 이미 만들어져 있는 매장 공개 홈페이지(/b/[storeId])
  *  기능에 가격을 붙여 파는 상품. 초기 제작비(1회)와 월 유지비를 명확히 분리해서 보여준다. */
 export const HOMEPAGE_SERVICE = {
-  name: '검색과 AI를 위한 우리 매장 홈페이지',
-  headline: '손님들이 후기도 쓰고, 검색엔진에 잘 노출되고, AI가 인용 참고하는\n"마케팅 미니홈피"를 만드세요',
-  /** 헤드라인에서 강조색(민트 굵게)으로 표시할 부분 — Sections.tsx가 headline을 이 값으로 split해서 렌더한다 */
-  headlineHighlight: '마케팅 미니홈피',
-  differentiator:
-    '독립 도메인 기반 홈페이지에 매장 정보를 체계적으로 구축하고\n네이버·구글 검색 등록과 SEO·AEO 최적화를 통해\n검색과 AI 시대를 준비하는 우리 매장만의 디지털 자산을 만듭니다.',
+  name: '홈피마케팅',
   setup: {
     label: '초기 제작비',
     price: 270_000,
@@ -201,7 +196,7 @@ export const CALCULATOR_PRODUCTS = [
   },
   {
     id: 3,
-    name: '마케팅 미니 홈피 제작',
+    name: '홈피마케팅',
     setupFee: HOMEPAGE_SERVICE.setup.price,
     monthly: 0,
     cardNote: `가입 후 1년간 무료, 이후 월 ${formatWon(HOMEPAGE_SERVICE.maintenance.price)}으로 자동 전환됩니다.`,
@@ -229,14 +224,14 @@ export const LAUNCH_EVENT = {
   ctaUrl: 'https://www.dgting.co.kr/play/dgting',
 } as const
 
-/** 베이직 신청 완료 화면에 표시하는 입금 계좌 정보 — 세팅비(1회) 수기 입금용. */
+/** 단골마케팅 신청 완료 화면에 표시하는 입금 계좌 정보 — 세팅비(1회) 수기 입금용. */
 export const BANK_ACCOUNT = {
   bank: '신한은행',
   account: '110-635-375949',
   holder: '양경직(아크웍스)',
 } as const
 
-/** 베이직 신청 완료 후 "럭키박스" 웰컴 기프트 리빌에서 항상 보여주는 고정 결과 문구.
+/** 단골마케팅 신청 완료 후 "럭키박스" 웰컴 기프트 리빌에서 항상 보여주는 고정 결과 문구.
  *  DemoModal(다른 CTA들의 랜덤 데모)과는 별개로, 여기서는 랜덤 요소가 없다. */
 export const WELCOME_GIFT_LABEL = '포인트 카탈로그 1개 무료 추가'
 
@@ -312,6 +307,9 @@ export type ScreenshotSlotConfig = {
   src: string
   label: string
   caption: string
+  /** 이미지 원본 비율(가로/세로). 지정하면 프레임이 이 비율로 맞춰져 상하 여백(레터박스)이 생기지 않는다.
+   *  생략 시 실제 폰 스크린샷용 기본 비율(9:19.5)을 사용한다. */
+  aspectRatio?: string
 }
 
 export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
@@ -320,6 +318,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/01-entry.jpg',
     label: '게임 진입 화면',
     caption: 'QR 찍고 바로 시작',
+    aspectRatio: '546 / 1024',
   },
   '02': {
     id: '02',
@@ -332,6 +331,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/04-result.jpg',
     label: '결과 확인 화면',
     caption: '카카오 로그인 후 선물 공개',
+    aspectRatio: '609 / 1024',
   },
   '05': {
     id: '05',
@@ -356,6 +356,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/09-follow.jpg',
     label: '당근마켓 단골 인증',
     caption: '당근마켓에서 단골 추가',
+    aspectRatio: '630 / 1024',
   },
   '10': {
     id: '10',

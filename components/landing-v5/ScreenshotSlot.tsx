@@ -16,18 +16,23 @@ type Props = {
 export default function ScreenshotSlot({ shotId, caption, className = '', tone = 'light', fit = 'cover', maxWidth = 280 }: Props) {
   const shot = SCREENSHOTS[shotId]
   const showCaption = caption ?? shot.caption
+  // aspectRatio가 지정된 이미지(실제 디자인 포스터 등)는 프레임을 원본 비율에 정확히 맞춰
+  // object-contain을 써도 상하좌우 여백(레터박스)이 생기지 않는다. 지정이 없으면 기존
+  // 폰 스크린샷용 기본 비율(9:19.5)로 폴백한다.
+  const frameAspectRatio = shot.aspectRatio ?? '9 / 19.5'
+  const hasCustomRatio = Boolean(shot.aspectRatio)
 
   return (
     <figure className={`w-full ${className}`}>
       <div className="relative mx-auto w-full overflow-hidden border border-dg-line bg-[#1A1A1A] shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
-        style={{ aspectRatio: '9 / 19.5', borderRadius: 6, maxWidth }}
+        style={{ aspectRatio: frameAspectRatio, borderRadius: 6, maxWidth }}
       >
         {shot.src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={shot.src}
             alt={shot.label}
-            className={`h-full w-full ${fit === 'contain' ? 'object-contain object-center' : 'object-cover object-top'}`}
+            className={`h-full w-full ${hasCustomRatio || fit === 'contain' ? 'object-contain object-center' : 'object-cover object-top'}`}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-5 text-center">
