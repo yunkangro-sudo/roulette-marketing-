@@ -306,7 +306,7 @@ type ContentOpsPhase = 'form' | 'submitting' | 'done'
 
 /** "당근 콘텐츠 성장 운영" 상담 신청 — 즉시 결제가 아닌 리드 수집이라
  *  베이직 신청과 동일한 signup_inquiries 테이블을 쓰되 source로 구분한다. */
-export function ContentOpsModal({ onClose }: Props) {
+export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_ops' }: Props & { source?: string }) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<ContentOpsPhase>('form')
   const [storeName, setStoreName] = useState('')
@@ -329,7 +329,7 @@ export function ContentOpsModal({ onClose }: Props) {
           storeName,
           ownerName,
           phone,
-          source: 'landing_v5_pricing_content_ops',
+          source,
         }),
       })
       const data = await res.json().catch(() => ({}))

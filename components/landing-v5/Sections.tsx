@@ -978,7 +978,7 @@ export function PricingSection() {
             <p className="mt-6 font-num text-[32px] font-bold text-dg-green sm:text-[36px]">
               {formatMonthlyPrice(contentOps.price)}
             </p>
-            <p className="mt-1 text-[12px] text-white/40">모든 요금 VAT 별도</p>
+            <p className="mt-1 text-[12px] text-white/40">모든 요금 VAT 포함</p>
 
             <div className="mt-6 space-y-5">
               {contentOps.items.map((item, i) => (

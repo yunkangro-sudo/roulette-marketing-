@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/terms`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE_URL}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE_URL}/aeo`, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${BASE_URL}/growth/danggeun`, changeFrequency: 'monthly', priority: 0.4 },
     // 공개 가이드만 포함 — /guides/advertiser는 로그인 필요라 제외(robots.ts에서도 disallow)
     { url: `${BASE_URL}/guides`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/guides/getting-started`, changeFrequency: 'monthly', priority: 0.4 },
