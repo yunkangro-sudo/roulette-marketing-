@@ -8,7 +8,7 @@ import Navbar from '@/components/landing-v5/Navbar'
 import BottomBar from '@/components/landing-v5/BottomBar'
 import { CarrotChannelSection, Footer } from '@/components/landing-v5/Sections'
 import { ContentOpsModal } from '@/components/landing-v5/PricingModals'
-import { CONTENT_OPS, formatWon, SIGNUP_PATH } from '@/lib/landing-v5/config'
+import { CONTENT_OPS_ADDONS, formatWon, SIGNUP_PATH } from '@/lib/landing-v5/config'
 
 type ServiceCard = {
   n: string
@@ -20,12 +20,22 @@ type ServiceCard = {
   footnote?: string
 }
 
+/** 이름·가격은 CONTENT_OPS_ADDONS(=요금제 계산기 02번 그룹과 공통 소스)에서 가져오고,
+ *  이 페이지 전용 소개 문구(아이콘/부제/불릿)만 여기서 관리한다. */
+function addon(id: (typeof CONTENT_OPS_ADDONS)[number]['id']) {
+  const item = CONTENT_OPS_ADDONS.find((a) => a.id === id)!
+  const priceLabel =
+    item.kind === 'monthly'
+      ? `${item.freqLabel} · ${formatWon(item.price)}`
+      : `${item.freqLabel} ${formatWon(item.price)}`
+  return { name: item.name, priceLabel }
+}
+
 const CARDS: ServiceCard[] = [
   {
     n: '01',
     icon: Sparkles,
-    name: CONTENT_OPS.addon.label,
-    priceLabel: `${CONTENT_OPS.addon.note} ${formatWon(CONTENT_OPS.addon.price)}`,
+    ...addon('biz-profile'),
     subtitle: '고객이 매장을 발견했을 때, 방문으로 이어지게 만드는 기본 세팅',
     bullets: [
       '비즈프로필 정보 및 구성 최적화',
@@ -37,8 +47,7 @@ const CARDS: ServiceCard[] = [
   {
     n: '02',
     icon: Megaphone,
-    name: CONTENT_OPS.items[0].title,
-    priceLabel: `${CONTENT_OPS.items[0].freq} · ${formatWon(CONTENT_OPS.items[0].price)}`,
+    ...addon('viral'),
     subtitle: '광고비를 쓰지 않아도 매장이 자연스럽게 노출될 수 있도록',
     bullets: [
       '매장 맞춤형 후킹 콘텐츠 기획',
@@ -50,8 +59,7 @@ const CARDS: ServiceCard[] = [
   {
     n: '03',
     icon: Video,
-    name: CONTENT_OPS.items[1].title,
-    priceLabel: `${CONTENT_OPS.items[1].freq} · ${formatWon(CONTENT_OPS.items[1].price)}`,
+    ...addon('shorts'),
     subtitle: '사진 한 장보다 강하게, 매장의 매력을 영상으로 전달',
     bullets: [
       '매장 숏츠 영상 제작',
@@ -64,8 +72,7 @@ const CARDS: ServiceCard[] = [
   {
     n: '04',
     icon: Target,
-    name: CONTENT_OPS.targetAd.label,
-    priceLabel: `${CONTENT_OPS.targetAd.note} ${formatWon(CONTENT_OPS.targetAd.price)}`,
+    ...addon('target-ad'),
     subtitle: '불특정 다수가 아닌, 우리 매장에 필요한 고객에게 집중 노출',
     bullets: [
       '상권·업종 기반 타깃 분석',

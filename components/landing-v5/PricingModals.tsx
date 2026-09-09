@@ -5,6 +5,7 @@ import { Check, Copy, X } from 'lucide-react'
 import {
   BANK_ACCOUNT,
   CALCULATOR_PRODUCTS,
+  CONTENT_OPS_ADDONS,
   PRICING,
   PRICING_BASIC_DISCOUNT_PERCENT,
   WELCOME_GIFT_LABEL,
@@ -555,7 +556,10 @@ const REASSURANCE_ITEMS = [
 export function PricingCalculatorModal({ onClose }: Props) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<CalcPhase>('select')
-  const [selected, setSelected] = useState<Record<number, boolean>>({ 1: true, 2: false, 3: false })
+  /** 01번(단골팅 쿠폰 게임 시스템)은 기본 상품이라 항상 포함되고 체크박스가 없다.
+   *  02번은 4개 항목(CONTENT_OPS_ADDONS)이 독립적으로 선택되고, 03번(홈피 제작)만
+   *  기존처럼 단일 토글이라 이 두 종류를 하나의 문자열 키 Record로 함께 관리한다. */
+  const [selected, setSelected] = useState<Record<string, boolean>>({ homepage: false })
   const [showAfterPromo, setShowAfterPromo] = useState(false)
   const [storeName, setStoreName] = useState('')
   const [ownerName, setOwnerName] = useState('')
@@ -564,13 +568,30 @@ export function PricingCalculatorModal({ onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
-  const selectedProducts = CALCULATOR_PRODUCTS.filter((p) => selected[p.id])
-  const hasSelection = selectedProducts.length > 0
-  const initialTotal = selectedProducts.reduce((sum, p) => sum + p.setupFee + p.monthly, 0)
-  const monthlyTotal = selectedProducts.reduce((sum, p) => sum + p.monthly, 0)
+  const basicProduct = CALCULATOR_PRODUCTS.find((p) => p.id === 1)!
+  const homepageProduct = CALCULATOR_PRODUCTS.find((p) => p.id === 3)!
+  const homepageSelected = !!selected.homepage
+  const selectedAddons = CONTENT_OPS_ADDONS.filter((a) => selected[a.id])
 
-  function toggle(id: number) {
-    setSelected((prev) => ({ ...prev, [id]: !prev[id] }))
+  const addonSetupTotal = selectedAddons
+    .filter((a) => a.kind === 'setup')
+    .reduce((sum, a) => sum + a.price, 0)
+  const addonMonthlyTotal = selectedAddons
+    .filter((a) => a.kind === 'monthly')
+    .reduce((sum, a) => sum + a.price, 0)
+
+  const initialTotal =
+    basicProduct.setupFee + addonSetupTotal + (homepageSelected ? homepageProduct.setupFee : 0)
+  const monthlyTotal = basicProduct.monthly + addonMonthlyTotal + (homepageSelected ? homepageProduct.monthly : 0)
+
+  const selectedProductNames = [
+    basicProduct.name,
+    ...selectedAddons.map((a) => a.name),
+    ...(homepageSelected ? [homepageProduct.name] : []),
+  ]
+
+  function toggle(key: string) {
+    setSelected((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
   function copy(text: string, key: string) {
@@ -597,7 +618,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
           phone,
           businessType,
           source: 'landing_v5_pricing_calculator',
-          message: `[요금제 계산기] 선택 상품: ${selectedProducts.map((p) => p.name).join(', ')} / 최초 결제금액 ${formatWon(
+          message: `[요금제 계산기] 선택 상품: ${selectedProductNames.join(', ')} / 최초 결제금액 ${formatWon(
             initialTotal
           )} / 이후 매월 결제금액 ${formatWon(monthlyTotal)}`,
         }),
@@ -636,61 +657,115 @@ export function PricingCalculatorModal({ onClose }: Props) {
             </p>
           </div>
 
-          {/* 상품 선택 카드 3개 */}
+          {/* 01. 기본 상품 — 항상 포함, 선택/해제 불가 (체크박스 없음) */}
           <div className="mt-5 space-y-3">
-            {CALCULATOR_PRODUCTS.map((p, i) => {
-              const isSelected = !!selected[p.id]
-              const setupLabel = p.id === 2 ? '비즈프로필 세팅비' : p.id === 3 ? '제작비용' : '최초 설치비'
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => toggle(p.id)}
-                  aria-pressed={isSelected}
-                  className={`block w-full border-2 p-4 text-left transition-colors ${
-                    isSelected ? 'border-dg-green bg-dg-green-tint' : 'border-dg-line bg-white'
-                  }`}
-                  style={{ borderRadius: 10 }}
+            <div className="border-2 border-dg-green bg-dg-green-tint p-4" style={{ borderRadius: 10 }}>
+              <div className="flex items-start gap-3">
+                <span
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 border-dg-green bg-dg-green"
+                  style={{ borderRadius: 5 }}
+                  aria-hidden
                 >
-                  <div className="flex items-start gap-3">
-                    <span
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 ${
-                        isSelected ? 'border-dg-green bg-dg-green' : 'border-dg-line bg-white'
-                      }`}
-                      style={{ borderRadius: 5 }}
-                      aria-hidden
-                    >
-                      {isSelected && <Check size={13} className="text-dg-ink" strokeWidth={3} />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-bold text-dg-ink">
-                        {String(i + 1).padStart(2, '0')}. {p.name}
-                      </p>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-num text-[13px] text-dg-ink-soft">
-                        {p.monthly > 0 && (
-                          <span className="font-bold text-dg-ink">월 구독료 {formatWon(p.monthly)}</span>
-                        )}
-                        {p.monthly > 0 && <span className="text-dg-line">·</span>}
-                        <span>
-                          {setupLabel} {formatWon(p.setupFee)} (1회)
-                        </span>
-                      </div>
-                      {p.id === 3 && (
-                        <span
-                          className="mt-2 inline-block bg-dg-gold-deep px-2.5 py-1 text-[11px] font-bold text-white"
-                          style={{ borderRadius: 999 }}
-                        >
-                          1년 구독료 전액 무료
-                        </span>
-                      )}
-                      {p.cardNote && (
-                        <p className="mt-2 text-[11.5px] leading-relaxed text-dg-ink-soft">{p.cardNote}</p>
-                      )}
-                    </div>
+                  <Check size={13} className="text-dg-ink" strokeWidth={3} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-bold text-dg-ink">01. {basicProduct.name}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-num text-[13px] text-dg-ink-soft">
+                    <span className="font-bold text-dg-ink">월 구독료 {formatWon(basicProduct.monthly)}</span>
+                    <span className="text-dg-line">·</span>
+                    <span>최초 제작 세팅비 {formatWon(basicProduct.setupFee)} (최초 1회)</span>
                   </div>
-                </button>
-              )
-            })}
+                  {basicProduct.setupIncludes && (
+                    <p className="mt-1.5 text-[11.5px] leading-relaxed text-dg-ink-soft/80">
+                      기본 제공: {basicProduct.setupIncludes.join(' · ')}
+                    </p>
+                  )}
+                  {basicProduct.cardNote && (
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-dg-ink-soft">{basicProduct.cardNote}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 02. 당근마켓 컨텐츠 운영 — 그룹 타이틀만(체크박스 없음), 하위 4개 항목은 독립 선택 */}
+            <div className="border border-dg-line bg-white p-4" style={{ borderRadius: 10 }}>
+              <p className="text-[14px] font-bold text-dg-ink">02. 당근마켓 컨텐츠 운영</p>
+              <p className="mt-0.5 text-[11.5px] text-dg-ink-soft">필요한 항목만 골라서 추가할 수 있어요</p>
+              <div className="mt-3 space-y-2">
+                {CONTENT_OPS_ADDONS.map((a) => {
+                  const isSelected = !!selected[a.id]
+                  const priceLabel =
+                    a.kind === 'monthly'
+                      ? `${a.freqLabel} 발행 · ${formatWon(a.price)}`
+                      : `${a.freqLabel} ${formatWon(a.price)}`
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => toggle(a.id)}
+                      aria-pressed={isSelected}
+                      className={`flex w-full items-start gap-3 border p-3 text-left transition-colors ${
+                        isSelected ? 'border-dg-green bg-dg-green-tint' : 'border-dg-line bg-dg-bg'
+                      }`}
+                      style={{ borderRadius: 8 }}
+                    >
+                      <span
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 ${
+                          isSelected ? 'border-dg-green bg-dg-green' : 'border-dg-line bg-white'
+                        }`}
+                        style={{ borderRadius: 5 }}
+                        aria-hidden
+                      >
+                        {isSelected && <Check size={13} className="text-dg-ink" strokeWidth={3} />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-bold text-dg-ink">{a.name}</p>
+                        <p className="mt-0.5 font-num text-[12.5px] text-dg-ink-soft">{priceLabel}</p>
+                        {a.note && <p className="mt-0.5 text-[11px] text-dg-ink-soft/70">{a.note}</p>}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* 03. 마케팅 미니 홈피 제작 — 기존과 동일한 단일 토글 카드 */}
+            <button
+              type="button"
+              onClick={() => toggle('homepage')}
+              aria-pressed={homepageSelected}
+              className={`block w-full border-2 p-4 text-left transition-colors ${
+                homepageSelected ? 'border-dg-green bg-dg-green-tint' : 'border-dg-line bg-white'
+              }`}
+              style={{ borderRadius: 10 }}
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border-2 ${
+                    homepageSelected ? 'border-dg-green bg-dg-green' : 'border-dg-line bg-white'
+                  }`}
+                  style={{ borderRadius: 5 }}
+                  aria-hidden
+                >
+                  {homepageSelected && <Check size={13} className="text-dg-ink" strokeWidth={3} />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-bold text-dg-ink">03. {homepageProduct.name}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-num text-[13px] text-dg-ink-soft">
+                    <span>제작비용 {formatWon(homepageProduct.setupFee)} (1회)</span>
+                  </div>
+                  <span
+                    className="mt-2 inline-block bg-dg-gold-deep px-2.5 py-1 text-[11px] font-bold text-white"
+                    style={{ borderRadius: 999 }}
+                  >
+                    1년 구독료 전액 무료
+                  </span>
+                  {homepageProduct.cardNote && (
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-dg-ink-soft">{homepageProduct.cardNote}</p>
+                  )}
+                </div>
+              </div>
+            </button>
           </div>
 
           {/* 실시간 합계 — 하단에 붙어있는 느낌을 주는 고정형 요약 패널 */}
@@ -757,16 +832,12 @@ export function PricingCalculatorModal({ onClose }: Props) {
           <p className="mt-5 text-center text-[12px] text-dg-ink-soft">1분이면 신청 완료, 부담 없이 시작하세요</p>
           <button
             type="button"
-            onClick={() => hasSelection && setPhase('form')}
-            disabled={!hasSelection}
-            className="mt-2 h-[52px] w-full text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90 disabled:opacity-40"
+            onClick={() => setPhase('form')}
+            className="mt-2 h-[52px] w-full text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
             style={{ borderRadius: 6, background: 'linear-gradient(180deg, #00E0BB 0%, #00C7A7 100%)' }}
           >
             선택한 상품으로 신청하기
           </button>
-          {!hasSelection && (
-            <p className="mt-2 text-center text-[12px] text-dg-danger">상품을 1개 이상 선택해주세요</p>
-          )}
         </div>
       )}
 
@@ -783,9 +854,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
           <div className="border border-dg-line bg-dg-bg p-4" style={{ borderRadius: 8 }}>
             <p className="text-[12px] font-semibold text-dg-ink-soft">선택한 상품</p>
             <ul className="mt-1.5 space-y-0.5">
-              {selectedProducts.map((p) => (
-                <li key={p.id} className="text-[13px] text-dg-ink">
-                  · {p.name}
+              {selectedProductNames.map((name) => (
+                <li key={name} className="text-[13px] text-dg-ink">
+                  · {name}
                 </li>
               ))}
             </ul>

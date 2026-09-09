@@ -18,7 +18,7 @@ export const PRICING = {
     name: '베이직',
     regularPrice: 49_000,
     promoPrice: 19_000,
-    setupFee: 275_000,
+    setupFee: 290_000,
     ribbonLabel: '🔥 얼리버드 100개 매장 한정',
     /** 단순 "기간 한정 할인"이 아니라 "가입 시점 가격이 해지 전까지 유지된다"는 걸
      *  명확히 알려서 지금 가입해야 하는 이유(락인 혜택)를 강조한다. */
@@ -90,10 +90,50 @@ export const CONTENT_OPS = {
    *  이후 요금제 계산기·마스터 리스트에도 필요해지면 이 값을 그대로 참조한다. */
   targetAd: {
     label: '우리 매장 고객 타깃 광고',
-    note: '1회',
+    note: '최초 1회',
     price: 100_000,
   },
 } as const
+
+/** "당근마켓 컨텐츠 운영" 하위 4개 항목 — /growth/danggeun 페이지의 서비스 카드 4개와
+ *  요금제 계산기의 02번 그룹 체크박스 4개가 동일한 상품·동일한 금액을 보여줘야 하므로
+ *  이름·가격·원시 빈도 표기를 여기 한 곳에서만 정의하고 두 화면이 그대로 참조한다.
+ *  최종 문구(예: "· 발행" 등 꾸밈)는 화면마다 톤이 달라 각자 조합하되, 숫자는 절대 다시
+ *  하드코딩하지 않는다. kind: 'setup'은 최초 결제 금액에, 'monthly'는 매월 결제 금액에 더해진다. */
+export const CONTENT_OPS_ADDONS = [
+  {
+    id: 'biz-profile',
+    name: CONTENT_OPS.addon.label,
+    price: CONTENT_OPS.addon.price,
+    freqLabel: CONTENT_OPS.addon.note,
+    kind: 'setup' as const,
+    note: null as string | null,
+  },
+  {
+    id: 'target-ad',
+    name: CONTENT_OPS.targetAd.label,
+    price: CONTENT_OPS.targetAd.price,
+    freqLabel: CONTENT_OPS.targetAd.note,
+    kind: 'setup' as const,
+    note: '※ 광고비 별도' as string | null,
+  },
+  {
+    id: 'viral',
+    name: CONTENT_OPS.items[0].title,
+    price: CONTENT_OPS.items[0].price,
+    freqLabel: CONTENT_OPS.items[0].freq,
+    kind: 'monthly' as const,
+    note: null as string | null,
+  },
+  {
+    id: 'shorts',
+    name: CONTENT_OPS.items[1].title,
+    price: CONTENT_OPS.items[1].price,
+    freqLabel: CONTENT_OPS.items[1].freq,
+    kind: 'monthly' as const,
+    note: null as string | null,
+  },
+] as const
 
 /** 요금제 섹션의 "추가 서비스" 영역 — 이미 만들어져 있는 매장 공개 홈페이지(/b/[storeId])
  *  기능에 가격을 붙여 파는 상품. 초기 제작비(1회)와 월 유지비를 명확히 분리해서 보여준다. */
@@ -141,28 +181,23 @@ export const HOMEPAGE_SERVICE = {
 } as const
 
 /** 요금제 계산기 모달(PricingCalculatorModal)의 상품 데이터.
- *  값을 여기서 새로 하드코딩하지 않고 PRICING/CONTENT_OPS/HOMEPAGE_SERVICE를 그대로 참조한다 —
- *  요금제 섹션 카드와 계산기 팝업이 서로 다른 숫자를 보여주는 불일치를 원천적으로 막기 위함. */
+ *  값을 여기서 새로 하드코딩하지 않고 PRICING/HOMEPAGE_SERVICE를 그대로 참조한다 —
+ *  요금제 섹션 카드와 계산기 팝업이 서로 다른 숫자를 보여주는 불일치를 원천적으로 막기 위함.
+ *  01번(id=1)은 기본 상품이라 항상 포함되고(체크박스 없음), 02번은 CONTENT_OPS_ADDONS로
+ *  개별 선택형으로 분리되어 이 배열에는 더 이상 없다. */
 export const CALCULATOR_PRODUCTS = [
   {
     id: 1,
     name: '단골팅 쿠폰 게임 시스템',
     setupFee: PRICING.basic.setupFee,
     monthly: PRICING.basic.promoPrice,
+    setupIncludes: ['테이블 부착 방수 QR 스티커', '계산대 POP 2매', '이벤트 홍보 A3 포스터 1매'],
     cardNote: `선착순 마감 후 신규 가입 시 월 ${formatWon(PRICING.basic.regularPrice)}으로 적용됩니다. 지금 가입하시면 마감 이후에도 ${formatWon(
       PRICING.basic.promoPrice
     )}이 계속 유지됩니다.`,
     afterPromoNote: `선착순 마감 후 신규가는 월 ${formatWon(PRICING.basic.regularPrice)} (기존 가입자는 ${formatWon(
       PRICING.basic.promoPrice
     )} 유지)`,
-  },
-  {
-    id: 2,
-    name: '당근마켓 컨텐츠 운영',
-    setupFee: CONTENT_OPS.addon.price,
-    monthly: CONTENT_OPS.price,
-    cardNote: null,
-    afterPromoNote: null,
   },
   {
     id: 3,
@@ -306,7 +341,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
   },
   '06': {
     id: '06',
-    src: '/landing-v5/screens/06-qr.webp',
+    src: '/landing-v5/screens/06-qr.jpg',
     label: '테이블 QR 코드',
     caption: '매장 어디서나, QR 하나로 시작',
   },
