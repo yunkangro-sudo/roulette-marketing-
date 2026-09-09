@@ -13,6 +13,7 @@ import {
   PRICING_BASIC_DISCOUNT_AMOUNT,
   PRICING_BASIC_TODAY_TOTAL,
   CONTENT_OPS,
+  CONTENT_OPS_ADDONS,
   HOMEPAGE_SERVICE,
   LAUNCH_EVENT,
   BANK_ACCOUNT,
@@ -951,7 +952,30 @@ export function PricingSection() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-[12px] leading-relaxed text-dg-ink-soft">{basic.qrPrintNote}</p>
+
+            <div className="mt-5">
+              <p className="text-[13px] font-bold text-dg-ink">온라인 서비스 내역</p>
+              <ul className="mt-2 space-y-2">
+                {basic.onlineServices.map((item) => (
+                  <li key={item} className="flex gap-2 text-[14px] text-dg-ink-soft">
+                    <span className="text-dg-green">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-5">
+              <p className="text-[13px] font-bold text-dg-ink">기본 제공내역</p>
+              <ul className="mt-2 space-y-2">
+                {basic.setupIncludes.map((item) => (
+                  <li key={item} className="flex gap-2 text-[14px] text-dg-ink-soft">
+                    <span className="text-dg-green">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             {/* 안심 문구 블록 */}
             <div className="mt-6 border border-dg-green/30 bg-dg-green-tint p-4" style={{ borderRadius: 8 }}>
@@ -1010,40 +1034,24 @@ export function PricingSection() {
             <h3 className="mt-4 text-[24px] font-bold text-dg-carrot sm:text-[26px]">{contentOps.name}</h3>
             <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{contentOps.tagline}</p>
 
-            <p className="mt-6 font-num text-[32px] font-bold text-dg-green-deep sm:text-[36px]">
-              {formatMonthlyPrice(contentOps.price)}
-            </p>
-            <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 포함</p>
-
-            <div className="mt-6 space-y-5">
-              {contentOps.items.map((item, i) => (
-                <div key={item.title} className={i > 0 ? 'border-t border-dg-line pt-5' : ''}>
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <p className="text-[15px] font-bold text-dg-ink">{item.title}</p>
-                    <p className="shrink-0 text-[12.5px] text-dg-ink-soft">
-                      {item.freq} · {formatWon(item.price)}
-                    </p>
+            {/* 항목별 개별 가격 — 그룹 총액 대신 각 항목의 실제 청구 방식(1회/월 정기)을
+                그대로 보여줘서 계산기 팝업·성장 페이지와 동일한 정보를 전달한다. */}
+            <div className="mt-6 space-y-4">
+              {CONTENT_OPS_ADDONS.map((item, i) => {
+                const priceLabel =
+                  item.kind === 'monthly'
+                    ? `${item.freqLabel} 발행 · ${formatWon(item.price)}`
+                    : `${item.freqLabel} ${formatWon(item.price)}`
+                return (
+                  <div key={item.id} className={i > 0 ? 'border-t border-dg-line pt-4' : ''}>
+                    <p className="text-[15px] font-bold text-dg-ink">{item.name}</p>
+                    <p className="mt-1 font-num text-[13px] text-dg-ink-soft">{priceLabel}</p>
+                    {item.note && <p className="mt-0.5 text-[11.5px] text-dg-ink-soft/70">{item.note}</p>}
                   </div>
-                  <ul className="mt-2 space-y-1.5">
-                    {item.features.map((feature) => (
-                      <li key={feature} className="flex gap-2 text-[13px] leading-relaxed text-dg-ink-soft">
-                        <span className="text-dg-carrot">•</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                )
+              })}
             </div>
-
-            <div className="mt-6 border-t border-dg-line pt-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <p className="text-[13px] text-dg-ink-soft">{contentOps.addon.label}</p>
-                <p className="shrink-0 text-[13px] font-semibold text-dg-ink">
-                  {contentOps.addon.note} {formatWon(contentOps.addon.price)}
-                </p>
-              </div>
-            </div>
+            <p className="mt-4 text-[11.5px] text-dg-ink-soft">※ 모든 금액은 VAT 포함가입니다</p>
 
             <button
               type="button"
@@ -1066,12 +1074,16 @@ export function PricingSection() {
               🔥 {HOMEPAGE_SERVICE.maintenance.promo.badge}
             </span>
 
-            <div className="mt-4 space-y-1.5">
-              <p className="text-[14px] font-bold text-dg-ink">
-                초기 제작비 {formatWon(HOMEPAGE_SERVICE.setup.price)}
-                <span className="ml-1 text-[12px] font-normal text-dg-ink-soft">({HOMEPAGE_SERVICE.setup.note})</span>
+            <div className="mt-4">
+              <p className="text-[12px] font-semibold text-dg-ink-soft">{HOMEPAGE_SERVICE.setup.label}</p>
+              <p className="font-num text-[32px] font-bold leading-none text-dg-green-deep sm:text-[36px]">
+                {formatWon(HOMEPAGE_SERVICE.setup.price)}
+                <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">
+                  ({HOMEPAGE_SERVICE.setup.note})
+                </span>
               </p>
-              <p className="text-[14px] font-bold text-dg-ink">
+
+              <p className="mt-3 text-[14px] font-bold text-dg-ink">
                 월 유지비{' '}
                 <span className="font-num text-dg-ink-soft line-through">
                   {formatWon(HOMEPAGE_SERVICE.maintenance.price)}
@@ -1082,10 +1094,11 @@ export function PricingSection() {
                   {formatWon(HOMEPAGE_SERVICE.maintenance.price)})
                 </span>
               </p>
+              <p className="mt-1 text-[12px] text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.includesNote}</p>
             </div>
 
             <ul className="mt-6 space-y-1.5 border-t border-dg-line pt-5">
-              {[...HOMEPAGE_SERVICE.setup.features, ...HOMEPAGE_SERVICE.maintenance.features].map((feature) => (
+              {HOMEPAGE_SERVICE.setup.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
                   <Check size={14} className="mt-0.5 shrink-0 text-dg-green-deep" />
                   {feature}

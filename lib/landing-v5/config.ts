@@ -23,8 +23,12 @@ export const PRICING = {
     /** 단순 "기간 한정 할인"이 아니라 "가입 시점 가격이 해지 전까지 유지된다"는 걸
      *  명확히 알려서 지금 가입해야 하는 이유(락인 혜택)를 강조한다. */
     lockInNote: '가입 후 해지 전까지 월 19,000원 혜택 유지',
-    features: ['게임 이벤트 1개', '기본 쿠폰·포인트', '기본 고객 데이터'],
-    qrPrintNote: 'QR 코드 인쇄물 10개까지 무료 제공 (10개 초과 시 추가 요금 발생)',
+    features: ['게임 이벤트 1개', '기본 쿠폰·포인트'],
+    /** 가입 시 온라인(관리자 대시보드)에서 확인 가능한 항목 — 오프라인 실물 제공 항목(setupIncludes)과 구분. */
+    onlineServices: ['마케팅 성과리포트', '쿠폰현황', '우리 매장 게임 쿠폰 현황'],
+    /** 세팅비에 포함된 오프라인 실물 제공 항목 — 요금제 카드와 계산기 팝업이 동일한 문구를
+     *  보여줘야 하므로 여기 한 곳에서만 정의하고 CALCULATOR_PRODUCTS가 그대로 참조한다. */
+    setupIncludes: ['테이블 부착 방수 QR 스티커', '계산대 POP 2매', '이벤트 홍보 A3 포스터 1매'],
     reassurance: [
       '언제든 해지 가능 — 위약금 없음',
       '숨겨진 비용 없음 — 표시된 가격이 전부',
@@ -62,7 +66,6 @@ export const CONTENT_OPS = {
   id: 'content-ops',
   name: '당근마케팅',
   tagline: '당근 안에서 우리 매장을 계속 발견하게 만드는 콘텐츠 운영',
-  price: 330_000,
   items: [
     {
       title: '바이럴 콘텐츠 운영',
@@ -148,7 +151,6 @@ export const HOMEPAGE_SERVICE = {
       '독립 도메인 홈페이지 제작',
       '매장 · 서비스 정보 구조화',
       '게임 · 쿠폰 · 혜택 연결',
-      '네이버 · 구글 검색 등록 기반 구축',
       'SEO 검색 최적화',
       'AEO · AI 검색 대응 구조 설계',
       '리뷰 · 위치 · 연락처 연결',
@@ -159,8 +161,9 @@ export const HOMEPAGE_SERVICE = {
     label: '월 유지비',
     price: 9_900,
     note: '월',
-    title: '만든 홈페이지가 계속 잘 운영되도록 유지합니다',
-    features: ['도메인 유지', '호스팅 유지', '기본 매장 정보 유지', '홈페이지 정상 운영 관리'],
+    /** 월 유지비에 포함된 항목을 간단히 한 줄로 안내 — 예전에는 체크리스트로 4개 항목을
+     *  나열했지만 초기 제작비 체크리스트와 중복돼 보여서 한 줄 요약으로 축약했다. */
+    includesNote: '독립 도메인 발급 포함, 구글 및 네이버 사이트 등록 포함',
     /** 런칭 프로모션 — 월 유지비 첫 12개월 전액 면제. 기간이 끝나면 이 블록만 지우면 원래
      *  가격(월 9,900원) 카드로 자연스럽게 돌아간다. */
     promo: {
@@ -186,7 +189,7 @@ export const CALCULATOR_PRODUCTS = [
     name: '단골팅 쿠폰 게임 시스템',
     setupFee: PRICING.basic.setupFee,
     monthly: PRICING.basic.promoPrice,
-    setupIncludes: ['테이블 부착 방수 QR 스티커', '계산대 POP 2매', '이벤트 홍보 A3 포스터 1매'],
+    setupIncludes: PRICING.basic.setupIncludes,
     cardNote: `선착순 마감 후 신규 가입 시 월 ${formatWon(PRICING.basic.regularPrice)}으로 적용됩니다. 지금 가입하시면 마감 이후에도 ${formatWon(
       PRICING.basic.promoPrice
     )}이 계속 유지됩니다.`,
