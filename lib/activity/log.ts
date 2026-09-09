@@ -25,6 +25,7 @@ export type ActivityEventType =
   | 'visit_checkin'  // 온라인 확장 대비 — 로직 미구현
   | 'kakao_login'    // 카카오 로그인 성공 (신규가입/재방문 로그인 모두 포함)
   | 'daangn_click'   // "당근에서 단골 추가하기" 버튼 클릭 (클릭 기준, 실제 단골등록 확정 아님)
+  | 'daangn_review_click' // "당근마켓 후기쓰기" 버튼 클릭 (클릭 기준, 실제 후기 작성 확정 아님)
 
 export type ActivityRefType = 'game' | 'coupon' | 'reward' | 'point_ledger'
 

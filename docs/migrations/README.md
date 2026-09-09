@@ -79,6 +79,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 054 | [`054_business_entity_hero_copy.sql`](./054_business_entity_hero_copy.sql) | 매장 홈페이지 히어로 커스터마이징 — `business_entity.tagline`(메인 카피, 줄바꿈 유지)/`game_cta_label`(게임 버튼 문구) 추가, 비어있으면 기존 기본 문구 유지 |
 | 055 | [`055_store_addons.sql`](./055_store_addons.sql) | 매장 애드온(유료 부가기능) 게이팅 — `store_addons` 테이블 추가 |
 | 056 | [`056_long_term_mode.sql`](./056_long_term_mode.sql) | 경품 확률 자동 재조정 + "장기 운영" 모드 — `events`에 `long_term_mode`(기본 false)/`reset_cycle`(`weekly`\|`monthly`, nullable)/`current_cycle_start`(date, nullable) 컬럼 추가. 매일 자정(KST) 배치(`/api/cron/probability-rebalance`)가 실측 참여 데이터 기반으로 `prize_tiers.computed_probability`를 재계산하고, 장기 운영 이벤트는 캘린더 주기 경계마다 `remaining_quantity`를 리필함 |
+| 057 | [`057_daangn_review_url.sql`](./057_daangn_review_url.sql) | `store_contracts.daangn_review_url`(당근마켓 후기쓰기 URL, nullable) 추가 — 손님 화면 "당근마켓 후기쓰기" 버튼용. `activity_log_event_type_check`에 `daangn_review_click` 이벤트 타입 추가 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

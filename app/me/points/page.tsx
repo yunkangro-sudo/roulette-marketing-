@@ -4,6 +4,15 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import StampBoard from '@/components/game/StampBoard'
 
+/** 당근 단골추가 / 후기쓰기 버튼 클릭 로그 — 실패해도 화면에는 영향 없는 fire-and-forget 호출 */
+function trackDaangnClick(eventType: 'daangn_click' | 'daangn_review_click') {
+  fetch('/api/games/track-daangn-click', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ eventType }),
+  }).catch(() => {})
+}
+
 type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
 
 const REWARD_TYPE_ICONS: Record<RewardType, string> = {
@@ -99,6 +108,7 @@ function PointsContent() {
   const [needLogin, setNeedLogin] = useState(false)
   const [storeName, setStoreName] = useState('')
   const [daangnUrl, setDaangnUrl] = useState<string | null>(null)
+  const [daangnReviewUrl, setDaangnReviewUrl] = useState<string | null>(null)
   const [homepageFeatureEnabled, setHomepageFeatureEnabled] = useState(false)
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
@@ -131,6 +141,7 @@ function PointsContent() {
       const data = await res.json()
       setStoreName(data.storeName ?? '')
       setDaangnUrl(data.daangnUrl ?? null)
+      setDaangnReviewUrl(data.daangnReviewUrl ?? null)
       setHomepageFeatureEnabled(data.homepageFeatureEnabled === true)
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
@@ -248,17 +259,34 @@ function PointsContent() {
           </div>
         </div>
 
-        {/* 당근 단골추가 바로가기 — 리워드 교환 위, 재방문 인증(당근 단골 추가)으로 자연스럽게 유도 */}
+        {/* 당근 단골 추가 / 후기쓰기 — 리워드 교환 위, 재방문 인증(당근 단골 추가)으로 자연스럽게 유도.
+            후기 URL이 없는 매장은 단골추가 버튼만 풀와이드로, 둘 다 있으면 2분할로 나란히
+            배치하되(flex-wrap) 폭이 좁으면 자동으로 세로 스택된다. */}
         {daangnUrl && (
-          <a
-            href={daangnUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => { fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {}) }}
-            className="block text-sm font-bold text-orange-500 transition-colors hover:text-orange-600"
-          >
-            당근 단골추가 바로가기 →
-          </a>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={daangnUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackDaangnClick('daangn_click')}
+              className="flex min-w-[140px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-orange-500 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-orange-600"
+            >
+              <span aria-hidden>🥕</span>
+              <span>당근 단골 추가하기</span>
+            </a>
+            {daangnReviewUrl && (
+              <a
+                href={daangnReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackDaangnClick('daangn_review_click')}
+                className="flex min-w-[140px] flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-orange-500 bg-white px-4 py-3.5 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-50"
+              >
+                <span aria-hidden>⭐</span>
+                <span>당근마켓 후기쓰기</span>
+              </a>
+            )}
+          </div>
         )}
 
         {/* NFC 스탬프 카드 — 매장이 방문적립을 "스탬프 모드"로 켰을 때만 표시 (포인트 모드거나
