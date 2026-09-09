@@ -31,7 +31,7 @@ export default async function SuperLeadsPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">신청 · 문의 리스트</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          랜딩페이지의 베이직 신청, 상담하기, 요금제 계산기, 회원가입 등에서 들어온 리드를 한 곳에서 확인하세요.
+          랜딩페이지의 단골마케팅 신청, 상담하기, 요금제 계산기, 회원가입 등에서 들어온 리드를 한 곳에서 확인하세요.
         </p>
       </div>
 

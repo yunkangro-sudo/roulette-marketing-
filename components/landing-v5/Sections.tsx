@@ -871,10 +871,21 @@ export function PricingSection() {
           월 {formatWon(PRICING.basic.regularPrice)} 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
         </p>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {/* 베이직 — 판매중, 강조 */}
+        {/* Section A — 인트로: 핵심 서비스 하나로 시작, 부가서비스는 선택임을 먼저 안내 */}
+        <div className="mt-6 border-l-4 border-dg-green bg-dg-green-tint/50 px-5 py-4" style={{ borderRadius: 8 }}>
+          <p className="text-[14.5px] font-bold text-dg-ink">필요한 만큼만, 지금 필요한 것부터</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-dg-ink-soft">
+            단골팅은 단골마케팅 하나만으로도 충분히 시작할 수 있습니다.
+            <br />
+            당근마케팅과 홈피마케팅은 필요할 때 하나씩 추가하는 선택 사항입니다.
+          </p>
+        </div>
+
+        {/* Section B — 핵심 서비스: 단골마케팅. 단독 풀와이드로 배치해 아래 부가서비스보다
+            시각적으로 명확히 크게 보이도록 한다. */}
+        <div className="mt-10">
           <motion.article
-            className="relative overflow-visible border-2 border-dg-green bg-white p-5 sm:p-7"
+            className="relative overflow-visible border-2 border-dg-green bg-white p-5 sm:p-8 md:p-10"
             style={{ borderRadius: 10 }}
             animate={{
               boxShadow: [
@@ -893,6 +904,14 @@ export function PricingSection() {
                 {basic.ribbonLabel}
               </span>
             </div>
+
+            {/* 핵심 서비스 배지 — 우상단, 리본과 겹치지 않게 */}
+            <span
+              className="absolute right-4 top-4 inline-flex items-center bg-dg-green px-3 py-1 text-[11.5px] font-bold text-white sm:right-6 sm:top-6"
+              style={{ borderRadius: 999 }}
+            >
+              핵심 서비스
+            </span>
 
             <h3 className="mt-10 text-[26px] font-bold text-dg-ink">{basic.name}</h3>
 
@@ -958,41 +977,57 @@ export function PricingSection() {
               </p>
             </div>
           </motion.article>
+        </div>
 
-          {/* 당근 콘텐츠 성장 운영 — 판매중이지만 즉시 결제가 아닌 상담 신청 흐름.
-              베이직 대비 차분한 다크 톤으로 "프리미엄 운영 대행" 느낌을 준다. */}
+        {/* Section C — 구분선 + 라벨: 아래는 선택 사항인 부가서비스임을 톤 다운해서 안내 */}
+        <div className="mt-14 flex items-center gap-4">
+          <span className="h-px flex-1 bg-dg-line" aria-hidden />
+          <div className="shrink-0 text-center">
+            <p className="text-[13px] font-bold text-dg-ink-soft">부가서비스 (선택)</p>
+            <p className="mt-0.5 text-[11.5px] text-dg-ink-soft/70">
+              단골마케팅과 함께, 또는 나중에 필요할 때 추가하세요
+            </p>
+          </div>
+          <span className="h-px flex-1 bg-dg-line" aria-hidden />
+        </div>
+
+        {/* Section C — 부가서비스 2종: 당근마케팅 / 홈피마케팅. 서로 동일한 크기·톤으로
+            배치해 "둘 다 동등한 선택 옵션"임을 전달한다. */}
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {/* 당근마케팅 — 판매중이지만 즉시 결제가 아닌 상담 신청 흐름. 라이트 톤 카드로
+              단골마케팅(핵심)과 위계 차이를 유지하면서도 다크 배경은 쓰지 않는다. */}
           <article
-            className="relative overflow-hidden border border-dg-ink/10 bg-dg-ink p-5 text-white sm:p-7"
+            className="relative overflow-hidden border border-dg-carrot/25 bg-dg-bg p-5 sm:p-7"
             style={{ borderRadius: 10 }}
           >
             <span
-              className="inline-flex items-center border border-white/20 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/70"
+              className="inline-flex items-center border border-dg-carrot bg-white px-2.5 py-1 text-[11px] font-bold text-dg-carrot"
               style={{ borderRadius: 999 }}
             >
               콘텐츠 운영 대행
             </span>
 
-            <h3 className="mt-4 text-[24px] font-bold text-white sm:text-[26px]">{contentOps.name}</h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-white/55">{contentOps.tagline}</p>
+            <h3 className="mt-4 text-[24px] font-bold text-dg-carrot sm:text-[26px]">{contentOps.name}</h3>
+            <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{contentOps.tagline}</p>
 
-            <p className="mt-6 font-num text-[32px] font-bold text-dg-green sm:text-[36px]">
+            <p className="mt-6 font-num text-[32px] font-bold text-dg-green-deep sm:text-[36px]">
               {formatMonthlyPrice(contentOps.price)}
             </p>
-            <p className="mt-1 text-[12px] text-white/40">모든 요금 VAT 포함</p>
+            <p className="mt-1 text-[12px] text-dg-ink-soft">모든 요금 VAT 포함</p>
 
             <div className="mt-6 space-y-5">
               {contentOps.items.map((item, i) => (
-                <div key={item.title} className={i > 0 ? 'border-t border-white/10 pt-5' : ''}>
+                <div key={item.title} className={i > 0 ? 'border-t border-dg-line pt-5' : ''}>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <p className="text-[15px] font-bold text-white">{item.title}</p>
-                    <p className="shrink-0 text-[12.5px] text-white/50">
+                    <p className="text-[15px] font-bold text-dg-ink">{item.title}</p>
+                    <p className="shrink-0 text-[12.5px] text-dg-ink-soft">
                       {item.freq} · {formatWon(item.price)}
                     </p>
                   </div>
                   <ul className="mt-2 space-y-1.5">
                     {item.features.map((feature) => (
-                      <li key={feature} className="flex gap-2 text-[13px] leading-relaxed text-white/60">
-                        <span className="text-dg-green">•</span>
+                      <li key={feature} className="flex gap-2 text-[13px] leading-relaxed text-dg-ink-soft">
+                        <span className="text-dg-carrot">•</span>
                         {feature}
                       </li>
                     ))}
@@ -1001,10 +1036,10 @@ export function PricingSection() {
               ))}
             </div>
 
-            <div className="mt-6 border-t border-white/10 pt-5">
+            <div className="mt-6 border-t border-dg-line pt-5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <p className="text-[13px] text-white/60">{contentOps.addon.label}</p>
-                <p className="shrink-0 text-[13px] font-semibold text-white">
+                <p className="text-[13px] text-dg-ink-soft">{contentOps.addon.label}</p>
+                <p className="shrink-0 text-[13px] font-semibold text-dg-ink">
                   {contentOps.addon.note} {formatWon(contentOps.addon.price)}
                 </p>
               </div>
@@ -1013,135 +1048,84 @@ export function PricingSection() {
             <button
               type="button"
               onClick={() => setConsultOpen(true)}
-              className="mt-7 min-h-[52px] w-full border border-white/25 bg-white/5 py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-white/10"
+              className="mt-7 min-h-[52px] w-full bg-dg-green py-3.5 text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
               style={{ borderRadius: 6 }}
             >
-              콘텐츠 운영 상담받기
+              당근마케팅 상담받기
+            </button>
+          </article>
+
+          {/* 홈피마케팅 — 기존 2박스(제작비+체크리스트 / 프로모션+유지비)를 1박스로 통합.
+              당근마케팅 카드와 동일한 패딩·보더로 시각적 무게를 맞춘다. */}
+          <article className="relative border border-dg-line bg-white p-5 sm:p-7" style={{ borderRadius: 10 }}>
+            <h3 className="text-[24px] font-bold text-dg-ink sm:text-[26px]">{HOMEPAGE_SERVICE.name}</h3>
+            <span
+              className="badge-glow-pulse mt-3 inline-block bg-dg-gold-deep px-3 py-1.5 text-[12.5px] font-extrabold text-white"
+              style={{ borderRadius: 999 }}
+            >
+              🔥 {HOMEPAGE_SERVICE.maintenance.promo.badge}
+            </span>
+
+            <div className="mt-4 space-y-1.5">
+              <p className="text-[14px] font-bold text-dg-ink">
+                초기 제작비 {formatWon(HOMEPAGE_SERVICE.setup.price)}
+                <span className="ml-1 text-[12px] font-normal text-dg-ink-soft">({HOMEPAGE_SERVICE.setup.note})</span>
+              </p>
+              <p className="text-[14px] font-bold text-dg-ink">
+                월 유지비{' '}
+                <span className="font-num text-dg-ink-soft line-through">
+                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)}
+                </span>{' '}
+                → <span className="text-dg-green-deep">0원</span>
+                <span className="ml-1 text-[12px] font-normal text-dg-ink-soft">
+                  (첫 {HOMEPAGE_SERVICE.maintenance.promo.freeMonths}개월 무료, 13개월차부터{' '}
+                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)})
+                </span>
+              </p>
+            </div>
+
+            <ul className="mt-6 space-y-1.5 border-t border-dg-line pt-5">
+              {[...HOMEPAGE_SERVICE.setup.features, ...HOMEPAGE_SERVICE.maintenance.features].map((feature) => (
+                <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
+                  <Check size={14} className="mt-0.5 shrink-0 text-dg-green-deep" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 border-t border-dg-line pt-5">
+              <p className="text-[14px] font-bold text-dg-ink">
+                1년 유지비{' '}
+                <span className="font-num text-dg-ink-soft line-through">
+                  {formatWon(HOMEPAGE_SERVICE.maintenance.promo.annualOriginal)}
+                </span>{' '}
+                → <span className="font-num text-dg-green-deep">0원</span>
+              </p>
+              <span
+                className="mt-2 inline-block bg-dg-cream px-2.5 py-1 text-[11.5px] font-bold text-dg-gold-deep"
+                style={{ borderRadius: 999 }}
+              >
+                ⏰ {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setHomepageConsultOpen(true)}
+              className="mt-7 min-h-[52px] w-full bg-dg-green py-3.5 text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
+              style={{ borderRadius: 6 }}
+            >
+              홈피마케팅 신청하기
             </button>
           </article>
         </div>
 
-        {/* 추가 서비스 — 우리 매장 홈페이지. 이미 만들어져 있는 /b/[storeId] 공개 홈페이지
-            기능에 가격을 붙인 부가 상품이라 별도 카드 그리드가 아닌 독립 블록으로 구분한다. */}
-        <div className="mt-14 rounded-[24px] bg-white p-6 shadow-[0_16px_40px_rgba(17,17,17,0.06)] sm:p-10 md:p-12">
-          <div className="mx-auto max-w-lg text-center">
-            <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">추가 서비스 · {HOMEPAGE_SERVICE.name}</p>
-            <h3 className="mt-2 whitespace-pre-line text-[24px] font-bold leading-snug text-dg-ink md:text-[28px]">
-              {(() => {
-                const [before, after] = HOMEPAGE_SERVICE.headline.split(HOMEPAGE_SERVICE.headlineHighlight)
-                return (
-                  <>
-                    {before}
-                    <span className="font-extrabold text-dg-green-deep">{HOMEPAGE_SERVICE.headlineHighlight}</span>
-                    {after}
-                  </>
-                )
-              })()}
-            </h3>
-            <p className="mx-auto mt-4 whitespace-pre-line text-[13.5px] leading-relaxed text-dg-ink-soft">
-              {HOMEPAGE_SERVICE.differentiator}
-            </p>
-          </div>
-
-          <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
-            <article className="border-2 border-dg-green bg-white p-6" style={{ borderRadius: 10 }}>
-              <p className="text-[12px] font-bold text-dg-green-deep">{HOMEPAGE_SERVICE.setup.label}</p>
-              <p className="mt-1 whitespace-nowrap font-num text-[28px] font-bold text-dg-ink sm:text-[30px]">
-                {formatWon(HOMEPAGE_SERVICE.setup.price)}
-                <span className="ml-1.5 text-[13px] font-normal text-dg-ink-soft">({HOMEPAGE_SERVICE.setup.note})</span>
-              </p>
-              <p className="mt-4 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.setup.title}</p>
-              <ul className="mt-3 space-y-1.5">
-                {HOMEPAGE_SERVICE.setup.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
-                    <Check size={14} className="mt-0.5 shrink-0 text-dg-green-deep" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </article>
-
-            <article className="relative border-2 border-dg-gold bg-gradient-to-b from-dg-cream to-white p-6" style={{ borderRadius: 10 }}>
-              <span
-                className="badge-glow-pulse inline-block bg-dg-gold-deep px-4 py-2 text-[14px] font-extrabold text-white sm:text-[15px]"
-                style={{ borderRadius: 999 }}
-              >
-                🔥 {HOMEPAGE_SERVICE.maintenance.promo.badge}
-              </span>
-              <p className="mt-3 text-[21px] font-bold leading-snug text-dg-ink sm:text-[23px]">
-                {HOMEPAGE_SERVICE.maintenance.promo.headline}
-              </p>
-
-              <div className="mt-3 flex items-end gap-2">
-                <span className="font-num text-[14px] text-dg-ink-soft line-through">
-                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)} / {HOMEPAGE_SERVICE.maintenance.note}
-                </span>
-              </div>
-              <p className="mt-0.5 font-num text-[38px] font-bold leading-none text-dg-green-deep sm:text-[42px]">
-                0원<span className="ml-1.5 text-[15px] font-semibold text-dg-ink-soft">/ 월</span>
-              </p>
-              <p className="mt-2 text-[13px] font-bold text-dg-green-deep">
-                최초 {HOMEPAGE_SERVICE.maintenance.promo.freeMonths}개월 전액 면제
-              </p>
-
-              <p className="mt-4 whitespace-pre-line text-[13.5px] leading-relaxed text-dg-ink-soft">
-                {HOMEPAGE_SERVICE.maintenance.promo.description}
-              </p>
-
-              <p className="mt-5 text-[14px] font-bold text-dg-ink">{HOMEPAGE_SERVICE.maintenance.title}</p>
-              <ul className="mt-3 space-y-1.5">
-                {HOMEPAGE_SERVICE.maintenance.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-[13px] leading-snug text-dg-ink-soft">
-                    <Check size={14} className="mt-0.5 shrink-0 text-dg-ink-soft" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <p className="mt-4 text-[12px] text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.promo.resumeNote}</p>
-            </article>
-          </div>
-
-          {/* 프로모션 긴급성 강조 — 두 카드와 별개로, 혜택 금액과 종료 가능성을 한 번 더 도장 찍듯 확인시킨다 */}
-          <div
-            className="mx-auto mt-5 max-w-3xl border-2 border-dg-gold bg-dg-cream p-5 text-center"
-            style={{ borderRadius: 10 }}
-          >
-            <p className="text-[16px] font-bold text-dg-ink sm:text-[18px]">
-              1년 유지비{' '}
-              <span className="font-num text-dg-ink-soft line-through">
-                {formatWon(HOMEPAGE_SERVICE.maintenance.promo.annualOriginal)}
-              </span>{' '}
-              <span aria-hidden>→</span> <span className="font-num text-dg-green-deep">0원</span>
-            </p>
-            <span
-              className="badge-glow-pulse mt-3 inline-block bg-dg-gold-deep px-5 py-2.5 text-[15px] font-extrabold text-white sm:text-[16px]"
-              style={{ borderRadius: 999 }}
-            >
-              ⏰ {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
-            </span>
-          </div>
-
-          <p className="mx-auto mt-8 max-w-2xl text-center text-[14px] leading-relaxed text-dg-ink-soft">
-            홈페이지 하나가 단순한 소개 페이지가 아닙니다.
-            <br />
-            검색엔진과 AI가 우리 매장을 발견하고 이해할 수 있는
-            <br />
-            공식 정보의 기준점이 됩니다.
-          </p>
-
-          <div className="mx-auto mt-6 max-w-3xl text-center">
-            <button
-              type="button"
-              onClick={() => setHomepageConsultOpen(true)}
-              className="min-h-[52px] w-full max-w-sm border-2 border-dg-ink bg-white px-8 text-[15px] font-bold text-dg-ink transition-colors hover:bg-dg-cream sm:w-auto"
-              style={{ borderRadius: 6 }}
-            >
-              상담 신청하기
-            </button>
-            <p className="mt-2.5 text-[12px] text-dg-ink-soft">조기 종료될 수 있는 프로모션입니다</p>
-          </div>
-        </div>
+        {/* 부가서비스 안심 카피 — 지금 다 필요하지 않다는 것을 한 번 더 확인시킨다 */}
+        <p className="mx-auto mt-6 max-w-2xl text-center text-[13px] leading-relaxed text-dg-ink-soft">
+          지금 당장 다 필요하지 않아요. 단골마케팅으로 먼저 시작하고,
+          <br className="hidden sm:block" />
+          당근마케팅이나 홈피마케팅은 나중에 필요할 때 추가해도 늦지 않습니다.
+        </p>
 
         {/* 구분 — 요금제 안내와 별도 이벤트 참여는 다른 성격의 콘텐츠임을 명확히 */}
         <div className="mt-14 border-t border-dg-line pt-14">

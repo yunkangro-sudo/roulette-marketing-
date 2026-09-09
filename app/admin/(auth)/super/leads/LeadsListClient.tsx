@@ -18,10 +18,11 @@ export interface LeadItem {
 }
 
 const SOURCE_LABEL: Record<string, string> = {
-  landing_v5_pricing_basic: '베이직 신청',
-  landing_v5_pricing_content_ops: '콘텐츠 운영 상담',
-  landing_v5_pricing_homepage: '매장 홈페이지 상담',
+  landing_v5_pricing_basic: '단골마케팅 신청',
+  landing_v5_pricing_content_ops: '당근마케팅 상담',
+  landing_v5_pricing_homepage: '홈피마케팅 신청',
   landing_v5_pricing_calculator: '요금제 계산기',
+  landing_v5_growth_danggeun: '당근마케팅 상담(성장페이지)',
   signup_self: '회원가입(계정 생성)',
 }
 

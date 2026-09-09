@@ -145,7 +145,7 @@ export function BankRow({
 
 type BasicPhase = 'form' | 'submitting' | 'confirmed' | 'gift-loading' | 'gift-result'
 
-/** 베이직 신청 흐름: 폼 → 입금 안내 → 럭키박스 웰컴 기프트(고정 결과, 랜덤 없음). */
+/** 단골마케팅 신청 흐름: 폼 → 입금 안내 → 럭키박스 웰컴 기프트(고정 결과, 랜덤 없음). */
 export function BasicApplyModal({ onClose }: Props) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<BasicPhase>('form')
@@ -198,7 +198,7 @@ export function BasicApplyModal({ onClose }: Props) {
   }
 
   const isFormPhase = phase === 'form' || phase === 'submitting'
-  const title = isFormPhase ? '베이직 신청' : phase === 'confirmed' ? '신청 완료' : '웰컴 기프트'
+  const title = isFormPhase ? '단골마케팅 신청' : phase === 'confirmed' ? '신청 완료' : '웰컴 기프트'
 
   return (
     <ModalShell onClose={onClose} labelId="basic-apply-title" title={title}>
@@ -305,8 +305,8 @@ export function BasicApplyModal({ onClose }: Props) {
 
 type ContentOpsPhase = 'form' | 'submitting' | 'done'
 
-/** "당근 콘텐츠 성장 운영" 상담 신청 — 즉시 결제가 아닌 리드 수집이라
- *  베이직 신청과 동일한 signup_inquiries 테이블을 쓰되 source로 구분한다. */
+/** "당근마케팅" 상담 신청 — 즉시 결제가 아닌 리드 수집이라
+ *  단골마케팅 신청과 동일한 signup_inquiries 테이블을 쓰되 source로 구분한다. */
 export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_ops' }: Props & { source?: string }) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<ContentOpsPhase>('form')
@@ -346,12 +346,12 @@ export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_
     <ModalShell
       onClose={onClose}
       labelId="content-ops-title"
-      title={phase === 'done' ? '상담 신청 완료' : '콘텐츠 운영 상담'}
+      title={phase === 'done' ? '상담 신청 완료' : '당근마케팅 상담'}
     >
       {phase !== 'done' ? (
         <div className="space-y-4">
           <p className="text-[13px] leading-relaxed text-dg-ink-soft">
-            매장 정보를 남겨주시면, 담당자가 콘텐츠 운영 상담을 위해 연락드려요.
+            매장 정보를 남겨주시면, 담당자가 당근마케팅 상담을 위해 연락드려요.
           </p>
           <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
           <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />
@@ -428,12 +428,12 @@ export function HomepageServiceModal({ onClose }: Props) {
     <ModalShell
       onClose={onClose}
       labelId="homepage-service-title"
-      title={phase === 'done' ? '신청 완료' : '1년 유지비 무료 혜택 신청'}
+      title={phase === 'done' ? '신청 완료' : '홈피마케팅 신청'}
     >
       {phase !== 'done' ? (
         <div className="space-y-4">
           <p className="text-[13px] leading-relaxed text-dg-ink-soft">
-            매장 정보를 남겨주시면, 담당자가 홈페이지 제작과 첫 1년 유지비 무료 혜택 안내를 위해 연락드려요.
+            매장 정보를 남겨주시면, 담당자가 홈피마케팅 제작과 첫 1년 유지비 무료 혜택 안내를 위해 연락드려요.
           </p>
           <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
           <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />
@@ -687,9 +687,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
               </div>
             </div>
 
-            {/* 02. 당근마켓 컨텐츠 운영 — 그룹 타이틀만(체크박스 없음), 하위 4개 항목은 독립 선택 */}
+            {/* 02. 당근마케팅 — 그룹 타이틀만(체크박스 없음), 하위 4개 항목은 독립 선택 */}
             <div className="border border-dg-line bg-white p-4" style={{ borderRadius: 10 }}>
-              <p className="text-[14px] font-bold text-dg-ink">02. 당근마켓 컨텐츠 운영</p>
+              <p className="text-[14px] font-bold text-dg-ink">02. 당근마케팅</p>
               <p className="mt-0.5 text-[11.5px] text-dg-ink-soft">필요한 항목만 골라서 추가할 수 있어요</p>
               <div className="mt-3 space-y-2">
                 {CONTENT_OPS_ADDONS.map((a) => {
@@ -729,7 +729,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
               </div>
             </div>
 
-            {/* 03. 마케팅 미니 홈피 제작 — 기존과 동일한 단일 토글 카드 */}
+            {/* 03. 홈피마케팅 — 기존과 동일한 단일 토글 카드 */}
             <button
               type="button"
               onClick={() => toggle('homepage')}
@@ -823,7 +823,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
           <div className="mt-4 space-y-1 text-[11px] leading-relaxed text-dg-ink-soft">
             <p>현재 런칭 프로모션 적용가이며, 프로모션은 조기종료될 수 있습니다.</p>
             <p>
-              프로모션 가입자는 프로모션 종료 후에도 할인 가격으로 계속 이용하실 수 있습니다. (단, 03번 홈피 제작
+              프로모션 가입자는 프로모션 종료 후에도 할인 가격으로 계속 이용하실 수 있습니다. (단, 03번 홈피마케팅
               상품은 가입 1년 후 월 9,900원으로 전환됩니다)
             </p>
             <p>모든 금액은 VAT 포함 가격입니다.</p>
