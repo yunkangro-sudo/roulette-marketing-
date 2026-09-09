@@ -321,7 +321,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/01-entry.jpg',
     label: '게임 진입 화면',
     caption: 'QR 찍고 바로 시작',
-    aspectRatio: '546 / 1024',
+    aspectRatio: '9 / 16',
   },
   '02': {
     id: '02',
@@ -334,7 +334,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/04-result.jpg',
     label: '결과 확인 화면',
     caption: '카카오 로그인 후 선물 공개',
-    aspectRatio: '609 / 1024',
+    aspectRatio: '9 / 16',
   },
   '05': {
     id: '05',
@@ -359,7 +359,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
     src: '/landing-v5/screens/09-follow.jpg',
     label: '당근마켓 단골 인증',
     caption: '당근마켓에서 단골 추가',
-    aspectRatio: '630 / 1024',
+    aspectRatio: '9 / 16',
   },
   '10': {
     id: '10',
