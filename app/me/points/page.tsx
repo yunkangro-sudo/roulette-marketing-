@@ -1,16 +1,40 @@
 'use client'
 
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, Suspense, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import StampBoard from '@/components/game/StampBoard'
 
-/** 당근 단골추가 / 후기쓰기 버튼 클릭 로그 — 실패해도 화면에는 영향 없는 fire-and-forget 호출 */
-function trackDaangnClick(eventType: 'daangn_click' | 'daangn_review_click') {
+type ReviewClickEventType = 'daangn_click' | 'daangn_review_click' | 'naver_review_click' | 'google_review_click'
+
+/** 단골추가/후기쓰기 버튼 클릭 로그 — 실패해도 화면에는 영향 없는 fire-and-forget 호출 */
+function trackDaangnClick(eventType: ReviewClickEventType) {
   fetch('/api/games/track-daangn-click', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ eventType }),
   }).catch(() => {})
+}
+
+/** 구글 공식 4색 "G" 로고 (구글 맵 후기쓰기 버튼 아이콘) */
+function GoogleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden>
+      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" />
+      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z" />
+    </svg>
+  )
+}
+
+/** 후기/단골추가 버튼 1개 정의 — url이 있는 것만 필터링해서 렌더링한다 */
+interface ReviewButtonConfig {
+  key: string
+  url: string | null
+  label: string
+  icon: ReactNode
+  className: string
+  eventType: ReviewClickEventType
 }
 
 type RewardType = 'free_item' | 'discount' | 'points' | 'experience' | 'special_coupon' | 'vip_reward'
@@ -109,6 +133,8 @@ function PointsContent() {
   const [storeName, setStoreName] = useState('')
   const [daangnUrl, setDaangnUrl] = useState<string | null>(null)
   const [daangnReviewUrl, setDaangnReviewUrl] = useState<string | null>(null)
+  const [naverReviewUrl, setNaverReviewUrl] = useState<string | null>(null)
+  const [googleReviewUrl, setGoogleReviewUrl] = useState<string | null>(null)
   const [homepageFeatureEnabled, setHomepageFeatureEnabled] = useState(false)
   const [balance, setBalance] = useState(0)
   const [visitCount, setVisitCount] = useState(0)
@@ -142,6 +168,8 @@ function PointsContent() {
       setStoreName(data.storeName ?? '')
       setDaangnUrl(data.daangnUrl ?? null)
       setDaangnReviewUrl(data.daangnReviewUrl ?? null)
+      setNaverReviewUrl(data.naverReviewUrl ?? null)
+      setGoogleReviewUrl(data.googleReviewUrl ?? null)
       setHomepageFeatureEnabled(data.homepageFeatureEnabled === true)
       setBalance(data.loyalty?.point_balance ?? 0)
       setVisitCount(data.loyalty?.visit_count ?? 0)
@@ -259,35 +287,65 @@ function PointsContent() {
           </div>
         </div>
 
-        {/* 당근 단골 추가 / 후기쓰기 — 리워드 교환 위, 재방문 인증(당근 단골 추가)으로 자연스럽게 유도.
-            후기 URL이 없는 매장은 단골추가 버튼만 풀와이드로, 둘 다 있으면 2분할로 나란히
-            배치하되(flex-wrap) 폭이 좁으면 자동으로 세로 스택된다. */}
-        {daangnUrl && (
-          <div className="flex flex-wrap gap-3">
-            <a
-              href={daangnUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackDaangnClick('daangn_click')}
-              className="flex min-w-[140px] flex-1 items-center justify-center gap-1.5 rounded-xl bg-orange-500 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-orange-600"
-            >
-              <span aria-hidden>🥕</span>
-              <span>당근 단골 추가하기</span>
-            </a>
-            {daangnReviewUrl && (
-              <a
-                href={daangnReviewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackDaangnClick('daangn_review_click')}
-                className="flex min-w-[140px] flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-orange-500 bg-white px-4 py-3.5 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-50"
-              >
-                <span aria-hidden>⭐</span>
-                <span>당근마켓 후기쓰기</span>
-              </a>
-            )}
-          </div>
-        )}
+        {/* 단골 추가 / 후기쓰기 버튼 그룹 — 관리자가 입력한 URL 개수만큼 동적으로 생성된다.
+            (당근 단골추가 · 당근/네이버/구글 후기쓰기, 최대 4개) 1개면 풀와이드, 여러 개면
+            나란히 배치하되(flex-wrap) 폭이 좁으면 자동으로 세로 스택된다. */}
+        {(() => {
+          const reviewButtons: ReviewButtonConfig[] = [
+            {
+              key: 'daangn',
+              url: daangnUrl,
+              label: '당근 단골 추가하기',
+              icon: <span aria-hidden>🥕</span>,
+              className: 'bg-orange-500 text-white hover:bg-orange-600',
+              eventType: 'daangn_click' as const,
+            },
+            {
+              key: 'daangn_review',
+              url: daangnReviewUrl,
+              label: '당근마켓 후기쓰기',
+              icon: <span aria-hidden>⭐</span>,
+              className: 'border-2 border-orange-500 bg-white text-orange-500 hover:bg-orange-50',
+              eventType: 'daangn_review_click' as const,
+            },
+            {
+              key: 'naver_review',
+              url: naverReviewUrl,
+              label: '네이버 후기쓰기',
+              icon: <span aria-hidden className="flex h-4 w-4 items-center justify-center rounded-[3px] bg-white text-[10px] font-black text-[#03C75A]">N</span>,
+              className: 'bg-[#03C75A] text-white hover:bg-[#02b350]',
+              eventType: 'naver_review_click' as const,
+            },
+            {
+              key: 'google_review',
+              url: googleReviewUrl,
+              label: '구글 맵 후기쓰기',
+              icon: <GoogleIcon />,
+              className: 'border-2 border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+              eventType: 'google_review_click' as const,
+            },
+          ].filter((btn) => Boolean(btn.url)) as (ReviewButtonConfig & { url: string })[]
+
+          if (reviewButtons.length === 0) return null
+
+          return (
+            <div className="flex flex-wrap gap-3">
+              {reviewButtons.map((btn) => (
+                <a
+                  key={btn.key}
+                  href={btn.url as string}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackDaangnClick(btn.eventType)}
+                  className={`flex min-w-[140px] flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-3.5 text-sm font-bold shadow-sm transition-colors ${btn.className}`}
+                >
+                  {btn.icon}
+                  <span>{btn.label}</span>
+                </a>
+              ))}
+            </div>
+          )
+        })()}
 
         {/* NFC 스탬프 카드 — 매장이 방문적립을 "스탬프 모드"로 켰을 때만 표시 (포인트 모드거나
             NFC 자체를 안 쓰면 stamp가 null이라 렌더되지 않는다) */}

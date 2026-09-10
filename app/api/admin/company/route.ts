@@ -55,6 +55,8 @@ const ADVERTISER_EDITABLE_FIELDS = [
   'business_type',
   'daangn_url',
   'daangn_review_url',
+  'naver_review_url',
+  'google_review_url',
   'kakao_channel_url',
 ] as const
 

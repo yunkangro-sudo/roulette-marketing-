@@ -19,6 +19,8 @@ interface Company {
   remarks?: string
   daangn_url?: string
   daangn_review_url?: string
+  naver_review_url?: string
+  google_review_url?: string
   kakao_channel_url?: string
   business_type?: string
   /** 서버에서 fetch한 광고주 이메일 (edit 모드 전용, 읽기전용) */
@@ -61,6 +63,8 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
     remarks:             initial?.remarks             ?? '',
     daangn_url:          initial?.daangn_url          ?? '',
     daangn_review_url:   initial?.daangn_review_url   ?? '',
+    naver_review_url:    initial?.naver_review_url    ?? '',
+    google_review_url:   initial?.google_review_url   ?? '',
     kakao_channel_url:   initial?.kakao_channel_url   ?? '',
     business_type:       initial?.business_type       ?? '',
   })
@@ -149,6 +153,8 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             business_type:     form.business_type || null,
             daangn_url:        form.daangn_url || null,
             daangn_review_url: form.daangn_review_url || null,
+            naver_review_url:  form.naver_review_url || null,
+            google_review_url: form.google_review_url || null,
             kakao_channel_url: form.kakao_channel_url || null,
           }),
         })
@@ -174,6 +180,8 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             business_type:       form.business_type || null,
             daangn_url:          form.daangn_url || null,
             daangn_review_url:   form.daangn_review_url || null,
+            naver_review_url:    form.naver_review_url || null,
+            google_review_url:   form.google_review_url || null,
             kakao_channel_url:   form.kakao_channel_url || null,
           }),
         })
@@ -339,7 +347,23 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             <input value={form.daangn_review_url ?? ''} onChange={(e) => set('daangn_review_url', e.target.value)}
               placeholder="https://www.daangn.com/..." type="url"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-            <p className="text-xs text-gray-400 mt-1">손님 [당근마켓 후기쓰기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다(단골 URL만 있으면 단골추가 버튼만 단독 노출).</p>
+            <p className="text-xs text-gray-400 mt-1">손님 [당근마켓 후기쓰기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다.</p>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">네이버 후기쓰기 URL</label>
+            <input value={form.naver_review_url ?? ''} onChange={(e) => set('naver_review_url', e.target.value)}
+              placeholder="https://m.place.naver.com/..." type="url"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            <p className="text-xs text-gray-400 mt-1">손님 [네이버 후기쓰기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다.</p>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">구글 맵 후기쓰기 URL</label>
+            <input value={form.google_review_url ?? ''} onChange={(e) => set('google_review_url', e.target.value)}
+              placeholder="https://g.page/r/..." type="url"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
+            <p className="text-xs text-gray-400 mt-1">손님 [구글 맵 후기쓰기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다.</p>
           </div>
 
           <div>

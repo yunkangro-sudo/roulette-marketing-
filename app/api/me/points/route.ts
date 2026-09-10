@@ -79,7 +79,7 @@ export async function GET(req: Request) {
     // store_settings.store_name은 대부분 비어있어 store_id 원본값이 그대로 노출되는 버그가 있었다.
     supabase
       .from('store_contracts')
-      .select('store_name, daangn_url, daangn_review_url')
+      .select('store_name, daangn_url, daangn_review_url, naver_review_url, google_review_url')
       .eq('store_id', storeId)
       .maybeSingle(),
     // NFC 스탬프 카드 표시 여부 — 매장이 stamp 모드를 켰을 때만 쿠폰함에 카드를 보여준다
@@ -145,6 +145,8 @@ export async function GET(req: Request) {
     storeName,
     daangnUrl: safeHttpUrl(storeRes.data?.daangn_url),
     daangnReviewUrl: safeHttpUrl(storeRes.data?.daangn_review_url),
+    naverReviewUrl: safeHttpUrl(storeRes.data?.naver_review_url),
+    googleReviewUrl: safeHttpUrl(storeRes.data?.google_review_url),
     homepageFeatureEnabled: addons.homepageFeatureEnabled,
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },

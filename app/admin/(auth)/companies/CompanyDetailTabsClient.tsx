@@ -22,6 +22,9 @@ interface CompanyInitial {
   address?: string
   remarks?: string
   daangn_url?: string
+  daangn_review_url?: string
+  naver_review_url?: string
+  google_review_url?: string
   kakao_channel_url?: string
   business_type?: string
   advertiserEmail?: string
