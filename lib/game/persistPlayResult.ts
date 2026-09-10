@@ -22,7 +22,7 @@ export class AlreadyParticipatedError extends Error {
   }
 }
 
-export type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
+export type ChallengeFrequency = 'daily' | 'custom' | 'unlimited'
 
 function kstToday(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -51,8 +51,7 @@ export interface ParticipationCheckResult {
 /**
  * 이벤트별 도전횟수(challenge_frequency) 설정에 따라 참여 가능 여부를 판정한다.
  * - daily:   마지막 참여가 오늘(KST) 이전이면 허용
- * - weekly:  마지막 참여로부터 롤링 7일 지났으면 허용 (캘린더 주 아님)
- * - monthly: 마지막 참여로부터 롤링 30일 지났으면 허용 (캘린더 월 아님)
+ * - custom:  마지막 참여로부터 롤링 N일(customDays) 지났으면 허용 (캘린더 경계 아님)
  * - unlimited: 항상 허용, 단 참여 기록은 통계용으로 계속 남긴다
  */
 export async function checkParticipationAllowed(
@@ -60,6 +59,7 @@ export async function checkParticipationAllowed(
   kakaoUserId: string,
   eventId: string,
   frequency: ChallengeFrequency,
+  customDays?: number | null,
 ): Promise<ParticipationCheckResult> {
   if (DEMO_UNLIMITED_PLAY || frequency === 'unlimited') {
     return { allowed: true, nextAvailableAt: null }
@@ -85,7 +85,7 @@ export async function checkParticipationAllowed(
     return { allowed: false, nextAvailableAt: nextAvailable.toISOString() }
   }
 
-  const rollingDays = frequency === 'weekly' ? 7 : 30
+  const rollingDays = customDays && customDays > 0 ? customDays : 1
   const nextAvailable = new Date(lastPlayedAt.getTime() + rollingDays * 86400000)
   if (now.getTime() >= nextAvailable.getTime()) return { allowed: true, nextAvailableAt: null }
   return { allowed: false, nextAvailableAt: nextAvailable.toISOString() }
@@ -107,6 +107,7 @@ export async function persistPendingPlay(params: {
   if (!DEMO_UNLIMITED_PLAY) {
     const check = await checkParticipationAllowed(
       pending.storeId, kakaoUserId, pending.eventId, pending.challengeFrequency ?? 'daily',
+      pending.challengeFrequencyDays,
     )
     if (!check.allowed) {
       throw new AlreadyParticipatedError(check.nextAvailableAt)

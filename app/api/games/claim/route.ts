@@ -2,7 +2,7 @@
  * POST /api/games/claim
  * body: { store_id?: string }
  * 로그인된 kakao_user_id 앞으로 pendingPlay를 확정한다.
- * 참여 가능 여부(도전횟수 설정에 따른 daily/weekly/monthly/unlimited)는
+ * 참여 가능 여부(도전횟수 설정에 따른 daily/custom(N일)/unlimited)는
  * persistPendingPlay 내부에서 검사한다. 이미 참여면 결과를 공개하지 않는다.
  *
  * store_id가 함께 전달되면, 세션에 남아있는 pendingPlay/revealedPlay의 storeId와

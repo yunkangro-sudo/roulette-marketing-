@@ -56,6 +56,7 @@ export async function POST(request: Request) {
     display_end_date,
     expected_daily_participants,
     challenge_frequency,
+    challenge_frequency_days,
     coupon_validity_type,
     coupon_validity_value,
     tiers,
@@ -75,9 +76,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
+  const VALID_FREQUENCIES = ['daily', 'custom', 'unlimited']
   if (challenge_frequency && !VALID_FREQUENCIES.includes(challenge_frequency)) {
     return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
+  }
+  if (challenge_frequency === 'custom' && !(Number(challenge_frequency_days) > 0)) {
+    return NextResponse.json({ error: '도전 횟수 일수를 1 이상으로 입력해주세요' }, { status: 400 })
   }
 
   if (!name || !display_start_date || !display_end_date || !expected_daily_participants || !tiers?.length) {
@@ -147,6 +151,7 @@ export async function POST(request: Request) {
       display_end_date,
       expected_daily_participants,
       challenge_frequency: challenge_frequency ?? 'daily',
+      challenge_frequency_days: challenge_frequency === 'custom' ? Number(challenge_frequency_days) : null,
       coupon_validity_type: coupon_validity_type ?? 'relative_days',
       coupon_validity_value: String(coupon_validity_value ?? '14'),
       prize_tier_mode: prizeTierMode,

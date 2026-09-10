@@ -14,7 +14,9 @@ export interface PendingPlay {
   amount:     number
   tierId:     string
   /** 이벤트에 설정된 도전횟수 (미설정 시 'daily'로 취급) */
-  challengeFrequency?: 'daily' | 'weekly' | 'monthly' | 'unlimited'
+  challengeFrequency?: 'daily' | 'custom' | 'unlimited'
+  /** challengeFrequency가 'custom'일 때 며칠에 한 번 재도전 가능한지 */
+  challengeFrequencyDays?: number | null
   /** 게임 진입 경로 (통계 집계용, 미설정 시 'qr_instore'로 취급). 경품 확률/재고 분기에는 절대 사용하지 않는다. */
   entrySource?: 'qr_instore' | 'online_page'
 }

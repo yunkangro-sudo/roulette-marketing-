@@ -65,6 +65,7 @@ export async function PATCH(req: Request, { params }: Params) {
     display_end_date,
     expected_daily_participants,
     challenge_frequency,
+    challenge_frequency_days,
     coupon_validity_type,
     coupon_validity_value,
     status,
@@ -72,9 +73,12 @@ export async function PATCH(req: Request, { params }: Params) {
     reset_cycle,
   } = body
 
-  const VALID_FREQUENCIES = ['daily', 'weekly', 'monthly', 'unlimited']
+  const VALID_FREQUENCIES = ['daily', 'custom', 'unlimited']
   if (challenge_frequency !== undefined && !VALID_FREQUENCIES.includes(challenge_frequency)) {
     return NextResponse.json({ error: '올바르지 않은 도전 횟수 설정입니다' }, { status: 400 })
+  }
+  if (challenge_frequency === 'custom' && !(Number(challenge_frequency_days) > 0)) {
+    return NextResponse.json({ error: '도전 횟수 일수를 1 이상으로 입력해주세요' }, { status: 400 })
   }
 
   const updateData: Record<string, unknown> = {}
@@ -82,7 +86,10 @@ export async function PATCH(req: Request, { params }: Params) {
   if (display_start_date !== undefined) updateData.display_start_date = display_start_date
   if (display_end_date !== undefined) updateData.display_end_date = display_end_date
   if (expected_daily_participants !== undefined) updateData.expected_daily_participants = expected_daily_participants
-  if (challenge_frequency !== undefined) updateData.challenge_frequency = challenge_frequency
+  if (challenge_frequency !== undefined) {
+    updateData.challenge_frequency = challenge_frequency
+    updateData.challenge_frequency_days = challenge_frequency === 'custom' ? Number(challenge_frequency_days) : null
+  }
   if (coupon_validity_type !== undefined) updateData.coupon_validity_type = coupon_validity_type
   if (coupon_validity_value !== undefined) updateData.coupon_validity_value = String(coupon_validity_value)
   if (status !== undefined) updateData.status = status

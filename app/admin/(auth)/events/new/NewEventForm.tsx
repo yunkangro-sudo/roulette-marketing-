@@ -15,12 +15,10 @@ interface Tier {
   probability_percent: number | ''
 }
 
-type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
+type ChallengeFrequency = 'daily' | 'custom' | 'unlimited'
 
-const CHALLENGE_FREQUENCY_OPTIONS: { value: ChallengeFrequency; label: string; desc: string }[] = [
-  { value: 'daily',     label: '매일',   desc: '하루에 1번 도전 가능 (기본값)' },
-  { value: 'weekly',    label: '주간',   desc: '마지막 도전 후 7일이 지나면 재도전 가능' },
-  { value: 'monthly',   label: '월간',   desc: '마지막 도전 후 30일이 지나면 재도전 가능' },
+const CHALLENGE_FREQUENCY_OPTIONS: { value: 'daily' | 'unlimited'; label: string; desc: string }[] = [
+  { value: 'daily',     label: '1일1회', desc: '하루에 1번 도전 가능 (기본값)' },
   { value: 'unlimited', label: '무제한', desc: '횟수 제한 없이 매번 도전 가능' },
 ]
 
@@ -71,6 +69,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [endDate, setEndDate] = useState('')
   const [dailyParticipants, setDailyParticipants] = useState<number | ''>('')
   const [challengeFrequency, setChallengeFrequency] = useState<ChallengeFrequency>('daily')
+  const [customFrequencyDays, setCustomFrequencyDays] = useState<number | ''>('')
   const [validityType, setValidityType] = useState<'relative_days' | 'fixed_date'>('relative_days')
   const [validityValue, setValidityValue] = useState('14')
   const [fixedValidityStart, setFixedValidityStart] = useState('')
@@ -127,6 +126,10 @@ export default function NewEventForm({ role, storeId }: Props) {
       if (new Date(fixedValidityEnd) < new Date(fixedValidityStart)) { setError('쿠폰 사용 종료일이 시작일보다 빠릅니다'); return }
     }
     if (tiers.length === 0) { setError('경품 티어를 1개 이상 추가해주세요'); return }
+    if (challengeFrequency === 'custom' && !(Number(customFrequencyDays) > 0)) {
+      setError('도전 횟수 일수를 1 이상으로 입력해주세요'); return
+    }
+
     for (const t of tiers) {
       if (!t.label.trim()) { setError('모든 티어의 등급명을 입력해주세요'); return }
       if (t.amount === '' || Number(t.amount) < 0) { setError('금액을 올바르게 입력해주세요 (꽝은 0)'); return }
@@ -151,6 +154,7 @@ export default function NewEventForm({ role, storeId }: Props) {
           display_end_date: endDate,
           expected_daily_participants: Number(dailyParticipants),
           challenge_frequency: challengeFrequency,
+          challenge_frequency_days: challengeFrequency === 'custom' ? Number(customFrequencyDays) : null,
           coupon_validity_type: validityType,
           coupon_validity_value: validityType === 'fixed_date'
             ? `${fixedValidityStart}~${fixedValidityEnd}`
@@ -240,24 +244,55 @@ export default function NewEventForm({ role, storeId }: Props) {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <label className="block text-sm font-bold text-gray-900 mb-1">도전 횟수</label>
           <p className="text-xs text-gray-400 mb-3">한 손님이 얼마나 자주 다시 도전할 수 있는지 설정합니다.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {CHALLENGE_FREQUENCY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setChallengeFrequency(opt.value)}
-                className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
-                  challengeFrequency === opt.value
-                    ? 'border-orange-500 bg-orange-50 text-orange-600'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setChallengeFrequency('daily')}
+              className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                challengeFrequency === 'daily'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}
+            >
+              {CHALLENGE_FREQUENCY_OPTIONS[0].label}
+            </button>
+            <label
+              className={`flex items-center justify-center gap-1 rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors cursor-text ${
+                challengeFrequency === 'custom'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}
+            >
+              <input
+                type="number"
+                min={1}
+                placeholder="7"
+                value={customFrequencyDays}
+                onFocus={() => setChallengeFrequency('custom')}
+                onChange={(e) => {
+                  setChallengeFrequency('custom')
+                  setCustomFrequencyDays(e.target.value === '' ? '' : Number(e.target.value))
+                }}
+                className="w-10 bg-transparent text-center outline-none placeholder:text-gray-300"
+              />
+              <span>일</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setChallengeFrequency('unlimited')}
+              className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                challengeFrequency === 'unlimited'
+                  ? 'border-orange-500 bg-orange-50 text-orange-600'
+                  : 'border-gray-200 text-gray-500 hover:border-gray-300'
+              }`}
+            >
+              {CHALLENGE_FREQUENCY_OPTIONS[1].label}
+            </button>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            {CHALLENGE_FREQUENCY_OPTIONS.find((o) => o.value === challengeFrequency)?.desc}
+            {challengeFrequency === 'custom'
+              ? `마지막 도전 후 ${customFrequencyDays || '?'}일이 지나면 재도전 가능`
+              : CHALLENGE_FREQUENCY_OPTIONS.find((o) => o.value === challengeFrequency)?.desc}
           </p>
         </div>
 

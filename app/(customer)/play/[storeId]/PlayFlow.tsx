@@ -27,20 +27,20 @@ type Step =
   | 'channel_cta'
   | 'verification_cta'
 
-type ChallengeFrequency = 'daily' | 'weekly' | 'monthly' | 'unlimited'
+type ChallengeFrequency = 'daily' | 'custom' | 'unlimited'
 
 interface Event {
   id: string
   name: string
   status: string
   challenge_frequency?: ChallengeFrequency | null
+  challenge_frequency_days?: number | null
 }
 
-const CHALLENGE_FREQUENCY_LABEL: Record<ChallengeFrequency, string> = {
-  daily: '1일 1회 응모 가능',
-  weekly: '1주 1회 응모 가능',
-  monthly: '1개월 1회 응모 가능',
-  unlimited: '횟수 제한 없이 응모 가능',
+function challengeFrequencyLabel(frequency: ChallengeFrequency | null | undefined, days: number | null | undefined): string {
+  if (frequency === 'unlimited') return '횟수 제한 없이 응모 가능'
+  if (frequency === 'custom') return `${days && days > 0 ? days : 1}일 1회 응모 가능`
+  return '1일 1회 응모 가능'
 }
 
 interface Props {
@@ -519,7 +519,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
               </motion.span>
             </button>
             <p className="mt-3 text-center text-xs text-[#222222]/45">
-              {CHALLENGE_FREQUENCY_LABEL[event?.challenge_frequency ?? 'daily']}
+              {challengeFrequencyLabel(event?.challenge_frequency, event?.challenge_frequency_days)}
             </p>
             <style>{`
               @keyframes shimmerText {
