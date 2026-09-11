@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles } from 'lucide-react'
+import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartphone, HeartHandshake, Check, Gift, ChevronLeft, ChevronRight, CalendarCheck, UtensilsCrossed, Star, Navigation, Sparkles, Users, MessageCircle, CheckCircle2 } from 'lucide-react'
 import BrandLogo from '@/components/BrandLogo'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
@@ -670,6 +670,71 @@ export function CarrotChannelSection() {
               style={{ borderRadius: 6 }}
             >
               <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-dg-green-tint text-dg-green-deep">
+                <Icon size={20} strokeWidth={1.75} />
+              </span>
+              <h3 className="mt-4 text-[16px] font-bold text-dg-ink">{title}</h3>
+              <p className="mt-2 text-[13px] leading-relaxed text-dg-ink-soft">{body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** 당근과는 완전히 별개의 선택지로 안내하는 카카오톡 채널추가 마케팅 섹션 —
+ *  가입 시 당근 또는 카카오 중 하나를 고르는 매장을 위한 독립 대안이라, 위 CarrotChannelSection과
+ *  동일한 레이아웃 위계(라벨→헤드라인→서브카피→카드 3개)를 그대로 쓰되 "보조 설명"으로 낮추지 않는다.
+ *  카카오 옐로우(#FEE500)는 텍스트 색으로 쓰면 대비가 낮아 거의 안 보이므로(코드베이스 전체에서
+ *  카톡 버튼도 항상 "노란 배경 + 검정 텍스트"로만 써왔다), 헤드라인 강조 단어는 노란 배경 하이라이트
+ *  칩으로, 카드 아이콘도 노란 배경+검정 아이콘으로 처리해 당근 섹션(그린 톤 아이콘)과 색으로도
+ *  명확히 구분한다. */
+export function KakaoChannelSection() {
+  const reasons = [
+    {
+      icon: Users,
+      title: '전국민 사용',
+      body: '지역 한정 없이, 거의 모든 사람이 쓰는 채널이에요',
+    },
+    {
+      icon: MessageCircle,
+      title: '알림톡 발송',
+      body: '채널 추가되면 소식·쿠폰을 직접 메시지로 보낼 수 있어요',
+    },
+    {
+      icon: CheckCircle2,
+      title: '매장이 선택',
+      body: '가입 시 당근 또는 카카오, 원하는 채널 하나를 선택해요',
+    },
+  ]
+
+  return (
+    <section className="bg-dg-bg py-20 md:py-28">
+      <div className="mx-auto max-w-3xl px-5 text-center">
+        <p className="text-[13px] font-semibold tracking-wide text-dg-ink-soft">카카오톡 친구 추가로 연결</p>
+        <h2 className="mt-3 text-[32px] leading-tight text-dg-ink md:text-[44px]">
+          <span className="inline-flex items-center rounded-md bg-dg-kakao px-2 py-0.5 font-extrabold text-dg-ink">
+            카카오톡
+          </span>
+          에서 고객을 만나고,
+          <br />
+          게임으로 다시 연결합니다
+        </h2>
+        <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-relaxed text-dg-ink-soft md:text-[17px]">
+          당근마켓 대신, 카카오톡 채널 친구 추가로 손님을 다시 연결하는 방법입니다.
+        </p>
+      </div>
+
+      <div className="mx-auto mt-12 max-w-5xl px-5">
+        <p className="text-center text-[13px] font-semibold tracking-wide text-dg-ink-soft">왜 카카오톡인가</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          {reasons.map(({ icon: Icon, title, body }) => (
+            <div
+              key={title}
+              className="border border-dg-line bg-white p-6 text-center"
+              style={{ borderRadius: 6 }}
+            >
+              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-dg-kakao text-dg-ink">
                 <Icon size={20} strokeWidth={1.75} />
               </span>
               <h3 className="mt-4 text-[16px] font-bold text-dg-ink">{title}</h3>

@@ -13,6 +13,7 @@ import {
   DifferenceSection,
   ProofSection,
   CarrotChannelSection,
+  KakaoChannelSection,
   ChannelTrust,
   HomepageServiceSection,
   PricingSection,
@@ -39,6 +40,7 @@ export default function LandingV5() {
         <DifferenceSection />
         <ProofSection />
         <CarrotChannelSection />
+        <KakaoChannelSection />
         <ChannelTrust />
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
         <HomepageServiceSection />
