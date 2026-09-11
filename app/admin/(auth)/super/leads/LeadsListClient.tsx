@@ -95,6 +95,7 @@ export default function LeadsListClient({ items: initialItems }: { items: LeadIt
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('all')
   const [sourceFilter, setSourceFilter] = useState<SourceFilterValue>('all')
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const availableSources = useMemo(() => {
     const set = new Set(items.map((i) => i.source ?? 'other'))
@@ -131,6 +132,20 @@ export default function LeadsListClient({ items: initialItems }: { items: LeadIt
       alert('상태 변경에 실패했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setSavingId(null)
+    }
+  }
+
+  async function deleteLead(item: LeadItem) {
+    if (!confirm(`"${item.storeName}" 문의글을 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) return
+    setDeletingId(item.id)
+    try {
+      const res = await fetch(`/api/admin/leads/${item.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setItems((prev) => prev.filter((it) => it.id !== item.id))
+    } catch {
+      alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -218,7 +233,7 @@ export default function LeadsListClient({ items: initialItems }: { items: LeadIt
                   </span>
                   <select
                     value={item.status}
-                    disabled={savingId === item.id}
+                    disabled={savingId === item.id || deletingId === item.id}
                     onChange={(e) => updateStatus(item.id, e.target.value as LeadStatus)}
                     className="border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-gray-700 bg-white focus:outline-none focus:border-orange-500 disabled:opacity-50"
                   >
@@ -228,6 +243,14 @@ export default function LeadsListClient({ items: initialItems }: { items: LeadIt
                       </option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    disabled={deletingId === item.id || savingId === item.id}
+                    onClick={() => deleteLead(item)}
+                    className="text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === item.id ? '삭제 중...' : '삭제'}
+                  </button>
                 </div>
               </div>
             </div>
