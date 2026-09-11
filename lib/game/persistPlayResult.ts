@@ -334,7 +334,7 @@ export async function persistPendingPlay(params: {
           .maybeSingle(),
         supabase
           .from('store_contracts')
-          .select('daangn_url, is_demo')
+          .select('daangn_review_url, is_demo')
           .eq('store_id', pending.storeId)
           .maybeSingle(),
       ])
@@ -350,7 +350,7 @@ export async function persistPendingPlay(params: {
         label: pending.label,
         validUntil: coupon.valid_until,
         storeId: pending.storeId,
-        daangnUrl: contract?.daangn_url ?? null,
+        daangnReviewUrl: contract?.daangn_review_url ?? null,
       })
       if (result.ok) {
         await logResult('sent')
