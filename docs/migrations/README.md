@@ -82,6 +82,7 @@ Supabase 대시보드의 **Database → Migrations** 화면은 `supabase` CLI(`s
 | 057 | [`057_daangn_review_url.sql`](./057_daangn_review_url.sql) | `store_contracts.daangn_review_url`(당근마켓 후기쓰기 URL, nullable) 추가 — 손님 화면 "당근마켓 후기쓰기" 버튼용. `activity_log_event_type_check`에 `daangn_review_click` 이벤트 타입 추가 |
 | 058 | [`058_challenge_frequency_custom_days.sql`](./058_challenge_frequency_custom_days.sql) | 도전 횟수 "주간"/"월간" 고정 옵션 제거, 숫자 직접입력(`challenge_frequency='custom'` + `challenge_frequency_days`)으로 대체 — 기존 weekly/monthly 이벤트는 동일 일수(7일/30일)로 백필해 동작 변화 없음. `events_challenge_frequency_check`를 `daily`\|`custom`\|`unlimited`로 갱신 |
 | 059 | [`059_naver_google_review_url.sql`](./059_naver_google_review_url.sql) | `store_contracts.naver_review_url`/`google_review_url`(nullable) 추가 — 손님 화면 "네이버 후기쓰기"/"구글 맵 후기쓰기" 버튼용. `activity_log_event_type_check`에 `naver_review_click`/`google_review_click` 이벤트 타입 추가 |
+| 060 | [`060_signup_inquiries_delete_grant.sql`](./060_signup_inquiries_delete_grant.sql) | `signup_inquiries`에 `service_role` DELETE GRANT 추가 — 슈퍼관리자 신청 문의 단건 삭제가 permission denied로 실패하던 문제 수정 |
 
 > 참고: 위 표는 Git에 존재하는 SQL 파일 목록이다. **Git에 파일이 있다고 해서 Supabase DB에 실제로 실행되었음이 보장되지는 않는다.** 실제 적용 여부가 불확실하면 Supabase SQL Editor에서 `SELECT to_regclass('public.해당테이블명')` 또는 `information_schema.columns`로 직접 확인할 것.
 

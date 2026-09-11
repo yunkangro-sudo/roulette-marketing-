@@ -140,10 +140,11 @@ export default function LeadsListClient({ items: initialItems }: { items: LeadIt
     setDeletingId(item.id)
     try {
       const res = await fetch(`/api/admin/leads/${item.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error()
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || '삭제 실패')
       setItems((prev) => prev.filter((it) => it.id !== item.id))
-    } catch {
-      alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '삭제에 실패했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setDeletingId(null)
     }
