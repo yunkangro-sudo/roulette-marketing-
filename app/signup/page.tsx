@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import '@/components/landing-v5/landing-v5.css'
 import Navbar from '@/components/landing-v5/Navbar'
-import { BankRow } from '@/components/landing-v5/PricingModals'
+import { BankRow, PricingCalculatorModal } from '@/components/landing-v5/PricingModals'
 import { BANK_ACCOUNT, PRICING_BASIC_TODAY_TOTAL, formatWon } from '@/lib/landing-v5/config'
 
 type Step = 'form' | 'success'
@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState<string | null>(null)
+  const [calculatorOpen, setCalculatorOpen] = useState(false)
 
   function copy(text: string, key: string) {
     navigator.clipboard?.writeText(text).then(() => {
@@ -155,14 +156,13 @@ export default function SignupPage() {
 
           <p className="text-center text-xs text-[#9CA3AF] mb-1">
             결제 전 요금제를 다시 확인하고 싶다면{' '}
-            <a
-              href="/#pricing"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => setCalculatorOpen(true)}
               className="font-semibold text-[#3D5AFE] hover:underline"
             >
               요금제 보기 →
-            </a>
+            </button>
           </p>
 
           <a href="/"
@@ -170,6 +170,7 @@ export default function SignupPage() {
             홈으로 돌아가기
           </a>
         </div>
+        {calculatorOpen && <PricingCalculatorModal onClose={() => setCalculatorOpen(false)} />}
       </div>
     )
   }
@@ -199,14 +200,13 @@ export default function SignupPage() {
           </p>
           <p className="mt-3 text-sm text-[#6B7280]">
             요금이 궁금하신가요?{' '}
-            <a
-              href="/#pricing"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={() => setCalculatorOpen(true)}
               className="font-semibold text-[#3D5AFE] hover:underline"
             >
               요금제 확인하기 →
-            </a>
+            </button>
           </p>
         </div>
 
@@ -386,6 +386,8 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
+
+      {calculatorOpen && <PricingCalculatorModal onClose={() => setCalculatorOpen(false)} />}
     </div>
   )
 }
