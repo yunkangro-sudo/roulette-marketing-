@@ -284,6 +284,11 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [ ] **후속 확인 필요**: `NEXT_PUBLIC_APP_URL` 수정으로 카카오 쿠폰 메시지 버튼도 자동으로 같이 고쳐졌을 가능성이 높음(같은 환경변수를 씀) — 다음 세션에서 실제 쿠폰 메시지 버튼 2개가 정상 연결되는지 재확인할 것
 - [ ] **기존에 인쇄된 매장 QR 스티커 재발행 필요** — 도메인 수정 전에 뽑아서 매장에 이미 붙여둔 QR 스티커는 여전히 옛 vercel 주소를 담고 있음(리다이렉트로 작동은 하지만 느림). 매장별로 관리자 "이벤트 관리" 화면에서 새로 다운로드해서 교체 안내 필요
 
+### 2026-09-11 (이벤트 도전 횟수 커스터마이징 + 후기 URL 확장 + PWA 홈화면 저장)
+- [x] `docs/migrations/058_challenge_frequency_custom_days.sql` — 이벤트 "도전 횟수"에서 고정 **주간/월간** 옵션 제거, **N일 직접입력**(`challenge_frequency='custom'` + `challenge_frequency_days`)으로 일반화. 기존 weekly/monthly 이벤트 2건은 각각 7일/30일 custom으로 백필해 동작 변화 없음. 관리자 UI: `1일1회` / `(숫자)일` / `무제한` 3칸 그리드, "매일" 문구 → **1일1회**로 변경
+- [x] `docs/migrations/059_naver_google_review_url.sql` — `store_contracts.naver_review_url`/`google_review_url` 추가. 업체정보 "매장 추가 정보"에 **네이버 후기쓰기 URL**·**구글 맵 후기쓰기 URL** 입력란 추가(광고주·슈퍼관리자 공통 `CompanyForm`). URL이 입력된 항목만 손님 쿠폰함(`/me/points`)에 버튼 동적 생성(당근 단골·당근/네이버/구글 후기, 최대 4개). 클릭 로그: `naver_review_click`/`google_review_click` (`activity_log_event_type_check` 갱신)
+- [x] **내 쿠폰함 — 홈화면 저장(PWA) 버튼** — 매장별 동적 manifest(`GET /api/pwa-manifest?store_id=`), 최소 서비스워커(`public/sw.js`, **캐싱 없음**), PWA 아이콘 192/512(maskable) 생성. `/me/points` 상단 업체명 옆 **홈화면에 추가** 버튼(매장 홈페이지 버튼과 같은 줄). 기기별 분기: 안드로이드(크롬 `beforeinstallprompt` 있으면 표준 설치창, 없으면 크롬 메뉴 안내 팝업) / iOS(공유→홈 화면에 추가 안내) / 카카오톡 등 인앱(다른 브라우저로 열기 안내) / PC(버튼 숨김). `start_url`: `/me/points?store_id={storeId}` (매장명으로 앱 이름 구분). 후속 수정: SW/manifest/이벤트 리스너를 로그인·데이터 로딩과 무관하게 페이지 로드 즉시 실행(`lib/pwa/pwaInstall.ts`), 안드로이드는 `beforeinstallprompt` 미발생 시에도 버튼 노출
+
 ### 다음 예정
 - [ ] **카카오 쿠폰 메시지 버튼 2개 재검증** — `NEXT_PUBLIC_APP_URL` 수정 후 실제 매장에서 새로 게임 플레이 → 쿠폰 메시지 수신 → 버튼1(내 쿠폰함)/버튼2(당근마켓) 둘 다 정상 연결되는지 확인
 - [ ] 기존에 인쇄된 매장 QR 스티커 전체 재발행 (신규 vs 기존 매장 목록 파악 후 안내)

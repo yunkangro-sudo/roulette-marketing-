@@ -2,7 +2,7 @@
 
 > 이 문서는 관리자 모드(광고주/슈퍼관리자) 개발 중 Claude와 논의해서 확정한 결정사항을 추적하기 위한 문서입니다.
 > 새 결정이 나올 때마다 이 파일을 업데이트하세요. 커서에게 컨텍스트를 줄 때도 이 파일을 같이 보여주면 됩니다.
-> 마지막 업데이트: 2026-09-01
+> 마지막 업데이트: 2026-09-11
 
 ---
 
@@ -41,6 +41,15 @@
 
 ### QR 코드 생성/다운로드
 - **매장 고정 QR코드 자동 생성 완료** — `GET /api/admin/store-qr`가 `qrcode` 라이브러리로 매장별 QR을 즉석 생성(DB 저장 없음, `storeId`만으로 매번 결정적으로 생성). "이벤트 관리" 화면 상단에 QR 미리보기 + PNG(960px)/SVG 다운로드 버튼 + 복사 가능한 URL 텍스트 노출. 에러정정 최고단계(H) 적용. QR이 가리키는 `/play/{storeId}`는 항상 "현재 활성 이벤트"를 조회하므로 이벤트를 몇 번 바꿔도 QR 자체는 절대 안 바뀜
+
+### 이벤트 도전 횟수 (2026-09-11)
+- **주간/월간 고정 옵션 제거 → N일 직접입력** (`058_challenge_frequency_custom_days.sql`) — `events.challenge_frequency`를 `daily` / `custom` / `unlimited`로 정리, custom일 때 `challenge_frequency_days`(양의 정수) 필수. 기존 weekly→custom+7일, monthly→custom+30일 백필. 관리자 이벤트 등록/수정 UI: `1일1회` 버튼 + 숫자 입력 `( )일` + `무제한` 버튼. 손님 게임 화면 안내 문구도 custom일 때 `{N}일 1회 응모 가능`으로 표시
+
+### 업체정보 — 후기 URL 확장 (2026-09-11)
+- **네이버 후기쓰기 URL / 구글 맵 후기쓰기 URL** (`059_naver_google_review_url.sql`) — `store_contracts.naver_review_url`, `google_review_url` 추가. `/admin/company`(광고주) 및 `/admin/companies/[id]`(슈퍼/에이전시) `CompanyForm` "매장 추가 정보" 섹션에 입력란 2개 추가. URL이 있는 항목만 손님 쿠폰함에 버튼 생성 — 당근 단골·당근/네이버/구글 후기 최대 4개, `ReviewButtonConfig[]` 패턴으로 동적 렌더. 클릭은 `POST /api/games/track-daangn-click`(레거시 이름 유지) + `activity_log` (`naver_review_click`, `google_review_click`)
+
+### 손님 쿠폰함 — 홈화면 저장 PWA (2026-09-11)
+- **홈화면에 추가 버튼** — `/me/points` 상단, 업체명 오른쪽(매장 홈페이지 버튼과 같은 줄). 매장별 동적 manifest(`GET /api/pwa-manifest?store_id=`), `start_url=/me/points?store_id={id}`, 앱 이름 `{매장명} 쿠폰함`. 최소 서비스워커(`public/sw.js`) — **페이지/데이터 캐싱 없음**(쿠폰·게임 상태는 항상 서버 실시간). PWA 아이콘 192/512 + maskable(`public/icons/`). 기기 분기: 안드로이드(자동 설치창 또는 크롬 메뉴 안내), iOS(공유→홈 화면에 추가 안내), 카카오톡 등 인앱(다른 브라우저로 열기 안내), PC(숨김). SW/manifest/`beforeinstallprompt` 캡처는 `lib/pwa/pwaInstall.ts`에서 페이지 로드 즉시 실행(로그인·API 로딩과 분리)
 
 ### 매장 공개 홈페이지 (Business Page)
 - **`/b/{storeId}` 신규 구현 완료** (`051_business_page.sql`) — 모든 매장에 기본 공개(무료/유료 구분 없이 자동 생성), `homepage_enabled` 기본 true·`online_play_enabled` 기본 false. 히어로/신뢰지표(10명 미만 자동숨김)/이벤트미리보기/리뷰링크/매장정보/FAQ 섹션 + `LocalBusiness` JSON-LD. 관리자 신규 메뉴 `/admin/business-page`에서 전부 입력·관리. 쿠폰함 상단에 바로가기 노출
