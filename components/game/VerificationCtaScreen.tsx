@@ -11,6 +11,8 @@ interface Props {
   /** 상단 "닫기" 클릭 시 실행 — 로그아웃 없이 최초(게임 시작) 화면으로 돌아간다 */
   onClose: () => void
   daangnUrl?: string | null
+  /** 당근 URL이 없을 때만 대체로 쓰는 카카오 채널 URL — 둘 다 없으면 CTA 영역 자체를 숨긴다. */
+  kakaoChannelUrl?: string | null
   storeId?: string
   storeName?: string | null
 }
@@ -24,7 +26,10 @@ function trackDaangnClick() {
   fetch('/api/games/track-daangn-click', { method: 'POST' }).catch(() => {})
 }
 
-export default function VerificationCtaScreen({ result, onClose, daangnUrl, storeName }: Props) {
+export default function VerificationCtaScreen({ result, onClose, daangnUrl, kakaoChannelUrl, storeName }: Props) {
+  // 당근 URL이 우선이고, 없을 때만 카카오 채널 URL로 대체한다. 둘 다 없으면 안내 문구·버튼을
+  // 통째로 숨긴다 — 손님에게 할 수 없는 행동을 요구하는 문구를 남기지 않기 위함.
+  const ctaMode: 'daangn' | 'kakao' | null = daangnUrl ? 'daangn' : kakaoChannelUrl ? 'kakao' : null
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[#EFE6D6]">
       <img
@@ -73,15 +78,17 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, stor
           />
         )}
 
-        <motion.div
-          initial={{ y: 16, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.35 }}
-        >
-          <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
-            당근마켓 단골 추가시 쿠폰 사용가능
-          </h2>
-        </motion.div>
+        {ctaMode && (
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.35 }}
+          >
+            <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
+              {ctaMode === 'daangn' ? '당근마켓 단골 추가시 쿠폰 사용가능' : '카카오톡 채널 추가시 쿠폰 사용가능'}
+            </h2>
+          </motion.div>
+        )}
 
         {result.coupon && (
           <motion.div
@@ -100,26 +107,35 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, stor
           </motion.div>
         )}
 
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.35, duration: 0.35 }}
-          className="w-full max-w-sm space-y-3"
-        >
-          {daangnUrl ? (
-            <a
-              href={daangnUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={trackDaangnClick}
-              className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
-            >
-              당근에서 단골 추가하기
-            </a>
-          ) : (
-            <p className="text-sm text-[#222222]/40">당근 단골 링크 준비중</p>
-          )}
-        </motion.div>
+        {ctaMode && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.35 }}
+            className="w-full max-w-sm space-y-3"
+          >
+            {ctaMode === 'daangn' ? (
+              <a
+                href={daangnUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={trackDaangnClick}
+                className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
+              >
+                당근에서 단골 추가하기
+              </a>
+            ) : (
+              <a
+                href={kakaoChannelUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-full bg-[#FEE500] px-10 py-4 text-center text-base font-bold text-[#222222] transition-colors hover:bg-[#FADA00]"
+              >
+                카카오톡 채널 추가하기
+              </a>
+            )}
+          </motion.div>
+        )}
       </div>
     </div>
   )

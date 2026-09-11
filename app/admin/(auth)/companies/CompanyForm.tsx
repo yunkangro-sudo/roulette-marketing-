@@ -339,7 +339,7 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             <input value={form.daangn_url ?? ''} onChange={(e) => set('daangn_url', e.target.value)}
               placeholder="https://www.daangn.com/..." type="url"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-            <p className="text-xs text-gray-400 mt-1">손님 [당근에서 단골 추가하기] 버튼에 연결됩니다. 비우면 버튼을 숨깁니다.</p>
+            <p className="text-xs text-gray-400 mt-1">손님 [당근에서 단골 추가하기] 버튼에 연결됩니다. 비우면 아래 카카오 채널 URL이 있을 때 그 버튼으로 대체됩니다.</p>
           </div>
 
           <div>
@@ -371,7 +371,7 @@ export default function CompanyForm({ mode, initial, hideChrome, variant = 'supe
             <input value={form.kakao_channel_url ?? ''} onChange={(e) => set('kakao_channel_url', e.target.value)}
               placeholder="https://pf.kakao.com/..." type="url"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-orange-500" />
-            <p className="text-xs text-gray-400 mt-1">손님 [카카오 채널 추가하기] 버튼에 연결됩니다. 비우면 건너뛰기만 보입니다.</p>
+            <p className="text-xs text-gray-400 mt-1">당근마켓 URL이 비어 있을 때만 당첨 화면의 [카카오톡 채널 추가하기] 노란 버튼으로 대체 노출됩니다. 당근 URL이 있으면 이 값은 쓰이지 않습니다.</p>
           </div>
 
           <div>

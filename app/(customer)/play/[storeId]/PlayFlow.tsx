@@ -607,6 +607,7 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
           onDone={handleSwitchAccount}
           onClose={handleCloseToLanding}
           daangnUrl={daangnUrl}
+          kakaoChannelUrl={kakaoChannelUrl}
           storeId={storeId}
           storeName={storeName || event.name}
         />
