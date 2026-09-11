@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, type ReactNode } from 'react'
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
-}
+import { getDeferredPrompt, isInstalled, subscribe, setAppleWebAppTitle, triggerInstall } from '@/lib/pwa/pwaInstall'
 
 type Platform = 'android' | 'ios' | 'other'
 type GuideKind = 'ios' | 'in-app' | null
@@ -18,7 +14,11 @@ interface Props {
 /**
  * "내 쿠폰함 — 홈화면에 추가" 버튼.
  *
- * - 안드로이드(크롬 등): beforeinstallprompt 이벤트를 잡아뒀다가 클릭 시 표준 설치창 노출.
+ * 서비스워커 등록/manifest 연결/beforeinstallprompt 캡처는 이 컴포넌트의 마운트
+ * 시점(로그인 확인·데이터 로딩 이후)과 무관하게 `lib/pwa/pwaInstall.ts`에서 페이지
+ * 로드 즉시 처리된다 — 여기서는 그 결과 상태를 구독해서 UI만 그린다.
+ *
+ * - 안드로이드(크롬 등): 캡처된 이벤트가 있을 때만 노출, 클릭 시 표준 설치창.
  *   이벤트가 안 잡히면(설치 조건 미충족 등) 버튼을 아예 숨긴다.
  * - iOS(사파리): 자동 설치 API가 없어서 "공유 → 홈 화면에 추가" 안내 팝업을 보여준다.
  *   이미 홈화면 앱으로 실행 중(navigator.standalone)이면 버튼을 숨긴다.
@@ -30,7 +30,7 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
   const [platform, setPlatform] = useState<Platform>('other')
   const [isInApp, setIsInApp] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [hasPrompt, setHasPrompt] = useState(false)
   const [installed, setInstalled] = useState(false)
   const [guide, setGuide] = useState<GuideKind>(null)
 
@@ -47,52 +47,21 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
     const standaloneIOS = (window.navigator as unknown as { standalone?: boolean }).standalone === true
     const standaloneDisplay = window.matchMedia?.('(display-mode: standalone)').matches ?? false
     setIsStandalone(standaloneIOS || standaloneDisplay)
+  }, [])
 
-    // 서비스워커 등록 — PWA 설치 조건 충족용. 캐싱은 절대 하지 않는다(public/sw.js 참고).
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
-    }
-
-    // 매장별 동적 manifest 연결 — store_id별로 이름/시작 URL이 다르므로 정적 manifest 대신
-    // API 라우트로 생성한다 (여러 매장을 쓰는 손님이 홈화면에서 서로 구분 가능하게).
-    const link = document.createElement('link')
-    link.rel = 'manifest'
-    link.href = `/api/pwa-manifest?store_id=${encodeURIComponent(storeId)}`
-    document.head.appendChild(link)
-
-    // iOS는 홈화면 추가 시 manifest가 아니라 이 메타태그들을 참고한다.
-    const metaCapable = document.createElement('meta')
-    metaCapable.name = 'apple-mobile-web-app-capable'
-    metaCapable.content = 'yes'
-    document.head.appendChild(metaCapable)
-
-    const metaTitle = document.createElement('meta')
-    metaTitle.name = 'apple-mobile-web-app-title'
-    metaTitle.content = storeName || '단골팅'
-    document.head.appendChild(metaTitle)
-
-    return () => {
-      link.remove()
-      metaCapable.remove()
-      metaTitle.remove()
-    }
+  // storeId/storeName은 API 로딩 후에야 확정되므로, iOS 홈화면 타이틀만 보강한다
+  // (manifest·서비스워커·이벤트 캡처는 이미 더 이전 시점에 pwaInstall.ts가 처리함).
+  useEffect(() => {
+    if (storeName) setAppleWebAppTitle(storeName)
   }, [storeId, storeName])
 
   useEffect(() => {
-    function onBeforeInstall(e: Event) {
-      e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
-    }
-    function onInstalled() {
-      setInstalled(true)
-      setDeferredPrompt(null)
-    }
-    window.addEventListener('beforeinstallprompt', onBeforeInstall)
-    window.addEventListener('appinstalled', onInstalled)
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
-      window.removeEventListener('appinstalled', onInstalled)
-    }
+    setHasPrompt(!!getDeferredPrompt())
+    setInstalled(isInstalled())
+    return subscribe(() => {
+      setHasPrompt(!!getDeferredPrompt())
+      setInstalled(isInstalled())
+    })
   }, [])
 
   const handleClick = useCallback(async () => {
@@ -100,21 +69,18 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
       setGuide('in-app')
       return
     }
-    if (platform === 'android' && deferredPrompt) {
-      await deferredPrompt.prompt()
-      const { outcome } = await deferredPrompt.userChoice
-      if (outcome === 'accepted') setInstalled(true)
-      setDeferredPrompt(null)
+    if (platform === 'android' && hasPrompt) {
+      await triggerInstall()
       return
     }
     if (platform === 'ios') {
       setGuide('ios')
     }
-  }, [isInApp, platform, deferredPrompt])
+  }, [isInApp, platform, hasPrompt])
 
   if (isStandalone || installed) return null
   // 인앱 브라우저는 항상 노출(어떤 상황이든 안내가 필요), 그 외엔 실제 설치 가능성에 따라 노출
-  const visible = isInApp || (platform === 'android' && !!deferredPrompt) || platform === 'ios'
+  const visible = isInApp || (platform === 'android' && hasPrompt) || platform === 'ios'
   if (!visible) return null
 
   return (
