@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
-import { NAV_HEIGHT_PX, NAV_LINKS, SIGNUP_PATH, KAKAO_CONSULT_URL } from '@/lib/landing-v5/config'
+import { NAV_HEIGHT_PX, NAV_LINKS, SIGNUP_PATH } from '@/lib/landing-v5/config'
 import BrandLogo from '@/components/BrandLogo'
 import { PricingCalculatorModal } from './PricingModals'
 
@@ -165,21 +165,23 @@ export default function Navbar() {
               </Link>
             </nav>
 
-            {/* 상담 신청하기 — 맨 아래, 강조 CTA */}
+            {/* 가입 신청하기 — 맨 아래, 강조 CTA. 중간 페이지 이동 없이 한 번의 클릭으로
+                요금제 계산기 팝업이 바로 열리게 연결한다(요금제 메뉴 항목과 동일한 패턴). */}
             <div
               className="shrink-0 border-t border-dg-line p-5"
               style={{ paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' }}
             >
-              <a
-                href={KAKAO_CONSULT_URL || SIGNUP_PATH}
-                target={KAKAO_CONSULT_URL ? '_blank' : undefined}
-                rel={KAKAO_CONSULT_URL ? 'noopener noreferrer' : undefined}
-                onClick={close}
+              <button
+                type="button"
+                onClick={() => {
+                  close()
+                  setCalculatorOpen(true)
+                }}
                 className="flex h-12 w-full items-center justify-center bg-dg-green text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
                 style={{ borderRadius: 6 }}
               >
-                상담 신청하기
-              </a>
+                가입 신청하기
+              </button>
             </div>
           </aside>
         </div>

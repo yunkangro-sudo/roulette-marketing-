@@ -687,6 +687,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
               </div>
             </div>
 
+            {/* 부가서비스 라벨 — 01번(필수 기본 상품)과 02·03번(선택 항목)을 명확히 구분 */}
+            <p className="pt-2 text-[12px] font-bold text-dg-ink-soft">부가서비스 (선택)</p>
+
             {/* 02. 당근마케팅 — 그룹 타이틀만(체크박스 없음), 하위 4개 항목은 독립 선택 */}
             <div className="border border-dg-line bg-white p-4" style={{ borderRadius: 10 }}>
               <p className="text-[14px] font-bold text-dg-ink">02. 당근마케팅</p>
@@ -829,7 +832,17 @@ export function PricingCalculatorModal({ onClose }: Props) {
             <p>모든 금액은 VAT 포함 가격입니다.</p>
           </div>
 
-          <p className="mt-5 text-center text-[12px] text-dg-ink-soft">1분이면 신청 완료, 부담 없이 시작하세요</p>
+          {/* 입금 후 진행 절차 안내 — 신청 버튼을 누르기 전 마지막으로 눈에 확 들어오게 강조 */}
+          <div
+            className="mt-5 border-l-4 border-dg-green bg-dg-green-tint px-4 py-3.5 text-center"
+            style={{ borderRadius: 8 }}
+          >
+            <p className="text-[15px] font-extrabold leading-snug text-dg-ink sm:text-[16px]">
+              입금 완료 후 회원 가입해주시면 24시간 이내 담당자가 연락드리며 세팅을 시작합니다
+            </p>
+          </div>
+
+          <p className="mt-3 text-center text-[12px] text-dg-ink-soft">1분이면 신청 완료, 부담 없이 시작하세요</p>
           <button
             type="button"
             onClick={() => setPhase('form')}
