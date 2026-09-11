@@ -285,6 +285,7 @@ function PointsContent() {
             <span className="text-white/80">보유 쿠폰 {coupons.length}장</span>
             <span className="text-white/80">방문 {visitCount}회 · 1회당 +{pointPerVisit}P</span>
           </div>
+          <p className="mt-2 text-xs text-white/70">포인트 유효 기간은 발급일 기준 1년 입니다</p>
         </div>
 
         {/* 단골 추가 / 후기쓰기 버튼 그룹 — 관리자가 입력한 URL 개수만큼 동적으로 생성된다.
