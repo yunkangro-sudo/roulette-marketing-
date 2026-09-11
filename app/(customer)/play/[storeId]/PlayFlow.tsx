@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { login as mockLogin, logout as mockLogout, type MockUser } from '@/lib/auth/mockLogin'
 import GameContainer from '@/components/game/claw_machine/GameContainer'
-import ResultScreen from '@/components/game/ResultScreen'
 import VerificationCtaScreen from '@/components/game/VerificationCtaScreen'
 import AlreadyParticipatedScreen from '@/components/play/AlreadyParticipatedScreen'
 import ResultLockedScreen from '@/components/play/ResultLockedScreen'
@@ -23,7 +22,6 @@ type Step =
   | 'result_locked'
   | 'claiming'
   | 'already_participated'
-  | 'result'
   | 'channel_cta'
   | 'verification_cta'
 
@@ -238,8 +236,10 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         // 당첨(경품 있음)인 경우, 민트색 결과화면(ResultScreen)과 파란색 단골추가
         // 안내화면(VerificationCtaScreen)이 경품명·쿠폰코드를 중복해서 두 번 보여주는
         // 문제가 있었다 — 당첨 시엔 ResultScreen을 건너뛰고 바로 단골추가 안내로 간다.
-        // "꽝"(amount 0)은 단골추가로 이어질 쿠폰이 없으므로 기존 결과화면을 그대로 보여준다.
-        setStep(prize.amount > 0 ? 'verification_cta' : 'result')
+        // "꽝"도 동일하게 단골추가 안내로 보내되, VerificationCtaScreen이 result.coupon
+        // 유무로 쿠폰 티켓/꽝 안내를 자동 분기하므로 "당근에서 단골 추가하기" 버튼이
+        // 꽝이어도 항상 노출된다.
+        setStep('verification_cta')
       } else {
         setStep('landing')
       }
@@ -295,8 +295,8 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
         if (pending.hasRevealed && pending.revealed) {
           const prize = toPrizeResult(pending.revealed)
           setResult(prize)
-          // claimResult()와 동일한 규칙: 당첨은 단골추가 안내로 바로, 꽝만 결과화면 경유.
-          setStep(prize.amount > 0 ? 'verification_cta' : 'result')
+          // claimResult()와 동일한 규칙: 당첨/꽝 모두 단골추가 안내로 바로 간다.
+          setStep('verification_cta')
           return
         }
         if (pending.hasPending) {
@@ -569,22 +569,6 @@ export default function PlayFlow({ storeId, event, storeName, daangnUrl, kakaoCh
 
   if (step === 'already_participated') {
     return <AlreadyParticipatedScreen nextAvailableAt={nextAvailableAt} />
-  }
-
-  if (step === 'result' && result) {
-    // 당첨(amount > 0)은 claimResult()에서 이 단계를 건너뛰고 곧장 verification_cta로
-    // 가므로, 여기 도달하는 건 항상 "꽝"(경품 없음) 케이스뿐이다 — 그래서 계속 진행 시
-    // 단골추가 안내 없이 바로 랜딩으로 돌아간다.
-    return (
-      <div className="relative w-full h-full overflow-hidden bg-[#EFE6D6]">
-        <ResultScreen
-          result={result}
-          onReplay={handleSwitchAccount}
-          onContinue={() => setStep('landing')}
-          continueLabel="다음"
-        />
-      </div>
-    )
   }
 
   if (step === 'channel_cta') {

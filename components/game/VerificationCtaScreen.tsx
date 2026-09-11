@@ -85,12 +85,18 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, kaka
             transition={{ delay: 0.15, duration: 0.35 }}
           >
             <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
-              {ctaMode === 'daangn' ? '당근마켓 단골 추가시 쿠폰 사용가능' : '카카오톡 채널 추가시 쿠폰 사용가능'}
+              {result.coupon
+                ? ctaMode === 'daangn'
+                  ? '당근마켓 단골 추가시 쿠폰 사용가능'
+                  : '카카오톡 채널 추가시 쿠폰 사용가능'
+                : ctaMode === 'daangn'
+                  ? '아쉽게 꽝이에요. 당근마켓 단골을 추가하고 다음 기회를 노려보세요!'
+                  : '아쉽게 꽝이에요. 카카오톡 채널을 추가하고 다음 기회를 노려보세요!'}
             </h2>
           </motion.div>
         )}
 
-        {result.coupon && (
+        {result.coupon ? (
           <motion.div
             initial={{ y: 16, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -104,6 +110,19 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, kaka
               validUntilLabel={`~${formatDate(result.coupon.validUntil)}`}
               noteText="쿠폰함에서 쿠폰 사용가능"
             />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.35 }}
+          >
+            <p className="text-3xl font-extrabold text-[#222222]">{result.label}</p>
+            {(result.pointsAwarded ?? 0) > 0 && (
+              <p className="mt-2 text-base font-semibold text-[#222222]/70">
+                +{result.pointsAwarded!.toLocaleString()}P 적립
+              </p>
+            )}
           </motion.div>
         )}
 
