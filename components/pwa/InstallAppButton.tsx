@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { getDeferredPrompt, isInstalled, subscribe, setAppleWebAppTitle, triggerInstall } from '@/lib/pwa/pwaInstall'
 
 type Platform = 'android' | 'ios' | 'other'
-type GuideKind = 'ios' | 'in-app' | null
+type GuideKind = 'ios' | 'android' | 'in-app' | null
 
 interface Props {
   storeId: string
@@ -18,8 +18,10 @@ interface Props {
  * 시점(로그인 확인·데이터 로딩 이후)과 무관하게 `lib/pwa/pwaInstall.ts`에서 페이지
  * 로드 즉시 처리된다 — 여기서는 그 결과 상태를 구독해서 UI만 그린다.
  *
- * - 안드로이드(크롬 등): 캡처된 이벤트가 있을 때만 노출, 클릭 시 표준 설치창.
- *   이벤트가 안 잡히면(설치 조건 미충족 등) 버튼을 아예 숨긴다.
+ * - 안드로이드(크롬 등): 항상 노출. beforeinstallprompt가 이미 잡혀 있으면 클릭 시
+ *   표준 설치창을 바로 띄우고, 아직 안 잡혀 있으면(크롬은 기술적 설치 조건을 다
+ *   충족해도 "사용자 참여도(체류시간/재방문)" 휴리스틱을 추가로 요구해서 첫 방문엔
+ *   거의 항상 이벤트가 안 뜬다) 크롬 메뉴로 직접 설치하는 방법을 안내하는 팝업을 보여준다.
  * - iOS(사파리): 자동 설치 API가 없어서 "공유 → 홈 화면에 추가" 안내 팝업을 보여준다.
  *   이미 홈화면 앱으로 실행 중(navigator.standalone)이면 버튼을 숨긴다.
  * - 카카오톡 등 인앱 브라우저: beforeinstallprompt/공유시트 자체가 없거나 동작하지 않으므로,
@@ -69,8 +71,13 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
       setGuide('in-app')
       return
     }
-    if (platform === 'android' && hasPrompt) {
-      await triggerInstall()
+    if (platform === 'android') {
+      if (hasPrompt) {
+        await triggerInstall()
+      } else {
+        // beforeinstallprompt가 아직 안 잡힌 상태 — 크롬 메뉴로 직접 설치하는 방법을 안내
+        setGuide('android')
+      }
       return
     }
     if (platform === 'ios') {
@@ -79,8 +86,9 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
   }, [isInApp, platform, hasPrompt])
 
   if (isStandalone || installed) return null
-  // 인앱 브라우저는 항상 노출(어떤 상황이든 안내가 필요), 그 외엔 실제 설치 가능성에 따라 노출
-  const visible = isInApp || (platform === 'android' && hasPrompt) || platform === 'ios'
+  // 인앱 브라우저/iOS/안드로이드는 항상 노출(클릭 시 상황에 맞는 설치 방법을 안내),
+  // PC 등 그 외 환경만 숨긴다.
+  const visible = isInApp || platform === 'android' || platform === 'ios'
   if (!visible) return null
 
   return (
@@ -95,6 +103,7 @@ export default function InstallAppButton({ storeId, storeName }: Props) {
       </button>
 
       {guide === 'ios' && <IOSGuideModal onClose={() => setGuide(null)} />}
+      {guide === 'android' && <AndroidGuideModal onClose={() => setGuide(null)} />}
       {guide === 'in-app' && <InAppGuideModal onClose={() => setGuide(null)} />}
     </>
   )
@@ -151,6 +160,40 @@ function IOSGuideModal({ onClose }: { onClose: () => void }) {
 
       <p className="mt-3 text-center text-xs text-[#222222]/35">
         ※ 반드시 사파리(Safari)에서 열어야 표시됩니다
+      </p>
+    </ModalShell>
+  )
+}
+
+function AndroidGuideModal({ onClose }: { onClose: () => void }) {
+  return (
+    <ModalShell onClose={onClose}>
+      <h3 className="text-lg font-black text-[#222222]">홈 화면에 추가하기</h3>
+      <p className="mt-1 text-sm text-[#222222]/50">아래처럼 크롬 메뉴에서 바로 추가할 수 있어요</p>
+
+      <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#EFE6D6]/60 p-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-lg shadow-sm">
+          <span aria-hidden>⋮</span>
+        </span>
+        <p className="text-sm text-[#222222]/80">
+          <span className="font-bold">1.</span> 화면 오른쪽 위{' '}
+          <span className="font-bold text-[#00947A]">메뉴(⋮)</span>를 눌러주세요
+        </p>
+      </div>
+
+      <div className="mt-2 flex items-center gap-3 rounded-xl bg-[#EFE6D6]/60 p-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-lg shadow-sm">
+          <span aria-hidden>➕</span>
+        </span>
+        <p className="text-sm text-[#222222]/80">
+          <span className="font-bold">2.</span>{' '}
+          <span className="font-bold text-[#00947A]">&quot;앱 설치&quot;</span> 또는{' '}
+          <span className="font-bold text-[#00947A]">&quot;홈 화면에 추가&quot;</span>를 선택해주세요
+        </p>
+      </div>
+
+      <p className="mt-3 text-center text-xs text-[#222222]/35">
+        ※ 반드시 크롬(Chrome) 브라우저에서 열어야 표시됩니다
       </p>
     </ModalShell>
   )
