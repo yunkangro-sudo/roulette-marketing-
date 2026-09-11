@@ -7,7 +7,7 @@ import { Megaphone, Footprints, HelpCircle, ArrowRight, Repeat, MapPin, Smartpho
 import BrandLogo from '@/components/BrandLogo'
 import ScreenshotSlot from './ScreenshotSlot'
 import RoiCalculator from './RoiCalculator'
-import { ContentOpsModal, HomepageServiceModal, PricingCalculatorModal, BankRow } from './PricingModals'
+import { PricingCalculatorModal, BankRow } from './PricingModals'
 import {
   PRICING,
   PRICING_BASIC_DISCOUNT_AMOUNT,
@@ -905,8 +905,6 @@ export function HomepageServiceSection() {
 
 export function PricingSection() {
   const [calculatorOpen, setCalculatorOpen] = useState(false)
-  const [consultOpen, setConsultOpen] = useState(false)
-  const [homepageConsultOpen, setHomepageConsultOpen] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const basic = PRICING.basic
   const contentOps = CONTENT_OPS
@@ -1068,12 +1066,14 @@ export function PricingSection() {
           </motion.article>
         </div>
 
-        {/* Section C — 구분선 + 라벨: 아래는 선택 사항인 부가서비스임을 톤 다운해서 안내 */}
-        <div className="mt-14 flex items-center gap-4">
+        {/* Section C — 구분선 + 라벨: 아래는 선택 사항인 부가서비스임을 톤 다운해서 안내.
+            구분선만 눈에 띄고 텍스트가 묻히던 문제를 개선하려 카드 헤드라인(24~26px)의
+            약 65~70% 크기로 확대하고, 상하 여백도 함께 늘려 섹션 제목으로서 존재감을 준다. */}
+        <div className="mt-20 flex items-center gap-4">
           <span className="h-px flex-1 bg-dg-line" aria-hidden />
-          <div className="shrink-0 text-center">
-            <p className="text-[13px] font-bold text-dg-ink-soft">부가서비스 (선택)</p>
-            <p className="mt-0.5 text-[11.5px] text-dg-ink-soft/70">
+          <div className="shrink-0 px-1 text-center">
+            <p className="text-[17px] font-bold text-dg-ink-soft sm:text-[18px]">부가서비스 (선택)</p>
+            <p className="mt-1.5 text-[13px] text-dg-ink-soft/70">
               단골마케팅과 함께, 또는 나중에 필요할 때 추가하세요
             </p>
           </div>
@@ -1082,11 +1082,13 @@ export function PricingSection() {
 
         {/* Section C — 부가서비스 2종: 당근마케팅 / 홈피마케팅. 서로 동일한 크기·톤으로
             배치해 "둘 다 동등한 선택 옵션"임을 전달한다. */}
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          {/* 당근마케팅 — 판매중이지만 즉시 결제가 아닌 상담 신청 흐름. 라이트 톤 카드로
-              단골마케팅(핵심)과 위계 차이를 유지하면서도 다크 배경은 쓰지 않는다. */}
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {/* 당근마케팅 — 정보 제공용 카드로, 실제 전환 유도는 페이지 전체의 메인 CTA로
+              통일한다(개별 상담 버튼 없음). 배경은 홈피마케팅 카드와 동일한 흰색으로 맞춰
+              두 카드가 배경 톤에서 완전히 일치하도록 하고, 뱃지·헤드라인의 오렌지 톤만
+              당근마케팅 고유의 색으로 유지한다. */}
           <article
-            className="relative overflow-hidden border border-dg-carrot/25 bg-dg-bg p-5 sm:p-7"
+            className="relative overflow-hidden border border-dg-carrot/25 bg-white p-5 sm:p-7"
             style={{ borderRadius: 10 }}
           >
             <span
@@ -1099,9 +1101,22 @@ export function PricingSection() {
             <h3 className="mt-4 text-[24px] font-bold text-dg-carrot sm:text-[26px]">{contentOps.name}</h3>
             <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{contentOps.tagline}</p>
 
+            {/* 헤드라인 가격 — 홈피마케팅의 "270,000원"과 동일한 위치·크기·굵기.
+                정기(월 발행) 서비스인 바이럴 콘텐츠 운영 가격을 대표값으로 쓰고,
+                1회성 항목(비즈프로필 최적화 등)은 대표값으로 쓰지 않는다. */}
+            <div className="mt-6">
+              <p className="font-num text-[32px] font-bold leading-none text-dg-carrot sm:text-[36px]">
+                월 {formatWon(CONTENT_OPS.items[0].price)}
+              </p>
+              <p className="mt-2 text-[13px] text-dg-ink-soft">
+                콘텐츠 운영 · {CONTENT_OPS.items[0].freq} 발행 기준
+              </p>
+            </div>
+
             {/* 항목별 개별 가격 — 그룹 총액 대신 각 항목의 실제 청구 방식(1회/월 정기)을
-                그대로 보여줘서 계산기 팝업·성장 페이지와 동일한 정보를 전달한다. */}
-            <div className="mt-6 space-y-4">
+                그대로 보여줘서 계산기 팝업·성장 페이지와 동일한 정보를 전달한다. 위 대표
+                가격보다는 한 단계 낮은 위계로 보이도록 서비스명을 작고 옅은 톤으로 처리한다. */}
+            <div className="mt-6 space-y-4 border-t border-dg-line pt-5">
               {CONTENT_OPS_ADDONS.map((item, i) => {
                 const priceLabel =
                   item.kind === 'monthly'
@@ -1109,7 +1124,7 @@ export function PricingSection() {
                     : `${item.freqLabel} ${formatWon(item.price)}`
                 return (
                   <div key={item.id} className={i > 0 ? 'border-t border-dg-line pt-4' : ''}>
-                    <p className="text-[15px] font-bold text-dg-ink">{item.name}</p>
+                    <p className="text-[13.5px] font-medium text-dg-ink-soft">{item.name}</p>
                     <p className="mt-1 font-num text-[13px] text-dg-ink-soft">{priceLabel}</p>
                     {item.note && <p className="mt-0.5 text-[11.5px] text-dg-ink-soft/70">{item.note}</p>}
                   </div>
@@ -1117,15 +1132,6 @@ export function PricingSection() {
               })}
             </div>
             <p className="mt-4 text-[11.5px] text-dg-ink-soft">※ 모든 금액은 VAT 포함가입니다</p>
-
-            <button
-              type="button"
-              onClick={() => setConsultOpen(true)}
-              className="mt-7 min-h-[52px] w-full bg-dg-green py-3.5 text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
-              style={{ borderRadius: 6 }}
-            >
-              당근마케팅 상담받기
-            </button>
           </article>
 
           {/* 홈피마케팅 — 기존 2박스(제작비+체크리스트 / 프로모션+유지비)를 1박스로 통합.
@@ -1186,15 +1192,6 @@ export function PricingSection() {
                 ⏰ {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
               </span>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setHomepageConsultOpen(true)}
-              className="mt-7 min-h-[52px] w-full bg-dg-green py-3.5 text-[15px] font-bold text-dg-ink transition-opacity hover:opacity-90"
-              style={{ borderRadius: 6 }}
-            >
-              홈피마케팅 신청하기
-            </button>
           </article>
         </div>
 
@@ -1299,8 +1296,6 @@ export function PricingSection() {
       </div>
 
       {calculatorOpen && <PricingCalculatorModal onClose={() => setCalculatorOpen(false)} />}
-      {consultOpen && <ContentOpsModal onClose={() => setConsultOpen(false)} />}
-      {homepageConsultOpen && <HomepageServiceModal onClose={() => setHomepageConsultOpen(false)} />}
     </section>
   )
 }

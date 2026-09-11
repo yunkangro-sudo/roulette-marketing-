@@ -65,7 +65,8 @@ export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.
 export const CONTENT_OPS = {
   id: 'content-ops',
   name: '당근마케팅',
-  tagline: '당근 안에서 우리 매장을 계속 발견하게 만드는 콘텐츠 운영',
+  tagline:
+    '당근 안에서 우리 매장을 계속 발견하게 만드는 콘텐츠 운영입니다. 비즈프로필 세팅부터 타겟 광고, 꾸준한 바이럴 콘텐츠까지 한 번에 관리하며, 동네 손님과의 접점을 자연스럽게 늘려갑니다.',
   items: [
     {
       title: '바이럴 콘텐츠 운영',
