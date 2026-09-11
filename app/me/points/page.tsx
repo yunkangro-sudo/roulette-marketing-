@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, Suspense, type ReactNode } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import StampBoard from '@/components/game/StampBoard'
+import InstallAppButton from '@/components/pwa/InstallAppButton'
 
 type ReviewClickEventType = 'daangn_click' | 'daangn_review_click' | 'naver_review_click' | 'google_review_click'
 
@@ -255,21 +256,24 @@ function PointsContent() {
               "매장 홈페이지" 바로가기는 유료 기능 노출 강화를 위해 여기로 옮기고 버튼화했다 —
               업체명이 길어도 항상 잘리지 않고 보이도록 min-w-0/truncate + shrink-0으로 공간을 분리한다. */}
           {storeName && (
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h1 className="min-w-0 truncate text-[28px] font-black leading-tight text-[#222222]">
                 {storeName}
               </h1>
-              {homepageFeatureEnabled && (
-                <a
-                  href={`/b/${encodeURIComponent(storeId)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#00C7A7] bg-white px-4 py-2.5 text-sm font-bold text-[#00C7A7] transition-colors hover:bg-[#00C7A7]/10"
-                >
-                  <span aria-hidden>🏠</span>
-                  <span>매장 홈페이지</span>
-                </a>
-              )}
+              <div className="flex shrink-0 items-center gap-2">
+                <InstallAppButton storeId={storeId} storeName={storeName} />
+                {homepageFeatureEnabled && (
+                  <a
+                    href={`/b/${encodeURIComponent(storeId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#00C7A7] bg-white px-4 py-2.5 text-sm font-bold text-[#00C7A7] transition-colors hover:bg-[#00C7A7]/10"
+                  >
+                    <span aria-hidden>🏠</span>
+                    <span>매장 홈페이지</span>
+                  </a>
+                )}
+              </div>
             </div>
           )}
           <p className="mt-1 text-sm font-semibold text-[#222222]/45">내 쿠폰함</p>
