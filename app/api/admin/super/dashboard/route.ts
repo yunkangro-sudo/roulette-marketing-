@@ -44,21 +44,29 @@ export async function GET(request: Request) {
 
   const supabase = createServerClient()
 
-  // 데모(샘플) 매장 store_id 목록을 먼저 뽑아서, 아래 모든 집계 쿼리에서 제외한다.
   // store_contracts가 아니라 activity_log/coupons/customer_loyalty/reward_catalog처럼
   // store_id만 text로 들고 있는 테이블들은 join이 아니라 각 쿼리에 개별적으로
-  // "이 store_id들은 빼줘" 필터를 걸어야 해서, 쿼리 하나하나에 손을 대야 한다.
+  // "실제 등록된 매장만" 화이트리스트 필터를 걸어야 해서, 쿼리 하나하나에 손을 대야 한다.
+  //
+  // (2026-09-14) 예전엔 "데모(is_demo=true) 매장만 빼는" 방식이었는데, store_contracts에
+  // 등록조차 안 된 채 activity_log 등에만 남은 테스트용 고아 데이터(예: 기능 개발 중 만든
+  // __test_rebalance_store__)는 그 방식으로는 걸러지지 않았다. 그래서 "store_contracts에
+  // 실제 등록되어 있고 데모가 아닌 매장만 포함"하는 화이트리스트 방식으로 바꿔서,
+  // 등록 안 된 테스트 데이터가 다시 생겨도 대시보드 통계에 절대 안 잡히게 한다.
   const { data: allStoreRows } = await supabase
     .from('store_contracts')
     .select('id, store_id, store_name, created_at, is_demo')
 
-  const demoStoreIds = (allStoreRows ?? []).filter((s) => s.is_demo).map((s) => s.store_id)
   const allStores = (allStoreRows ?? []).filter((s) => !s.is_demo)
+  const validStoreIds = allStores.map((s) => s.store_id)
 
-  /** 데모 매장 store_id를 제외하는 필터. 데모 매장이 하나도 없으면 그대로 통과 */
-  function excludeDemo<T extends { not: (col: string, op: string, val: string) => T }>(query: T): T {
-    if (demoStoreIds.length === 0) return query
-    return query.not('store_id', 'in', `(${demoStoreIds.join(',')})`)
+  // Supabase 쿼리 빌더 제네릭에 .in()을 그대로 물리면 TS가 타입을 무한히 파고들어 빌드가
+  // 깨져서(Type instantiation is excessively deep) 내부에서만 any로 호출하고, 반환 타입은
+  // 입력 그대로(T)로 유지해 이후 .data 접근의 타입 추론이 깨지지 않게 한다.
+  /** 실제 등록된(데모 아닌) 매장으로만 좁히는 필터. 등록 매장이 하나도 없으면 빈 결과. */
+  function realStoresOnly<T>(query: T): T {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (query as any).in('store_id', validStoreIds.length > 0 ? validStoreIds : ['__none__'])
   }
 
   const [
@@ -74,13 +82,13 @@ export async function GET(request: Request) {
     cohortResult,
     convertedResult,
   ] = await Promise.all([
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('subscriptions')
         .select('store_id, start_date, end_date, amount_paid, created_at')
         .order('end_date', { ascending: false }),
     ),
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('activity_log')
         .select('store_id')
@@ -88,21 +96,21 @@ export async function GET(request: Request) {
         .gte('occurred_at', startUtc)
         .lt('occurred_at', endUtcExclusive),
     ),
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('coupons')
         .select('amount, issued_at')
         .gte('issued_at', startUtc)
         .lt('issued_at', endUtcExclusive),
     ),
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('subscriptions')
         .select('amount_paid')
         .gte('created_at', startUtc)
         .lt('created_at', endUtcExclusive),
     ),
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('activity_log')
         .select('occurred_at')
@@ -112,7 +120,7 @@ export async function GET(request: Request) {
     ),
 
     // 전체 가입 회원수 (신규 카카오 인증 완료 기준, 매장 합산)
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('customer_loyalty')
         .select('store_id', { count: 'exact', head: true })
@@ -121,7 +129,7 @@ export async function GET(request: Request) {
     ),
 
     // 당근 단골 클릭수 (전체 합산, 클릭 기준 — 실제 단골추가 확정 아님)
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('activity_log')
         .select('id', { count: 'exact', head: true })
@@ -131,10 +139,10 @@ export async function GET(request: Request) {
     ),
 
     // 리워드 유형별 등록 비율 (전체 매장, 활성 리워드 기준 — 기간 무관 스냅샷)
-    excludeDemo(supabase.from('reward_catalog').select('reward_type').eq('active', true)),
+    realStoresOnly(supabase.from('reward_catalog').select('reward_type').eq('active', true)),
 
     // 쿠폰 사용통계: 이번 구간에 "사용 처리"된 쿠폰
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('coupons')
         .select('used_at')
@@ -144,7 +152,7 @@ export async function GET(request: Request) {
     ),
 
     // 재방문 통계: 직전 동일기간에 신규 유입된 코호트
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('customer_loyalty')
         .select('store_id', { count: 'exact', head: true })
@@ -153,7 +161,7 @@ export async function GET(request: Request) {
     ),
 
     // 그 코호트 중 이번 구간에 재방문(방문기록 갱신)한 수
-    excludeDemo(
+    realStoresOnly(
       supabase
         .from('customer_loyalty')
         .select('store_id', { count: 'exact', head: true })
