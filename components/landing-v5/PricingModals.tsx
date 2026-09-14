@@ -580,8 +580,13 @@ export function PricingCalculatorModal({ onClose }: Props) {
     .filter((a) => a.kind === 'monthly')
     .reduce((sum, a) => sum + a.price, 0)
 
+  // 당근마케팅 월정액 항목(바이럴 콘텐츠 운영·쇼츠 제작)도 오늘 가입하면 첫 달 이용료를
+  // 바로 결제해야 하므로, 매월 결제금액뿐 아니라 최초 결제금액에도 첫 달분을 더한다.
   const initialTotal =
-    basicProduct.setupFee + addonSetupTotal + (homepageSelected ? homepageProduct.setupFee : 0)
+    basicProduct.setupFee +
+    addonSetupTotal +
+    addonMonthlyTotal +
+    (homepageSelected ? homepageProduct.setupFee : 0)
   const monthlyTotal = basicProduct.monthly + addonMonthlyTotal + (homepageSelected ? homepageProduct.monthly : 0)
 
   const selectedProductNames = [
@@ -785,6 +790,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
               <span className="font-num text-[17px] font-bold text-dg-green-deep">{formatWon(monthlyTotal)}</span>
             </div>
             <p className="mt-2 text-[11px] text-dg-ink-soft">프로모션 기간 중 기준 · VAT 포함</p>
+            <p className="mt-1.5 text-[13.5px] font-extrabold leading-snug text-dg-green-deep">
+              의무약정기간 없음. 1개월만도 사용가능!
+            </p>
           </div>
 
           {/* 프로모션 종료 후 예상 금액 — 접었다 펼치는 아코디언, 실시간 합계와 다른 톤 */}
