@@ -4,7 +4,8 @@
  *
  * 1. code → access_token 교환
  * 2. 사용자 프로필 조회 (전화번호 포함, 비즈앱 심사 후)
- * 3. 전화번호 암호화/해시 후 customer_loyalty에 저장
+ * 3. customer_loyalty row 보장(최초 로그인 시 생성) → 전화번호 암호화/해시 저장
+ *    (순서 중요: row가 없으면 전화번호 UPDATE가 조용히 무시되므로 row 생성을 먼저 끝낸다)
  * 4. 세션 쿠키 설정 → /play/[storeId]로 리다이렉트
  */
 
@@ -59,14 +60,19 @@ export async function GET(req: NextRequest) {
     // ── 2. 사용자 프로필 조회 ──────────────────────────────────
     const profile = await getKakaoUserProfile(accessToken)
 
-    // ── 3. 전화번호 저장 (암호화) ─────────────────────────────
-    if (profile.phone_number) {
-      await savePhoneNumber(profile.id, storeId, profile.phone_number)
+    // ── 3. 로그인 이력 기록 (회원 관리 화면의 "카카오 로그인" 집계용) ──────
+    // customer_loyalty row가 없으면 여기서 새로 만든다. 전화번호 저장(다음 단계)은
+    // UPDATE 방식이라 이 row가 먼저 존재해야 하므로, 반드시 await로 끝까지 기다린 뒤에
+    // 전화번호를 저장한다 — 순서가 바뀌면 첫 로그인 손님의 번호가 조용히 버려진다.
+    if (storeId) {
+      await trackKakaoLogin(profile.id, storeId).catch((err) => {
+        console.warn('[kakao callback] trackKakaoLogin 실패 (무시):', err)
+      })
     }
 
-    // ── 3-1. 로그인 이력 기록 (회원 관리 화면의 "카카오 로그인" 집계용) ──
-    if (storeId) {
-      trackKakaoLogin(profile.id, storeId).catch(() => {})
+    // ── 3-1. 전화번호 저장 (암호화) ─────────────────────────────
+    if (profile.phone_number && storeId) {
+      await savePhoneNumber(profile.id, storeId, profile.phone_number)
     }
 
     // ── 4. 세션 저장 ──────────────────────────────────────────
@@ -150,10 +156,11 @@ async function savePhoneNumber(kakaoUserId: string, storeId: string, rawPhone: s
 
   const supabase = createServerClient()
 
-  // customer_loyalty가 이미 있으면 phone 업데이트, 없으면 무시 (게임 플레이 시 생성됨)
-  const { error } = await supabase
+  // customer_loyalty row는 위(trackKakaoLogin)에서 이미 보장됐다는 전제로 UPDATE만 한다.
+  // count:'exact'로 실제 갱신된 행 수를 받아서, row가 없어 조용히 버려지는 경우를 로그로 남긴다.
+  const { error, count } = await supabase
     .from('customer_loyalty')
-    .update({ phone_encrypted: phoneEncrypted, phone_hash: phoneHash })
+    .update({ phone_encrypted: phoneEncrypted, phone_hash: phoneHash }, { count: 'exact' })
     .eq('kakao_user_id', kakaoUserId)
     .eq('store_id', storeId)
     .is('phone_hash', null)  // 이미 저장된 경우 덮어쓰지 않음
@@ -161,5 +168,9 @@ async function savePhoneNumber(kakaoUserId: string, storeId: string, rawPhone: s
   if (error) {
     // 업데이트 실패해도 로그인은 중단하지 않음
     console.warn('[kakao callback] 전화번호 업데이트 실패 (무시):', error.message)
+  } else if (count === 0) {
+    console.warn(
+      `[kakao callback] 전화번호 업데이트 대상 row 없음 (kakao_user_id=${kakaoUserId}, store_id=${storeId}) — customer_loyalty row 생성 실패 또는 이미 저장됨`
+    )
   }
 }
