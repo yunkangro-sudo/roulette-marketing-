@@ -284,6 +284,9 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [ ] **후속 확인 필요**: `NEXT_PUBLIC_APP_URL` 수정으로 카카오 쿠폰 메시지 버튼도 자동으로 같이 고쳐졌을 가능성이 높음(같은 환경변수를 씀) — 다음 세션에서 실제 쿠폰 메시지 버튼 2개가 정상 연결되는지 재확인할 것
 - [ ] **기존에 인쇄된 매장 QR 스티커 재발행 필요** — 도메인 수정 전에 뽑아서 매장에 이미 붙여둔 QR 스티커는 여전히 옛 vercel 주소를 담고 있음(리다이렉트로 작동은 하지만 느림). 매장별로 관리자 "이벤트 관리" 화면에서 새로 다운로드해서 교체 안내 필요
 
+### 2026-09-15 (크몽·쇼핑몰용 단독 상세페이지 `/promo`)
+- [x] 와디즈형 세로 스크롤 상세페이지를 `/promo`에 별도 제작. 카피 10섹션으로 압축, 손님 여정은 **로그인 없이 게임 → 카톡으로 쿠폰 확인**. CTA는 상담 신청 하나. 캐릭터/게임/관리자 화면은 기존 에셋 목업. 확정 카피: `docs/dangolting_detail_page_wadiz_style.md`
+
 ### 2026-09-11 (이벤트 도전 횟수 커스터마이징 + 후기 URL 확장 + PWA 홈화면 저장)
 - [x] `docs/migrations/058_challenge_frequency_custom_days.sql` — 이벤트 "도전 횟수"에서 고정 **주간/월간** 옵션 제거, **N일 직접입력**(`challenge_frequency='custom'` + `challenge_frequency_days`)으로 일반화. 기존 weekly/monthly 이벤트 2건은 각각 7일/30일 custom으로 백필해 동작 변화 없음. 관리자 UI: `1일1회` / `(숫자)일` / `무제한` 3칸 그리드, "매일" 문구 → **1일1회**로 변경
 - [x] `docs/migrations/059_naver_google_review_url.sql` — `store_contracts.naver_review_url`/`google_review_url` 추가. 업체정보 "매장 추가 정보"에 **네이버 후기쓰기 URL**·**구글 맵 후기쓰기 URL** 입력란 추가(광고주·슈퍼관리자 공통 `CompanyForm`). URL이 입력된 항목만 손님 쿠폰함(`/me/points`)에 버튼 동적 생성(당근 단골·당근/네이버/구글 후기, 최대 4개). 클릭 로그: `naver_review_click`/`google_review_click` (`activity_log_event_type_check` 갱신)

@@ -1,0 +1,68 @@
+.promo-page {
+  --p-green: #00c7a7;
+  --p-green-deep: #019c87;
+  --p-mint: #e3fbf6;
+  --p-ivory: #faf7f0;
+  --p-cream: #fff3de;
+  --p-gold: #d9a94f;
+  --p-ink: #222222;
+  --p-soft: #6b7280;
+  --p-line: #e7e3d8;
+  --p-bar: 64px;
+
+  background: var(--p-ivory);
+  color: var(--p-ink);
+  font-family: 'SUIT Variable', 'Pretendard Variable', sans-serif;
+}
+
+.promo-page ::selection {
+  background: rgba(0, 199, 167, 0.28);
+}
+
+.promo-col {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.promo-page h1,
+.promo-page h2 {
+  font-family: 'SUIT Variable', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.28;
+}
+
+.promo-hl {
+  background-image: linear-gradient(transparent 62%, rgba(0, 199, 167, 0.45) 62%);
+}
+
+.promo-hl-block {
+  display: inline;
+  background: rgba(0, 199, 167, 0.16);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.08em 0.2em;
+}
+
+.promo-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.promo-sticky a {
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-page * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

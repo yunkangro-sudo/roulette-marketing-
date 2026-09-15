@@ -14,7 +14,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/b/', '/guides', '/guides/getting-started', '/guides/how-it-works'],
+      allow: ['/', '/b/', '/guides', '/guides/getting-started', '/guides/how-it-works', '/promo'],
       // /guides/advertiser는 광고주 로그인 세션이 없으면 페이지 자체가 접근 차단되는
       // 비공개 콘텐츠라 검색엔진 크롤링도 명시적으로 막는다
       disallow: [
