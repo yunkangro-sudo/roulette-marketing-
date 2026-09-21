@@ -19,6 +19,7 @@ export async function GET(_req: Request, { params }: Params) {
     .from('events')
     .select('*, prize_tiers(*)')
     .eq('id', id)
+    .order('sort_order', { referencedTable: 'prize_tiers', ascending: true })
     .single()
 
   if (error || !event) return NextResponse.json({ error: '이벤트를 찾을 수 없습니다' }, { status: 404 })

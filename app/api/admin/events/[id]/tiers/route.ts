@@ -196,6 +196,7 @@ export async function PATCH(req: Request, { params }: Params) {
           total_quantity: newTotal,
           remaining_quantity: newRemaining,
           computed_probability: probabilities[i],
+          sort_order: i,
           ...(t.requires_verification !== undefined ? { requires_verification: t.requires_verification } : {}),
         })
         .eq('id', t.id)
@@ -230,6 +231,7 @@ export async function PATCH(req: Request, { params }: Params) {
           remaining_quantity: newTotal,
           computed_probability: probabilities[i],
           requires_verification: t.requires_verification ?? false,
+          sort_order: i,
         })
         .select('id')
         .single()

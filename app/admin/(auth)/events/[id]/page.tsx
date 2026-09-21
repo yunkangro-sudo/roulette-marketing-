@@ -12,6 +12,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .from('events')
     .select('*, prize_tiers(*)')
     .eq('id', id)
+    .order('sort_order', { referencedTable: 'prize_tiers', ascending: true })
     .single()
 
   if (!event) notFound()

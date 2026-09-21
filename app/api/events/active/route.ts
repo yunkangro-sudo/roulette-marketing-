@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     .select('label, amount')
     .eq('event_id', event.id)
     .neq('label', '꽝')
-    .order('amount', { ascending: true })
+    .order('sort_order', { ascending: true })
 
   if (tiersError) {
     return NextResponse.json({ error: '경품 정보 조회 실패' }, { status: 500 })

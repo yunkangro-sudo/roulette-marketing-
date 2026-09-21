@@ -47,7 +47,7 @@ async function loadData(storeId: string) {
       .select('label')
       .eq('event_id', effectiveEvent.id)
       .neq('label', '꽝')
-      .order('amount', { ascending: true })
+      .order('sort_order', { ascending: true })
     tiers = data ?? []
   }
 

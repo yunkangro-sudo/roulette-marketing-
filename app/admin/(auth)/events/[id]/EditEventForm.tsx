@@ -15,6 +15,7 @@ interface PrizeTier {
   remaining_quantity: number
   computed_probability: number
   requires_verification: boolean
+  sort_order?: number
 }
 
 /** 편집용 티어 상태. id가 null이면 아직 서버에 저장되지 않은 신규 티어 */
@@ -99,7 +100,9 @@ export default function EditEventForm({ event }: { event: Event }) {
   // 경품 티어 편집 상태 (등급명 · 금액 · 총수량 수정 + 티어 추가/삭제)
   const [tierMode, setTierMode] = useState<PrizeTierMode>(event.prize_tier_mode ?? 'quantity')
   const [tiers, setTiers] = useState<EditableTier[]>(
-    (event.prize_tiers ?? []).map((t) => ({ ...t, tempKey: t.id, probability_percent: t.computed_probability }))
+    [...(event.prize_tiers ?? [])]
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((t) => ({ ...t, tempKey: t.id, probability_percent: t.computed_probability }))
   )
   const [deletedTierIds, setDeletedTierIds] = useState<string[]>([])
   const [tiersError, setTiersError] = useState('')

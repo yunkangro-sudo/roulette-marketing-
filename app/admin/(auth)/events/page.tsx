@@ -13,8 +13,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   const supabase = createServerClient()
   let query = supabase
     .from('events')
-    .select('id, store_id, name, status, display_start_date, display_end_date, prize_tiers(label, amount, total_quantity, computed_probability, requires_verification)')
+    .select('id, store_id, name, status, display_start_date, display_end_date, prize_tiers(label, amount, total_quantity, computed_probability, requires_verification, sort_order)')
     .order('created_at', { ascending: false })
+    .order('sort_order', { referencedTable: 'prize_tiers', ascending: true })
 
   if (filterStoreId) query = query.eq('store_id', filterStoreId)
 

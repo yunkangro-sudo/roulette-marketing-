@@ -185,6 +185,7 @@ export async function POST(request: Request) {
       remaining_quantity: qty,
       computed_probability: probabilities[i],
       requires_verification: true,
+      sort_order: i,
     }
   })
 
