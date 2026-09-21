@@ -240,9 +240,6 @@ export const BANK_ACCOUNT = {
 export const WELCOME_GIFT_LABEL = '포인트 카탈로그 1개 무료 추가'
 
 export const ROI_ASSUMPTIONS = {
-  revisitRate: 0.12,
-  benefitPerGuest: 2_000,
-  spendPerGuest: 19_000,
   sliderMin: 20,
   sliderMax: 300,
   sliderStep: 10,
@@ -252,6 +249,24 @@ export const ROI_ASSUMPTIONS = {
   sliderHints: [20, 100, 200, 300] as const,
   /** 하루 단위 입력값을 월간 예상치로 환산할 때 쓰는 기준 일수 */
   daysPerMonth: 30,
+} as const
+
+/** 좌측 고정 예시 카드("하루 게임 참여 100명 기준") 전용 가정치.
+ *  우측 인터랙티브 슬라이더 카드와 서로 다른 재방문율을 쓰기 때문에 분리한다
+ *  (2026-09: 좌측 카드 예시 수치를 2배로 올리기 위해 재방문율만 12%→24%로 조정). */
+export const ROI_EXAMPLE_ASSUMPTIONS = {
+  revisitRate: 0.24,
+  benefitPerGuest: 2_000,
+  spendPerGuest: 19_000,
+} as const
+
+/** 우측 인터랙티브 슬라이더 카드 전용 가정치.
+ *  (2026-09: 카드 결과값을 전반적으로 끌어올리기 위해 평균 결제만 19,000원→27,000원으로 조정.
+ *  재방문율(12%)·1인당 혜택(2,000원)은 좌측 카드와 동일하게 유지) */
+export const ROI_INTERACTIVE_ASSUMPTIONS = {
+  revisitRate: 0.12,
+  benefitPerGuest: 2_000,
+  spendPerGuest: 27_000,
 } as const
 
 export const DEMO_PRIZES = [10_000, 2_000, 1_000] as const

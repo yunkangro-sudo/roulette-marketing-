@@ -1,19 +1,46 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ROI_ASSUMPTIONS, formatWon } from '@/lib/landing-v5/config'
+import { MessageCircle, HeartHandshake, Search, Star } from 'lucide-react'
+import { ROI_ASSUMPTIONS, ROI_EXAMPLE_ASSUMPTIONS, ROI_INTERACTIVE_ASSUMPTIONS, formatWon } from '@/lib/landing-v5/config'
+
+/** 경품(쿠폰) 하나가 나갈 때 매장이 함께 얻는 4가지 부수 효과 — 두 비교 카드 바로 아래
+ *  강조 배너에서 보여준다. 손익 계산만으로는 안 보이는 "채널·신뢰 자산"을 짚어준다. */
+const BENEFIT_ITEMS = [
+  {
+    icon: MessageCircle,
+    title: '카카오 친구 추가',
+    body: '손님에게 매번 다시 알릴 수 있는 우리 매장 전용 채널이 하나 생깁니다',
+  },
+  {
+    icon: HeartHandshake,
+    title: '당근 단골 추가',
+    body: '동네 안에서 우리 매장의 존재감과 신뢰도가 함께 쌓입니다',
+  },
+  {
+    icon: Search,
+    title: '네이버 후기',
+    body: '처음 검색하는 손님이 매장을 선택하는 바로 그 순간에 나타납니다',
+  },
+  {
+    icon: Star,
+    title: '당근마켓 후기',
+    body: '"실제로 가본 이웃이 인증한 매장"이라는 신뢰를 동네에 남깁니다',
+  },
+] as const
 
 /** "데이터로 증명" 섹션 하단에 이어붙는 손익 계산 블록. PC/모바일 모두 항상 펼쳐서 보여준다. */
 export default function RoiCalculator() {
   const { sliderMin, sliderMax, sliderStep, sliderDefault, exampleGuests } = ROI_ASSUMPTIONS
   const [dailyGuests, setDailyGuests] = useState<number>(sliderDefault)
 
-  const live = useMemo(() => calc(dailyGuests), [dailyGuests])
-  const example = useMemo(() => calc(exampleGuests), [exampleGuests])
+  const live = useMemo(() => calc(dailyGuests, ROI_INTERACTIVE_ASSUMPTIONS), [dailyGuests])
+  const example = useMemo(() => calc(exampleGuests, ROI_EXAMPLE_ASSUMPTIONS), [exampleGuests])
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <article className="border border-dg-line bg-white p-6 md:p-8" style={{ borderRadius: 6 }}>
+    <div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <article className="border border-dg-line bg-white p-6 md:p-8" style={{ borderRadius: 6 }}>
         <p className="text-[13px] font-semibold text-dg-ink-soft">
           하루 게임 참여 {exampleGuests}명 기준, 한 달 예상
         </p>
@@ -83,20 +110,52 @@ export default function RoiCalculator() {
         </dl>
 
         <p className="mt-6 text-[12px] leading-relaxed text-white/40">
-          재방문율 {(ROI_ASSUMPTIONS.revisitRate * 100).toFixed(0)}%, 1인당 평균 혜택{' '}
-          {formatWon(ROI_ASSUMPTIONS.benefitPerGuest)}, 평균 결제 {formatWon(ROI_ASSUMPTIONS.spendPerGuest)},
-          한 달 {ROI_ASSUMPTIONS.daysPerMonth}일 운영 가정
+          재방문율 {(ROI_INTERACTIVE_ASSUMPTIONS.revisitRate * 100).toFixed(0)}%, 1인당 평균 혜택{' '}
+          {formatWon(ROI_INTERACTIVE_ASSUMPTIONS.benefitPerGuest)}, 평균 결제{' '}
+          {formatWon(ROI_INTERACTIVE_ASSUMPTIONS.spendPerGuest)}, 한 달 {ROI_ASSUMPTIONS.daysPerMonth}일 운영 가정
         </p>
       </article>
+    </div>
+
+    {/* 손익 계산만으로는 안 보이는 부수 효과 강조 — 두 비교 카드 바로 아래 이어붙인다 */}
+    <div className="mt-8 border-l-4 border-dg-green bg-dg-green-tint px-6 py-7 md:px-8 md:py-8" style={{ borderRadius: 8 }}>
+      <h3 className="text-center text-[19px] font-bold leading-snug text-dg-ink md:text-[21px]">
+        혜택 하나 드릴 때마다, <span className="text-dg-green-deep">매장은 4가지를 동시에 얻습니다</span>
+      </h3>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {BENEFIT_ITEMS.map(({ icon: Icon, title, body }) => (
+          <div key={title} className="flex items-start gap-3 border border-dg-line bg-white p-4" style={{ borderRadius: 6 }}>
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dg-green-tint text-dg-green-deep">
+              <Icon size={18} strokeWidth={1.75} />
+            </span>
+            <div>
+              <p className="text-[14px] font-bold text-dg-ink">{title}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-dg-ink-soft">{body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-[14px] font-semibold leading-relaxed text-dg-ink">
+        경품 하나가 나갈 때마다, 우리 매장은 신규 손님을 불러오는 광고판을 하나씩 늘려가는 셈입니다.
+      </p>
+    </div>
     </div>
   )
 }
 
-/** dailyGuests(하루 평균 손님 수) 기준으로 한 달(daysPerMonth) 예상 손익을 계산한다. */
-function calc(dailyGuests: number) {
-  const dailyRevisits = Math.round(dailyGuests * ROI_ASSUMPTIONS.revisitRate)
-  const dailyCost = dailyRevisits * ROI_ASSUMPTIONS.benefitPerGuest
-  const dailyRevenue = dailyRevisits * ROI_ASSUMPTIONS.spendPerGuest
+type RoiAssumptions = {
+  revisitRate: number
+  benefitPerGuest: number
+  spendPerGuest: number
+}
+
+/** dailyGuests(하루 평균 손님 수) 기준으로 한 달(daysPerMonth) 예상 손익을 계산한다.
+ *  좌측 고정 예시 카드와 우측 인터랙티브 슬라이더 카드가 서로 다른 가정치를 쓰므로
+ *  assumptions를 인자로 받는다. */
+function calc(dailyGuests: number, assumptions: RoiAssumptions) {
+  const dailyRevisits = Math.round(dailyGuests * assumptions.revisitRate)
+  const dailyCost = dailyRevisits * assumptions.benefitPerGuest
+  const dailyRevenue = dailyRevisits * assumptions.spendPerGuest
   const days = ROI_ASSUMPTIONS.daysPerMonth
 
   return {
