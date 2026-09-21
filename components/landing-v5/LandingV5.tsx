@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import './landing-v5.css'
 import Navbar from './Navbar'
 import Hero from './Hero'
@@ -16,7 +17,6 @@ import {
   KakaoChannelSection,
   ChannelTrust,
   HomepageServiceSection,
-  PricingSection,
   FinalCta,
   Footer,
 } from './Sections'
@@ -26,6 +26,13 @@ import BottomBar from './BottomBar'
 import { SHOW_CLIENT_SHOWCASE } from '@/lib/landing-v5/config'
 
 export default function LandingV5() {
+  // 예전 랜딩 앵커(/#pricing)로 들어온 경우 전용 페이지로 보낸다
+  useEffect(() => {
+    if (window.location.hash === '#pricing') {
+      window.location.replace('/pricing')
+    }
+  }, [])
+
   return (
     <div className="landing-v5 min-h-screen">
       <Navbar />
@@ -44,7 +51,6 @@ export default function LandingV5() {
         <ChannelTrust />
         {SHOW_CLIENT_SHOWCASE && <ClientsSection />}
         <HomepageServiceSection />
-        <PricingSection />
         <FaqSection />
         <FinalCta />
       </main>

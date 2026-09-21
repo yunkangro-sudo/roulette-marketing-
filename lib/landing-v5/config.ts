@@ -312,7 +312,7 @@ export const SHOW_CLIENT_SHOWCASE = false
 export const NAV_LINKS = [
   { href: '#service', label: '서비스' },
   { href: '#process', label: '프로세스' },
-  { href: '#pricing', label: '요금제' },
+  { href: '/pricing', label: '요금제 계산' },
   ...(SHOW_CLIENT_SHOWCASE ? [{ href: '#stories', label: '도입사례' }] : []),
 ] as const
 

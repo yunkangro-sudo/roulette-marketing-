@@ -1370,7 +1370,7 @@ export function Footer() {
             <ul className="mt-4 space-y-3 text-[14px] text-dg-ink-soft">
               <li><a href="#service" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">단골팅 게임</a></li>
               <li><a href="#process" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">작동 원리</a></li>
-              <li><a href="#pricing" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">요금제</a></li>
+              <li><a href="/pricing" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">요금제 계산</a></li>
               <li><a href="#proof" className="inline-flex min-h-[24px] items-center hover:text-dg-ink">도입 효과</a></li>
             </ul>
           </div>

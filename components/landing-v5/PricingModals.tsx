@@ -550,9 +550,9 @@ const REASSURANCE_ITEMS = [
   '숨겨진 비용 없음 — 표시된 가격이 전부, 추가 청구 없음',
 ]
 
-/** 요금제 계산기 팝업 — 상단 내비게이션 "요금제" 클릭, 또는 요금제 섹션의 "요금제 계산 안내"
+/** 요금제 계산기 팝업 — 햄버거 「가입 신청하기」, 또는 요금제 페이지의 「요금제 계산 안내」
  *  버튼으로 열린다. 상품 데이터는 CALCULATOR_PRODUCTS(=PRICING/CONTENT_OPS/HOMEPAGE_SERVICE를
- *  그대로 참조) 하나만 쓰기 때문에 요금제 섹션 카드와 숫자가 어긋날 일이 없다. */
+ *  그대로 참조) 하나만 쓰기 때문에 요금제 카드와 숫자가 어긋날 일이 없다. */
 export function PricingCalculatorModal({ onClose }: Props) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<CalcPhase>('select')

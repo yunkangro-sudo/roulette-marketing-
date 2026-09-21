@@ -116,22 +116,11 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* 정보성 메뉴 — 리스트 형태. "요금제"만 앵커 스크롤 대신 요금제 계산기 팝업을 연다 */}
+            {/* 정보성 메뉴 — 랜딩 앵커(#service 등)는 홈으로 이동 후 스크롤,
+                독립 페이지(/pricing)는 해당 경로로 바로 이동한다. */}
             <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3" aria-label="정보 메뉴">
               {NAV_LINKS.map((link) =>
-                link.href === '#pricing' ? (
-                  <button
-                    key={link.href}
-                    type="button"
-                    onClick={() => {
-                      close()
-                      setCalculatorOpen(true)
-                    }}
-                    className="rounded-lg px-3 py-3 text-left text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
-                  >
-                    {link.label}
-                  </button>
-                ) : (
+                link.href.startsWith('#') ? (
                   <a
                     key={link.href}
                     href={`/${link.href}`}
@@ -140,6 +129,15 @@ export default function Navbar() {
                   >
                     {link.label}
                   </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={close}
+                    className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
+                  >
+                    {link.label}
+                  </Link>
                 )
               )}
               <Link
@@ -166,7 +164,7 @@ export default function Navbar() {
             </nav>
 
             {/* 가입 신청하기 — 맨 아래, 강조 CTA. 중간 페이지 이동 없이 한 번의 클릭으로
-                요금제 계산기 팝업이 바로 열리게 연결한다(요금제 메뉴 항목과 동일한 패턴). */}
+                요금제 계산기 팝업이 바로 열린다. */}
             <div
               className="shrink-0 border-t border-dg-line p-5"
               style={{ paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' }}
