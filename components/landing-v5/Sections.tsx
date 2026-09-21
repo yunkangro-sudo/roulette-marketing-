@@ -1066,18 +1066,16 @@ export function PricingSection() {
           </motion.article>
         </div>
 
-        {/* Section C — 구분선 + 라벨: 아래는 선택 사항인 부가서비스임을 톤 다운해서 안내.
-            구분선만 눈에 띄고 텍스트가 묻히던 문제를 개선하려 카드 헤드라인(24~26px)의
-            약 65~70% 크기로 확대하고, 상하 여백도 함께 늘려 섹션 제목으로서 존재감을 준다. */}
+        {/* Section C — 구분선 + 라벨: 아래가 선택 부가서비스임을 섹션 제목 수준으로 분명히 보여준다. */}
         <div className="mt-20 flex items-center gap-4">
-          <span className="h-px flex-1 bg-dg-line" aria-hidden />
-          <div className="shrink-0 px-1 text-center">
-            <p className="text-[17px] font-bold text-dg-ink-soft sm:text-[18px]">부가서비스 (선택)</p>
-            <p className="mt-1.5 text-[13px] text-dg-ink-soft/70">
+          <span className="h-px flex-1 bg-dg-ink/20" aria-hidden />
+          <div className="shrink-0 px-2 text-center">
+            <p className="text-[22px] font-extrabold leading-tight text-dg-ink sm:text-[26px]">부가서비스 (선택)</p>
+            <p className="mt-2 text-[15px] font-semibold leading-snug text-dg-ink sm:text-[16px]">
               단골마케팅과 함께, 또는 나중에 필요할 때 추가하세요
             </p>
           </div>
-          <span className="h-px flex-1 bg-dg-line" aria-hidden />
+          <span className="h-px flex-1 bg-dg-ink/20" aria-hidden />
         </div>
 
         {/* Section C — 부가서비스 2종: 당근마케팅 / 홈피마케팅. 서로 동일한 크기·톤으로
