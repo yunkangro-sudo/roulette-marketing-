@@ -266,9 +266,7 @@ export type Client = {
 
 /** 실제 로고 파일이 준비되면 logoUrl에 경로만 채우면 자동으로 이미지로 렌더링된다. */
 export const CLIENTS: Client[] = [
-  { name: '촌놈칩스', logoUrl: null, category: '분식·스낵' },
   { name: '모서릿집', logoUrl: null, category: '분식·스낵' },
-  { name: '미진숯불막창', logoUrl: null, category: '분식·스낵' },
   { name: '카옵션', logoUrl: null, category: '분식·스낵' },
   { name: '정육집', logoUrl: null, category: '분식·스낵' },
   { name: '육플러스참숯', logoUrl: null, category: '분식·스낵' },
