@@ -25,9 +25,9 @@ type ServiceCard = {
 function addon(id: (typeof CONTENT_OPS_ADDONS)[number]['id']) {
   const item = CONTENT_OPS_ADDONS.find((a) => a.id === id)!
   const priceLabel =
-    item.kind === 'monthly'
-      ? `${item.freqLabel} · ${formatWon(item.price)}`
-      : `${item.freqLabel} ${formatWon(item.price)}`
+    item.kind === 'setup'
+      ? `${item.freqLabel} ${formatWon(item.price)}`
+      : `${item.freqLabel} · ${formatWon(item.price)}`
   return { name: item.name, priceLabel }
 }
 

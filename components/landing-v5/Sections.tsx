@@ -1102,26 +1102,29 @@ export function PricingSection() {
             <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{contentOps.tagline}</p>
 
             {/* 헤드라인 가격 — 홈피마케팅의 "270,000원"과 동일한 위치·크기·굵기.
-                정기(월 발행) 서비스인 바이럴 콘텐츠 운영 가격을 대표값으로 쓰고,
+                바이럴 콘텐츠 운영 패키지 가격을 대표값으로 쓰고,
                 1회성 항목(비즈프로필 최적화 등)은 대표값으로 쓰지 않는다. */}
             <div className="mt-6">
               <p className="font-num text-[32px] font-bold leading-none text-dg-carrot sm:text-[36px]">
-                월 {formatWon(CONTENT_OPS.items[0].price)}
+                {formatWon(CONTENT_OPS.items[0].price)}
+              </p>
+              <p className="mt-2 text-[13px] leading-relaxed text-dg-ink-soft">
+                매달 자동으로 결제되는 구독이 아니라, 필요하실 때 신청하시는 콘텐츠 운영 패키지입니다.
               </p>
               <p className="mt-2 text-[13px] text-dg-ink-soft">
-                콘텐츠 운영 · {CONTENT_OPS.items[0].freq} 발행 기준
+                콘텐츠 운영 패키지 · {CONTENT_OPS.items[0].freq} 발행 기준
               </p>
             </div>
 
-            {/* 항목별 개별 가격 — 그룹 총액 대신 각 항목의 실제 청구 방식(1회/월 정기)을
+            {/* 항목별 개별 가격 — 그룹 총액 대신 각 항목의 실제 청구 방식(1회/패키지)을
                 그대로 보여줘서 계산기 팝업·성장 페이지와 동일한 정보를 전달한다. 위 대표
                 가격보다는 한 단계 낮은 위계로 보이도록 서비스명을 작고 옅은 톤으로 처리한다. */}
             <div className="mt-6 space-y-4 border-t border-dg-line pt-5">
               {CONTENT_OPS_ADDONS.map((item, i) => {
                 const priceLabel =
-                  item.kind === 'monthly'
-                    ? `${item.freqLabel} 발행 · ${formatWon(item.price)}`
-                    : `${item.freqLabel} ${formatWon(item.price)}`
+                  item.kind === 'setup'
+                    ? `${item.freqLabel} ${formatWon(item.price)}`
+                    : `${item.freqLabel} · ${formatWon(item.price)}`
                 return (
                   <div key={item.id} className={i > 0 ? 'border-t border-dg-line pt-4' : ''}>
                     <p className="text-[13.5px] font-medium text-dg-ink-soft">{item.name}</p>

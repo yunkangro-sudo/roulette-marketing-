@@ -70,7 +70,8 @@ export const CONTENT_OPS = {
   items: [
     {
       title: '바이럴 콘텐츠 운영',
-      freq: '월 4회',
+      freq: '4회',
+      packageLabel: '4회 발행 패키지',
       price: 150_000,
       features: [
         '주 1회 후킹 콘텐츠 기획',
@@ -80,7 +81,8 @@ export const CONTENT_OPS = {
     },
     {
       title: '쇼츠 제작 · 스토리 운영',
-      freq: '월 2회',
+      freq: '2회',
+      packageLabel: '2회 발행 패키지',
       price: 180_000,
       features: ['매장 쇼츠 영상 제작', '당근 스토리 콘텐츠 발행 및 운영', '사진과 영상은 광고주가 제공'],
     },
@@ -103,7 +105,9 @@ export const CONTENT_OPS = {
  *  요금제 계산기의 02번 그룹 체크박스 4개가 동일한 상품·동일한 금액을 보여줘야 하므로
  *  이름·가격·원시 빈도 표기를 여기 한 곳에서만 정의하고 두 화면이 그대로 참조한다.
  *  최종 문구(예: "· 발행" 등 꾸밈)는 화면마다 톤이 달라 각자 조합하되, 숫자는 절대 다시
- *  하드코딩하지 않는다. kind: 'setup'은 최초 결제 금액에, 'monthly'는 매월 결제 금액에 더해진다. */
+ *  하드코딩하지 않는다.
+ *  kind: 'setup'·'package'는 신청 시 1회 결제(최초 결제 금액),
+ *  'monthly'는 매월 결제 금액에 더해진다. 바이럴·쇼츠는 구독이 아니라 패키지 1회 결제이므로 package. */
 export const CONTENT_OPS_ADDONS = [
   {
     id: 'biz-profile',
@@ -125,16 +129,16 @@ export const CONTENT_OPS_ADDONS = [
     id: 'viral',
     name: CONTENT_OPS.items[0].title,
     price: CONTENT_OPS.items[0].price,
-    freqLabel: CONTENT_OPS.items[0].freq,
-    kind: 'monthly' as const,
+    freqLabel: CONTENT_OPS.items[0].packageLabel,
+    kind: 'package' as const,
     note: null as string | null,
   },
   {
     id: 'shorts',
     name: CONTENT_OPS.items[1].title,
     price: CONTENT_OPS.items[1].price,
-    freqLabel: CONTENT_OPS.items[1].freq,
-    kind: 'monthly' as const,
+    freqLabel: CONTENT_OPS.items[1].packageLabel,
+    kind: 'package' as const,
     note: null as string | null,
   },
 ] as const

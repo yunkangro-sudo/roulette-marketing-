@@ -573,21 +573,15 @@ export function PricingCalculatorModal({ onClose }: Props) {
   const homepageSelected = !!selected.homepage
   const selectedAddons = CONTENT_OPS_ADDONS.filter((a) => selected[a.id])
 
-  const addonSetupTotal = selectedAddons
-    .filter((a) => a.kind === 'setup')
-    .reduce((sum, a) => sum + a.price, 0)
-  const addonMonthlyTotal = selectedAddons
-    .filter((a) => a.kind === 'monthly')
-    .reduce((sum, a) => sum + a.price, 0)
+  const addonOneTimeTotal = selectedAddons.reduce((sum, a) => sum + a.price, 0)
 
-  // 당근마케팅 월정액 항목(바이럴 콘텐츠 운영·쇼츠 제작)도 오늘 가입하면 첫 달 이용료를
-  // 바로 결제해야 하므로, 매월 결제금액뿐 아니라 최초 결제금액에도 첫 달분을 더한다.
+  // 당근마케팅 항목은 전부 신청 시 1회 결제라서 최초 결제금액에만 더한다.
+  // 이후 매월 금액은 단골팅 기본 상품(및 홈피 유지비가 있는 경우)만 포함한다.
   const initialTotal =
     basicProduct.setupFee +
-    addonSetupTotal +
-    addonMonthlyTotal +
+    addonOneTimeTotal +
     (homepageSelected ? homepageProduct.setupFee : 0)
-  const monthlyTotal = basicProduct.monthly + addonMonthlyTotal + (homepageSelected ? homepageProduct.monthly : 0)
+  const monthlyTotal = basicProduct.monthly + (homepageSelected ? homepageProduct.monthly : 0)
 
   const selectedProductNames = [
     basicProduct.name,
@@ -703,9 +697,9 @@ export function PricingCalculatorModal({ onClose }: Props) {
                 {CONTENT_OPS_ADDONS.map((a) => {
                   const isSelected = !!selected[a.id]
                   const priceLabel =
-                    a.kind === 'monthly'
-                      ? `${a.freqLabel} 발행 · ${formatWon(a.price)}`
-                      : `${a.freqLabel} ${formatWon(a.price)}`
+                    a.kind === 'setup'
+                      ? `${a.freqLabel} ${formatWon(a.price)}`
+                      : `${a.freqLabel} · ${formatWon(a.price)}`
                   return (
                     <button
                       key={a.id}
