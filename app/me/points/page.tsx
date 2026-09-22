@@ -371,7 +371,7 @@ function PointsContent() {
         {/* 리워드 교환 — 안내문구는 제목 바로 윗줄 */}
         <div>
           {couponUsageNotice && (
-            <p className="mb-3 whitespace-pre-wrap text-[15px] font-bold leading-relaxed text-[#222222]">
+            <p className="mb-4 whitespace-pre-wrap rounded-xl border-2 border-[#00C7A7] bg-white px-4 py-3.5 text-[15px] font-semibold leading-relaxed text-[#222222] shadow-sm">
               {couponUsageNotice}
             </p>
           )}
