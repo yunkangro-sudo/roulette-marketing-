@@ -79,6 +79,7 @@ export default function AdminNav({
     ? [
         { href: '/admin/events',            label: '이벤트 관리', variant: 'solid-green' },
         { href: '/admin/dashboard',         label: '대시보드' },
+        { href: '/admin/prize-report',      label: '경품 세팅 리포트' },
         { href: '/admin/company',           label: '업체 정보' },
         { href: '/admin/members',           label: '회원 관리' },
         { href: '/admin/loyalty-settings',  label: '포인트 정책' },
