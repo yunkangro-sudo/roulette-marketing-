@@ -84,15 +84,19 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, kaka
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.35 }}
           >
-            <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
-              {result.coupon
-                ? ctaMode === 'daangn'
+            {result.coupon ? (
+              <h2 className="whitespace-nowrap text-base font-bold text-[#222222]">
+                {ctaMode === 'daangn'
                   ? '당근마켓 단골 추가시 쿠폰 사용가능'
-                  : '카카오톡 채널 추가시 쿠폰 사용가능'
-                : ctaMode === 'daangn'
-                  ? '아쉽게 꽝이에요. 당근마켓 단골을 추가하고 다음 기회를 노려보세요!'
-                  : '아쉽게 꽝이에요. 카카오톡 채널을 추가하고 다음 기회를 노려보세요!'}
-            </h2>
+                  : '카카오톡 채널 추가시 쿠폰 사용가능'}
+              </h2>
+            ) : (
+              <h2 className="text-center text-base font-bold leading-snug text-[#222222]">
+                내 쿠폰함에서
+                <br />
+                포인트로 사용 가능한 경품을 확인하세요!
+              </h2>
+            )}
           </motion.div>
         )}
 
@@ -134,15 +138,22 @@ export default function VerificationCtaScreen({ result, onClose, daangnUrl, kaka
             className="w-full max-w-sm space-y-3"
           >
             {ctaMode === 'daangn' ? (
-              <a
-                href={daangnUrl!}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={trackDaangnClick}
-                className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
-              >
-                당근에서 단골 추가하기
-              </a>
+              <>
+                <a
+                  href={daangnUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={trackDaangnClick}
+                  className="block w-full rounded-full bg-orange-500 px-10 py-4 text-center text-base font-bold text-white transition-colors hover:bg-orange-400"
+                >
+                  당근에서 단골 추가하기
+                </a>
+                {!result.coupon && (
+                  <p className="text-center text-sm font-medium text-[#222222]/75">
+                    [쿠폰 사용시 단골 추가가 필요합니다.]
+                  </p>
+                )}
+              </>
             ) : (
               <a
                 href={kakaoChannelUrl!}
