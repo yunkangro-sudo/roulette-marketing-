@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import MiniLineChart from '@/components/admin/MiniLineChart'
@@ -9,7 +9,7 @@ import CouponsTabsClient from '@/app/admin/(auth)/coupons/CouponsTabsClient'
 import ReportClient from '@/app/admin/(auth)/report/ReportClient'
 
 type Range = 'today' | 'week' | 'month' | 'custom'
-type Tab = 'overview' | 'coupons' | 'report'
+type Tab = 'overview' | 'coupons' | 'report' | 'prize'
 
 interface SubscriptionStatus {
   status: 'trial' | 'active' | 'grace' | 'expired'
@@ -56,13 +56,20 @@ const TAB_OPTIONS: { value: Tab; label: string }[] = [
   { value: 'overview', label: '개요' },
   { value: 'coupons',  label: '쿠폰 현황' },
   { value: 'report',   label: '성과 리포트' },
+  { value: 'prize',    label: '경품 세팅 리포트' },
 ]
 
-export default function AdvertiserDashboardClient({ storeId }: { storeId: string | null }) {
+export default function AdvertiserDashboardClient({
+  storeId,
+  prizeReport,
+}: {
+  storeId: string | null
+  prizeReport: ReactNode
+}) {
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab')
   const [tab, setTab] = useState<Tab>(
-    initialTab === 'coupons' || initialTab === 'report' ? initialTab : 'overview'
+    initialTab === 'coupons' || initialTab === 'report' || initialTab === 'prize' ? initialTab : 'overview'
   )
   const [range, setRange] = useState<Range>('today')
   const [customFrom, setCustomFrom] = useState('')
@@ -126,7 +133,7 @@ export default function AdvertiserDashboardClient({ storeId }: { storeId: string
       )}
 
       {/* 서브탭 */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         {TAB_OPTIONS.map((opt) => (
           <button key={opt.value} onClick={() => setTab(opt.value)}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap ${
@@ -137,8 +144,8 @@ export default function AdvertiserDashboardClient({ storeId }: { storeId: string
         ))}
       </div>
 
-      {/* 공통 기간 필터 — 개요/쿠폰 현황 탭에서만 사용. 성과 리포트는 연/월 단위라 성격이 달라 자체 선택기를 쓴다 */}
-      {tab !== 'report' && (
+      {/* 공통 기간 필터 — 개요/쿠폰 현황 탭에서만 사용. 성과·경품 세팅 리포트는 기간과 무관해서 숨긴다 */}
+      {(tab === 'overview' || tab === 'coupons') && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
           <div className="flex gap-2">
             {RANGE_OPTIONS.map((opt) => (
@@ -206,6 +213,8 @@ export default function AdvertiserDashboardClient({ storeId }: { storeId: string
       {tab === 'report' && (
         <ReportClient role="advertiser" storeId={storeId} embedded />
       )}
+
+      {tab === 'prize' && prizeReport}
     </div>
   )
 }

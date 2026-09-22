@@ -292,6 +292,16 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [x] `docs/migrations/059_naver_google_review_url.sql` — `store_contracts.naver_review_url`/`google_review_url` 추가. 업체정보 "매장 추가 정보"에 **네이버 후기쓰기 URL**·**구글 맵 후기쓰기 URL** 입력란 추가(광고주·슈퍼관리자 공통 `CompanyForm`). URL이 입력된 항목만 손님 쿠폰함(`/me/points`)에 버튼 동적 생성(당근 단골·당근/네이버/구글 후기, 최대 4개). 클릭 로그: `naver_review_click`/`google_review_click` (`activity_log_event_type_check` 갱신)
 - [x] **내 쿠폰함 — 홈화면 저장(PWA) 버튼** — 매장별 동적 manifest(`GET /api/pwa-manifest?store_id=`), 최소 서비스워커(`public/sw.js`, **캐싱 없음**), PWA 아이콘 192/512(maskable) 생성. `/me/points` 상단 업체명 옆 **홈화면에 추가** 버튼(매장 홈페이지 버튼과 같은 줄). 기기별 분기: 안드로이드(크롬 `beforeinstallprompt` 있으면 표준 설치창, 없으면 크롬 메뉴 안내 팝업) / iOS(공유→홈 화면에 추가 안내) / 카카오톡 등 인앱(다른 브라우저로 열기 안내) / PC(버튼 숨김). `start_url`: `/me/points?store_id={storeId}` (매장명으로 앱 이름 구분). 후속 수정: SW/manifest/이벤트 리스너를 로그인·데이터 로딩과 무관하게 페이지 로드 즉시 실행(`lib/pwa/pwaInstall.ts`), 안드로이드는 `beforeinstallprompt` 미발생 시에도 버튼 노출
 
+### 2026-09-14 (슈퍼관리자 대시보드 — 샘플·테스트 매장 통계 제외)
+- [x] **원인**: 대시보드가 `is_demo=true`만 빼고 있어서, `store_contracts`에 등록되지 않은 테스트 고아 데이터(`__test_rebalance_store__`의 `activity_log`)가 매장별 참여자 TOP10·리워드 유형 비율에 그대로 잡힘
+- [x] **수정**: `app/api/admin/super/dashboard/route.ts`를 "실제 등록되어 있고 데모가 아닌 매장만" 포함하는 화이트리스트로 변경. 등록되지 않은 테스트 데이터가 다시 생겨도 통계에 안 잡힘. 해당 테스트 `activity_log`는 DB에서 삭제
+- [x] 샘플 레퍼런스 매장 자체는 유지. 재생성은 슈퍼관리자 메뉴의 수동 버튼(`POST /api/admin/super/demo-stores/regenerate`)만 사용하고, 매일 자동으로 도는 배치는 없음
+
+### 2026-09-22 (요금제 계산기 + 카카오 전화번호 저장 + 경품 세팅 리포트)
+- [x] **요금제 계산기** — 세팅 포함 문구를 "이벤트 홍보 포스터 또는 X배너"로 변경. 당근마케팅 월 옵션(바이럴 콘텐츠·쇼츠/스토리)을 선택하면 첫 달 요금이 **최초 결제금액**에도 합산되도록 수정(이전에는 이후 매월 결제금액에만 더해짐). "프로모션 기간 중 기준 · VAT 포함" 아래에 **의무약정기간 없음. 1개월만도 사용가능!** 강조 문구 추가
+- [x] **카카오 첫 로그인 전화번호 누락 수정** — `savePhoneNumber`는 `customer_loyalty`를 UPDATE하는데, 첫 로그인에서는 그 row를 만드는 `trackKakaoLogin`보다 먼저 실행되고 await도 안 되어 번호가 조용히 버려짐. 순서를 바꿔 row를 먼저 만든 뒤 전화번호를 저장하고, 대상 row가 0건이면 경고 로그를 남기도록 함 (`app/api/auth/kakao/callback/route.ts`)
+- [x] **경품 세팅 현황 리포트 신규** — 대시보드 하부 탭(개요 / 쿠폰 현황 / 성과 리포트 **옆**). 예전 주소 `/admin/prize-report`는 이 탭으로 이동. 오늘 노출 기간 안의 `active` 이벤트 중 가장 최근 1개를 기준으로 A 이벤트 기본정보 / B 경품 티어(수량·확률 모드, 장기운영, 재고 소진 경고, 확률 합계) / C 리워드 카탈로그 / D 포인트 정책을 한 화면에 표시. 진행 중 이벤트가 없으면 안내 문구. 대리접속 포함 광고주만 접근
+
 ### 다음 예정
 - [ ] **카카오 쿠폰 메시지 버튼 2개 재검증** — `NEXT_PUBLIC_APP_URL` 수정 후 실제 매장에서 새로 게임 플레이 → 쿠폰 메시지 수신 → 버튼1(내 쿠폰함)/버튼2(당근마켓) 둘 다 정상 연결되는지 확인
 - [ ] 기존에 인쇄된 매장 QR 스티커 전체 재발행 (신규 vs 기존 매장 목록 파악 후 안내)
@@ -302,7 +312,7 @@ QR로 접속 → 게임 참여 → 카카오 채널·알림톡으로 방문 전�
 - [ ] 당근 비즈프로필 실제 연동 (현재 화면 안내/링크만, 클릭 로그는 `daangn_click` activity_log로 집계만 되고 딥링크 자동 연결은 미구현)
 - [ ] Supabase Pro 업그레이드 + 자동 일일 백업(PITR) 전환 — 진행 여부 재확인 필요 (`ADMIN_FEATURES.md` 참고)
 - [ ] NFC 방문적립 실제 태그로 현장 테스트 (하루1회 제한/포인트·스탬프 각 모드/계산대 스캔 확인 — `docs/migrations/050_nfc_checkin.sql` 상단 체크리스트 참고)
-- [ ] 슈퍼관리자 "샘플 레퍼런스"(재생성 버튼) 메뉴 — 아직 미착수
+- [x] 슈퍼관리자 "샘플 레퍼런스"(재생성 버튼) 메뉴 — `/admin/super/demo-stores`에서 수동 재생성. 매일 자동 생성은 하지 않음 (2026-09-14 대시보드에서 샘플·테스트 통계 제외)
 
 ---
 

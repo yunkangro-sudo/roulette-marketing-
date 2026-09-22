@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { requireAdminAuth } from '@/lib/admin/session'
 import { redirect } from 'next/navigation'
 import AdvertiserDashboardClient from './AdvertiserDashboardClient'
+import { PrizeReportPanel } from '../prize-report/PrizeReportPanel'
 
 /**
  * 매장 1곳 전용 대시보드 — advertiser 또는 대리접속 중인 super_admin/agency
@@ -15,7 +16,7 @@ export default async function DashboardPage() {
   if (account.role !== 'advertiser') redirect('/admin/companies')
   return (
     <Suspense fallback={<div className="max-w-4xl mx-auto px-4 py-8 text-gray-400">로딩 중...</div>}>
-      <AdvertiserDashboardClient storeId={account.storeId} />
+      <AdvertiserDashboardClient storeId={account.storeId} prizeReport={<PrizeReportPanel embedded />} />
     </Suspense>
   )
 }
