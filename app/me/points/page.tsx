@@ -145,6 +145,7 @@ function PointsContent() {
   const [missions, setMissions] = useState<Mission[]>([])
   const [coupons, setCoupons] = useState<MyCoupon[]>([])
   const [stamp, setStamp] = useState<StampInfo | null>(null)
+  const [couponUsageNotice, setCouponUsageNotice] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [redeeming, setRedeeming] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
@@ -180,6 +181,9 @@ function PointsContent() {
       setMissions(data.missions ?? [])
       setCoupons(data.coupons ?? [])
       setStamp(data.stamp ?? null)
+      setCouponUsageNotice(typeof data.couponUsageNotice === 'string' && data.couponUsageNotice.trim()
+        ? data.couponUsageNotice.trim()
+        : null)
     } finally {
       setLoading(false)
     }
@@ -364,8 +368,13 @@ function PointsContent() {
           </div>
         )}
 
-        {/* 리워드 교환 — 포인트 잔액 바로 아래, 이미지가 먼저 눈에 들어오는 카드형 */}
+        {/* 리워드 교환 — 안내문구는 제목 바로 윗줄 */}
         <div>
+          {couponUsageNotice && (
+            <p className="mb-3 whitespace-pre-wrap text-[15px] font-bold leading-relaxed text-[#222222]">
+              {couponUsageNotice}
+            </p>
+          )}
           <h2 className="mb-3 text-sm font-bold text-[#222222]/70">리워드 교환</h2>
           {catalog.length === 0 ? (
             <div className="rounded-xl bg-white/70 px-5 py-8 text-center text-sm text-[#222222]/40 shadow-sm backdrop-blur-sm">

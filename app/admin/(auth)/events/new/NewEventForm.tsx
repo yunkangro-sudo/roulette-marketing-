@@ -74,6 +74,7 @@ export default function NewEventForm({ role, storeId }: Props) {
   const [validityValue, setValidityValue] = useState('14')
   const [fixedValidityStart, setFixedValidityStart] = useState('')
   const [fixedValidityEnd, setFixedValidityEnd] = useState('')
+  const [couponUsageNotice, setCouponUsageNotice] = useState('')
   const [tierMode, setTierMode] = useState<PrizeTierMode>('quantity')
   const [longTermMode, setLongTermMode] = useState(false)
   const [resetCycle, setResetCycle] = useState<'weekly' | 'monthly'>('weekly')
@@ -159,6 +160,7 @@ export default function NewEventForm({ role, storeId }: Props) {
           coupon_validity_value: validityType === 'fixed_date'
             ? `${fixedValidityStart}~${fixedValidityEnd}`
             : validityValue,
+          coupon_usage_notice: couponUsageNotice,
           prize_tier_mode: tierMode,
           long_term_mode: tierMode === 'quantity' && longTermMode,
           reset_cycle: tierMode === 'quantity' && longTermMode ? resetCycle : null,
@@ -402,6 +404,19 @@ export default function NewEventForm({ role, storeId }: Props) {
               )}
             </div>
           )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <label className="block text-sm font-bold text-gray-900 mb-1">쿠폰 사용 안내문구</label>
+          <p className="text-xs text-gray-400 mb-3">손님 쿠폰함의 리워드 교환 바로 위에 표시됩니다. 비워두면 표시하지 않습니다.</p>
+          <textarea
+            value={couponUsageNotice}
+            onChange={(e) => setCouponUsageNotice(e.target.value.slice(0, 300))}
+            rows={3}
+            placeholder="예: 쿠폰은 매장 방문 시 직원에게 화면을 보여주시면 사용됩니다"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500"
+          />
+          <p className="mt-1 text-right text-xs text-gray-400">{couponUsageNotice.length}/300</p>
         </div>
 
         {/* 경품 티어 */}

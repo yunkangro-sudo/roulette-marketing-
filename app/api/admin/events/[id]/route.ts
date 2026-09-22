@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSession, getAllowedStoreId } from '@/lib/admin/session'
+import { normalizeCouponUsageNotice } from '@/lib/events/couponUsageNotice'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -69,6 +70,7 @@ export async function PATCH(req: Request, { params }: Params) {
     challenge_frequency_days,
     coupon_validity_type,
     coupon_validity_value,
+    coupon_usage_notice,
     status,
     long_term_mode,
     reset_cycle,
@@ -93,6 +95,7 @@ export async function PATCH(req: Request, { params }: Params) {
   }
   if (coupon_validity_type !== undefined) updateData.coupon_validity_type = coupon_validity_type
   if (coupon_validity_value !== undefined) updateData.coupon_validity_value = String(coupon_validity_value)
+  if (coupon_usage_notice !== undefined) updateData.coupon_usage_notice = normalizeCouponUsageNotice(coupon_usage_notice)
   if (status !== undefined) updateData.status = status
 
   // ── 장기 운영 모드 토글 처리 ─────────────────────────────────

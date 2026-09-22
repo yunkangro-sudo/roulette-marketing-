@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
   const now = new Date().toISOString()
 
-  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes, nfcSettingsRes, stampProgressRes, addons] = await Promise.all([
+  const [loyaltyRes, settingsRes, catalogRes, historyRes, missionsRes, progressRes, couponsRes, storeRes, eventNoticeRes, nfcSettingsRes, stampProgressRes, addons] = await Promise.all([
     supabase
       .from('customer_loyalty')
       .select('point_balance, visit_count, last_visit_at')
@@ -82,6 +82,11 @@ export async function GET(req: Request) {
       .select('store_name, daangn_url, daangn_review_url, naver_review_url, google_review_url')
       .eq('store_id', storeId)
       .maybeSingle(),
+    supabase
+      .from('events')
+      .select('coupon_usage_notice, status, display_start_date')
+      .eq('store_id', storeId)
+      .order('display_start_date', { ascending: false }),
     // NFC 스탬프 카드 표시 여부 — 매장이 stamp 모드를 켰을 때만 쿠폰함에 카드를 보여준다
     supabase
       .from('store_settings')
@@ -141,6 +146,13 @@ export async function GET(req: Request) {
     ? { current: stampProgressRes.data?.current_count ?? 0, goal: nfcSettings.stamp_goal_count ?? 10 }
     : null
 
+  const eventRows = eventNoticeRes.data ?? []
+  const activeEvent = eventRows.find((e) => e.status === 'active')
+  const couponUsageNotice = (activeEvent
+    ? activeEvent.coupon_usage_notice
+    : eventRows.find((e) => e.coupon_usage_notice?.trim())?.coupon_usage_notice
+  )?.trim() || null
+
   return NextResponse.json({
     storeName,
     daangnUrl: safeHttpUrl(storeRes.data?.daangn_url),
@@ -148,6 +160,7 @@ export async function GET(req: Request) {
     naverReviewUrl: safeHttpUrl(storeRes.data?.naver_review_url),
     googleReviewUrl: safeHttpUrl(storeRes.data?.google_review_url),
     homepageFeatureEnabled: addons.homepageFeatureEnabled,
+    couponUsageNotice,
     loyalty:  loyaltyRes.data ?? { point_balance: 0, visit_count: 0 },
     settings: settingsRes.data ?? { point_per_visit: 10, usage_threshold: 100 },
     catalog:  catalogRes.data ?? [],

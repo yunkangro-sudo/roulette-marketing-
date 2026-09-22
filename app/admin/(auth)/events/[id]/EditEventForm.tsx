@@ -54,6 +54,7 @@ interface Event {
   challenge_frequency_days?: number | null
   coupon_validity_type: string
   coupon_validity_value: string
+  coupon_usage_notice?: string | null
   prize_tier_mode?: PrizeTierMode
   long_term_mode?: boolean
   reset_cycle?: 'weekly' | 'monthly' | null
@@ -89,6 +90,7 @@ export default function EditEventForm({ event }: { event: Event }) {
   const [relativeDays, setRelativeDays] = useState(
     event.coupon_validity_type === 'relative_days' ? event.coupon_validity_value : '14'
   )
+  const [couponUsageNotice, setCouponUsageNotice] = useState(event.coupon_usage_notice ?? '')
   const [longTermMode, setLongTermMode] = useState(event.long_term_mode ?? false)
   const [resetCycle, setResetCycle] = useState<'weekly' | 'monthly'>(event.reset_cycle ?? 'weekly')
 
@@ -289,6 +291,7 @@ export default function EditEventForm({ event }: { event: Event }) {
           challenge_frequency_days: challengeFrequency === 'custom' ? Number(customFrequencyDays) : null,
           coupon_validity_type: validityType,
           coupon_validity_value,
+          coupon_usage_notice: couponUsageNotice,
           long_term_mode: event.prize_tier_mode !== 'percent' && longTermMode,
           reset_cycle: event.prize_tier_mode !== 'percent' && longTermMode ? resetCycle : null,
         }),
@@ -554,6 +557,19 @@ export default function EditEventForm({ event }: { event: Event }) {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <label className="block text-sm font-bold text-gray-900 mb-1">쿠폰 사용 안내문구</label>
+          <p className="text-xs text-gray-400 mb-3">손님 쿠폰함의 리워드 교환 바로 위에 표시됩니다. 비워두면 표시하지 않습니다.</p>
+          <textarea
+            value={couponUsageNotice}
+            onChange={(e) => setCouponUsageNotice(e.target.value.slice(0, 300))}
+            rows={3}
+            placeholder="예: 쿠폰은 매장 방문 시 직원에게 화면을 보여주시면 사용됩니다"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-orange-500"
+          />
+          <p className="mt-1 text-right text-xs text-gray-400">{couponUsageNotice.length}/300</p>
         </div>
 
         {/* 저장 */}

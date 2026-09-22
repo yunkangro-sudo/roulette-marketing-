@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSession, getAllowedStoreId } from '@/lib/admin/session'
+import { normalizeCouponUsageNotice } from '@/lib/events/couponUsageNotice'
 import {
   computeExpectedParticipants,
   computeTierProbabilities,
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
     challenge_frequency_days,
     coupon_validity_type,
     coupon_validity_value,
+    coupon_usage_notice,
     tiers,
   } = body
 
@@ -154,6 +156,7 @@ export async function POST(request: Request) {
       challenge_frequency_days: challenge_frequency === 'custom' ? Number(challenge_frequency_days) : null,
       coupon_validity_type: coupon_validity_type ?? 'relative_days',
       coupon_validity_value: String(coupon_validity_value ?? '14'),
+      coupon_usage_notice: normalizeCouponUsageNotice(coupon_usage_notice),
       prize_tier_mode: prizeTierMode,
       long_term_mode: longTermMode,
       reset_cycle: resetCycle,
