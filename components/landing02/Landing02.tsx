@@ -5,12 +5,12 @@ import ImageSlot from './ImageSlot'
 
 /** 실제 이미지가 준비되면 이 경로만 채운다. 비어 있으면 빈 박스로 표시된다. */
 const IMAGES = {
-  hero: '',
-  game: '',
-  coupon: '',
-  online: '',
-  qr: '',
-  dashboard: '',
+  hero: '/landing02/hero.jpg',
+  game: '/landing02/game.jpg',
+  coupon: '/landing02/coupon.jpg',
+  qr: '/landing02/qr.jpg',
+  online: '/landing02/online.jpg',
+  dashboard: '/landing02/dashboard.jpg',
 }
 
 const HOME_URL = 'https://www.dgting.co.kr'
@@ -128,13 +128,8 @@ export default function Landing02() {
           <div className="mt-9">
             <CtaButtons />
           </div>
-          <div className="mt-14">
-            <ImageSlot
-              src={IMAGES.hero}
-              alt="단골팅 서비스 화면"
-              ratio="16 / 9"
-              label="게임에서 쿠폰, 재방문까지 이어지는 화면"
-            />
+          <div className="mx-auto mt-14 max-w-xl">
+            <ImageSlot src={IMAGES.hero} alt="게임하고 단골되는 즐거운 마케팅" ratio="1 / 1" label="대표 이미지" />
           </div>
         </section>
 
@@ -207,19 +202,19 @@ export default function Landing02() {
             손님과 다시 만날 이유를 만드는 일입니다.
           </p>
 
-          <div className="mt-14 grid items-start gap-6 md:grid-cols-[2fr_1fr_1fr]">
+          <div className="mx-auto mt-14 grid max-w-4xl items-start gap-6 md:grid-cols-3">
             <figure>
-              <ImageSlot src={IMAGES.game} alt="인형뽑기 게임 화면" ratio="9 / 14" label="인형뽑기 게임 화면" />
+              <ImageSlot src={IMAGES.game} alt="인형뽑기 게임 화면" ratio="9 / 16" label="인형뽑기 게임 화면" />
               <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">1. 게임에 참여</figcaption>
             </figure>
-            <figure className="md:mt-16">
-              <ImageSlot src={IMAGES.coupon} alt="쿠폰 당첨 화면" ratio="9 / 14" label="쿠폰 당첨 화면" />
+            <figure className="md:mt-10">
+              <ImageSlot src={IMAGES.coupon} alt="쿠폰 당첨 화면" ratio="9 / 16" label="쿠폰 당첨 화면" />
               <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">2. 쿠폰을 받음</figcaption>
             </figure>
-            <figure className="md:mt-32">
+            <figure className="md:mt-20">
               <div
                 className="flex w-full flex-col justify-center bg-[#222222] px-6 text-white"
-                style={{ aspectRatio: '9 / 14', borderRadius: 16 }}
+                style={{ aspectRatio: '9 / 16', borderRadius: 16 }}
               >
                 <p className="text-[15px] font-bold text-[#00C7A7]">3</p>
                 <p className="mt-3 text-[26px] font-extrabold leading-snug">
@@ -256,7 +251,7 @@ export default function Landing02() {
                   테이블이나 계산대에서 찍으면 바로 게임이 시작됩니다.
                 </p>
                 <div className="mt-6">
-                  <ImageSlot src={IMAGES.qr} alt="매장 QR, NFC 설치 예시" ratio="16 / 10" label="매장 QR · NFC 설치 예시" />
+                  <ImageSlot src={IMAGES.qr} alt="매장 QR 설치 예시" ratio="1 / 1" label="매장 QR · NFC 설치 예시" />
                 </div>
               </article>
               <article className="border border-[#222222]/10 p-7" style={{ borderRadius: 16 }}>
@@ -265,13 +260,8 @@ export default function Landing02() {
                 <p className="mt-3 text-[16px] leading-relaxed text-[#222222]/70">
                   블로그, 맘카페, SNS, 당근, 홈페이지에 링크만 올리면 됩니다.
                 </p>
-                <div className="mt-6">
-                  <ImageSlot
-                    src={IMAGES.online}
-                    alt="온라인 게임 참여 화면"
-                    ratio="16 / 10"
-                    label="온라인 게임 참여 화면"
-                  />
+                <div className="mx-auto mt-6 max-w-xs">
+                  <ImageSlot src={IMAGES.online} alt="온라인 게임 참여 화면" ratio="9 / 16" label="온라인 게임 참여 화면" />
                 </div>
               </article>
             </div>
@@ -333,15 +323,17 @@ export default function Landing02() {
               ))}
             </ul>
 
-            <div className="mt-12">
+            <div className="mx-auto mt-12 max-w-sm">
               <ImageSlot
                 src={IMAGES.dashboard}
                 alt="관리자 대시보드 화면"
-                ratio="16 / 10"
+                ratio="502 / 1024"
                 label="관리자 대시보드 예시 화면"
                 dark
               />
-              <p className="mt-3 text-[14px] font-semibold text-white/50">예시 화면 · 실제 데이터와 다를 수 있습니다</p>
+              <p className="mt-3 text-center text-[14px] font-semibold text-white/50">
+                예시 화면 · 실제 데이터와 다를 수 있습니다
+              </p>
             </div>
           </div>
         </section>
