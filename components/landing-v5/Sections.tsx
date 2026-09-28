@@ -921,7 +921,7 @@ export function PricingSection() {
         <p className="text-[13px] font-semibold tracking-wide text-dg-green-deep">요금제</p>
         <h2 className="leading-snug text-dg-ink">
           <span className="mt-3 block whitespace-nowrap" style={{ fontSize: 'clamp(25px, 6.7vw, 53px)' }}>
-            지금 시작하는 100개 매장만
+            지금 바로 시작하는 단골마케팅
           </span>
           <span
             className="mt-1 block whitespace-nowrap text-dg-green-deep"
