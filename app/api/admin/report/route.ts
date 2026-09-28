@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminSession } from '@/lib/admin/session'
+import { PRICING } from '@/lib/landing-v5/config'
 
-/** 구독료 (원) — 헤드라인의 "구독료 대비 배수" 계산에 사용하는 고정값 */
-const SUBSCRIPTION_PRICE = 19000
+/** 구독료 (원) — 헤드라인의 "구독료 대비 배수" 계산에 사용하는 고정값.
+ *  랜딩 요금제와 동일한 값을 쓰도록 PRICING.basic.price를 그대로 참조한다. */
+const SUBSCRIPTION_PRICE: number = PRICING.basic.price
 
 /** timestamptz(UTC) 문자열을 KST 기준 "YYYY-MM"으로 변환 (월별 그룹핑용) */
 function toKstYearMonth(iso: string): string {

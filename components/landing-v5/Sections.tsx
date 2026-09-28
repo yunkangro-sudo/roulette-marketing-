@@ -10,7 +10,6 @@ import RoiCalculator from './RoiCalculator'
 import { PricingCalculatorModal, BankRow } from './PricingModals'
 import {
   PRICING,
-  PRICING_BASIC_DISCOUNT_AMOUNT,
   PRICING_BASIC_TODAY_TOTAL,
   CONTENT_OPS,
   CONTENT_OPS_ADDONS,
@@ -928,11 +927,11 @@ export function PricingSection() {
             className="mt-1 block whitespace-nowrap text-dg-green-deep"
             style={{ fontSize: 'clamp(21px, 5.6vw, 44px)' }}
           >
-            월 19,000원으로 시작하세요
+            월 {formatWon(PRICING.basic.price)}으로 시작하세요
           </span>
         </h2>
         <p className="mt-4 text-[15px] text-dg-ink-soft">
-          월 {formatWon(PRICING.basic.regularPrice)} 정가 → <span className="font-semibold text-dg-green-deep">월 19,000원</span> 얼리버드 혜택
+          숨겨진 비용 없이, 표시된 가격이 전부입니다
         </p>
 
         {/* Section A — 인트로: 핵심 서비스 하나로 시작, 부가서비스는 선택임을 먼저 안내 */}
@@ -960,16 +959,7 @@ export function PricingSection() {
             }}
             transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
           >
-            {/* 리본형 배지 — 카드 좌측 상단 코너 */}
-            <div className="absolute -left-2 -top-2 z-10 h-[86px] w-[86px] overflow-hidden">
-              <span
-                className="absolute left-[-38px] top-[16px] block w-[160px] -rotate-45 bg-dg-gold py-1.5 text-center text-[10.5px] font-bold text-white shadow-[0_4px_10px_rgba(184,134,47,0.4)]"
-              >
-                {basic.ribbonLabel}
-              </span>
-            </div>
-
-            {/* 핵심 서비스 배지 — 우상단, 리본과 겹치지 않게 */}
+            {/* 핵심 서비스 배지 */}
             <span
               className="absolute right-4 top-4 inline-flex items-center bg-dg-green px-3 py-1 text-[11.5px] font-bold text-white sm:right-6 sm:top-6"
               style={{ borderRadius: 999 }}
@@ -980,26 +970,8 @@ export function PricingSection() {
             <h3 className="mt-10 text-[26px] font-bold text-dg-ink">{basic.name}</h3>
 
             <div className="mt-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-num text-[16px] font-medium text-dg-ink-soft line-through decoration-2 decoration-dg-danger">
-                  {formatMonthlyPrice(basic.regularPrice)}
-                </p>
-                <span className="text-dg-ink-soft">→</span>
-                <span
-                  className="inline-flex items-center bg-dg-green px-2 py-0.5 text-[12px] font-extrabold text-dg-ink"
-                  style={{ borderRadius: 4 }}
-                >
-                  매월 {formatWon(PRICING_BASIC_DISCOUNT_AMOUNT)} 할인
-                </span>
-              </div>
-              <p className="mt-1 whitespace-nowrap font-num text-[38px] font-bold leading-none text-dg-green-deep sm:text-[54px]">
-                {formatMonthlyPrice(basic.promoPrice)}
-              </p>
-              <p
-                className="mt-3 inline-block bg-dg-green-tint px-2.5 py-1 text-[13px] font-bold text-dg-green-deep"
-                style={{ borderRadius: 4 }}
-              >
-                {basic.lockInNote}
+              <p className="whitespace-nowrap font-num text-[38px] font-bold leading-none text-dg-green-deep sm:text-[54px]">
+                {formatMonthlyPrice(basic.price)}
               </p>
               <p className="mt-3 text-[16px] font-bold text-dg-ink">
                 + 초기 세팅비 {formatWon(basic.setupFee)} (최초 1회)
@@ -1057,7 +1029,7 @@ export function PricingSection() {
             <div className="mt-5 border border-dg-ink/15 bg-dg-bg p-4" style={{ borderRadius: 8 }}>
               <p className="text-[12px] font-semibold text-dg-ink-soft">오늘 결제하실 금액</p>
               <p className="mt-1 text-[13px] text-dg-ink-soft">
-                초기 세팅비 {formatWon(basic.setupFee)} + 첫 달 이용료 {formatWon(basic.promoPrice)}
+                초기 세팅비 {formatWon(basic.setupFee)} + 첫 달 이용료 {formatWon(basic.price)}
               </p>
               <p className="mt-1.5 font-num text-[24px] font-bold text-dg-ink">
                 {formatWon(PRICING_BASIC_TODAY_TOTAL)}
@@ -1285,7 +1257,7 @@ export function PricingSection() {
               <p className="mt-1 font-num text-[20px] font-bold text-dg-ink">
                 {formatWon(PRICING_BASIC_TODAY_TOTAL)}
                 <span className="ml-1.5 text-[12px] font-normal text-dg-ink-soft">
-                  (설치비 {formatWon(basic.setupFee)} + 1개월 구독료 {formatWon(basic.promoPrice)})
+                  (설치비 {formatWon(basic.setupFee)} + 1개월 구독료 {formatWon(basic.price)})
                 </span>
               </p>
             </div>
@@ -1317,23 +1289,19 @@ export function FinalCta() {
           다시 찾아올 이유를 만들어주는 재방문 시스템입니다.
         </p>
 
-        {/* 선착순 프로모션 강조 블록 — 헤드라인만으로 끝나지 않고 "지금 가입해야 하는 이유"를
+        {/* 가격 강조 블록 — 헤드라인만으로 끝나지 않고 "지금 가입해야 하는 이유"를
             가격과 함께 명확하게 못박아 이 섹션이 브랜드 슬로건이 아닌 전환 유도로 읽히게 한다 */}
         <div className="mx-auto mt-8 max-w-md bg-white/70 p-6" style={{ borderRadius: 10 }}>
-          <p className="text-[13px] font-bold text-dg-ink">선착순 100개 업체 한정</p>
+          <p className="text-[13px] font-bold text-dg-ink">단골마케팅 구독료</p>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-2">
-            <span className="font-num text-[16px] font-medium text-dg-ink/50 line-through decoration-2">
-              월 {formatWon(PRICING.basic.regularPrice)}
-            </span>
-            <span className="text-dg-ink/50">→</span>
             <span className="whitespace-nowrap font-num text-[30px] font-bold text-dg-ink sm:text-[38px]">
-              월 19,000원
+              월 {formatWon(PRICING.basic.price)}
             </span>
           </p>
           <p className="mt-2 text-[13px] leading-relaxed text-dg-ink/70">
-            프로모션 가입자는 해지 전까지
+            숨겨진 비용 없이
             <br />
-            월 19,000원 혜택이 유지됩니다.
+            표시된 가격이 전부입니다.
           </p>
         </div>
 

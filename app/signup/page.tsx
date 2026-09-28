@@ -185,12 +185,6 @@ export default function SignupPage() {
           <div className="inline-flex items-center gap-2 bg-[#3D5AFE]/10 text-[#3D5AFE] text-xs font-semibold px-3 py-1.5 rounded-full mb-3">
             회원가입
           </div>
-          <div
-            className="badge-glow-pulse inline-flex items-center gap-1.5 bg-dg-gold-deep text-white text-[13px] font-extrabold px-4 py-2 mb-4"
-            style={{ borderRadius: 999 }}
-          >
-            🔥 선착순 100개 업체 한정 프로모션 진행 중
-          </div>
           <h1 className="text-3xl font-bold text-[#14151A] mb-3">
             단골 손님을 만드는 첫 걸음
           </h1>

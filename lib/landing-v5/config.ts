@@ -16,13 +16,8 @@ export const PRICING = {
   basic: {
     id: 'basic',
     name: '단골마케팅',
-    regularPrice: 49_000,
-    promoPrice: 19_000,
+    price: 49_000,
     setupFee: 290_000,
-    ribbonLabel: '🔥 얼리버드 100개 매장 한정',
-    /** 단순 "기간 한정 할인"이 아니라 "가입 시점 가격이 해지 전까지 유지된다"는 걸
-     *  명확히 알려서 지금 가입해야 하는 이유(락인 혜택)를 강조한다. */
-    lockInNote: '가입 후 해지 전까지 월 19,000원 혜택 유지',
     features: ['게임 이벤트 1개', '기본 쿠폰·포인트'],
     /** 가입 시 온라인(관리자 대시보드)에서 확인 가능한 항목 — 오프라인 실물 제공 항목(setupIncludes)과 구분. */
     onlineServices: ['마케팅 성과리포트', '쿠폰현황', '우리 매장 게임 쿠폰 현황'],
@@ -48,16 +43,8 @@ export const PRICING = {
   },
 } as const
 
-/** 정가 대비 프로모션가 할인율(%) — FAQ 등 다른 곳에서 참조할 수 있어 유지. */
-export const PRICING_BASIC_DISCOUNT_PERCENT = Math.round(
-  (1 - PRICING.basic.promoPrice / PRICING.basic.regularPrice) * 100
-)
-
-/** 정가 대비 프로모션가 할인액(원) — 요금제 카드에 "매월 20,000원 할인"처럼 원화로 노출. */
-export const PRICING_BASIC_DISCOUNT_AMOUNT = PRICING.basic.regularPrice - PRICING.basic.promoPrice
-
-/** 단골마케팅 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료(프로모션가). */
-export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.promoPrice
+/** 단골마케팅 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료. */
+export const PRICING_BASIC_TODAY_TOTAL = PRICING.basic.setupFee + PRICING.basic.price
 
 /** 요금제 섹션 두 번째 카드 — "AEO마케팅(준비중)" 카드를 대체하는 실제 판매 중인
  *  콘텐츠 운영 대행 상품. 가격/구성이 이미 확정되어 있지만 CTA는 "상담받기"로,
@@ -193,14 +180,10 @@ export const CALCULATOR_PRODUCTS = [
     id: 1,
     name: '단골팅 쿠폰 게임 시스템',
     setupFee: PRICING.basic.setupFee,
-    monthly: PRICING.basic.promoPrice,
+    monthly: PRICING.basic.price,
     setupIncludes: PRICING.basic.setupIncludes,
-    cardNote: `선착순 마감 후 신규 가입 시 월 ${formatWon(PRICING.basic.regularPrice)}으로 적용됩니다. 지금 가입하시면 마감 이후에도 ${formatWon(
-      PRICING.basic.promoPrice
-    )}이 계속 유지됩니다.`,
-    afterPromoNote: `선착순 마감 후 신규가는 월 ${formatWon(PRICING.basic.regularPrice)} (기존 가입자는 ${formatWon(
-      PRICING.basic.promoPrice
-    )} 유지)`,
+    cardNote: null as string | null,
+    afterPromoNote: null as string | null,
   },
   {
     id: 3,
@@ -402,9 +385,7 @@ export const SCREENSHOTS: Record<ScreenshotId, ScreenshotSlotConfig> = {
 export const FAQ_ITEMS = [
   {
     q: '이거 한 달에 얼마예요? 추가로 더 드는 돈은 없어요?',
-    a: `월 구독료 ${formatWon(PRICING.basic.promoPrice)}(정상 구독료는 ${formatWon(
-      PRICING.basic.regularPrice
-    )} / 선착순 100개 업체 프로모션가격, VAT 포함)이 전부입니다. 초기 세팅비 ${formatWon(
+    a: `월 구독료 ${formatWon(PRICING.basic.price)}(VAT 포함)이 전부입니다. 초기 세팅비 ${formatWon(
       PRICING.basic.setupFee
     )}은 처음 한 번만 내시면 되고, 그 외 숨겨진 비용은 없습니다. 다만 손님에게 드리는 경품·쿠폰 비용은 매장에서 직접 정하시는 부분이라 별도입니다.`,
   },

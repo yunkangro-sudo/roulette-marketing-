@@ -7,7 +7,6 @@ import {
   CALCULATOR_PRODUCTS,
   CONTENT_OPS_ADDONS,
   PRICING,
-  PRICING_BASIC_DISCOUNT_PERCENT,
   WELCOME_GIFT_LABEL,
   formatWon,
 } from '@/lib/landing-v5/config'
@@ -643,16 +642,16 @@ export function PricingCalculatorModal({ onClose }: Props) {
             선택하신 상품에 따라 예상 결제금액이 자동으로 계산됩니다.
           </p>
 
-          {/* 프로모션 강조 배너 — 화려한 톤 */}
+          {/* 핵심 서비스 안내 배너 */}
           <div
             className="mt-5 p-4 text-center"
             style={{ borderRadius: 10, background: 'linear-gradient(135deg, #D9A94F 0%, #00C7A7 100%)' }}
           >
             <p className="text-[14px] font-bold leading-snug text-white sm:text-[15px]">
-              지금이 가장 쌉니다 — 선착순 100개 업체 한정 프로모션 진행 중
+              단골마케팅 하나만으로도 바로 시작할 수 있어요
             </p>
             <p className="mt-1 text-[12.5px] font-semibold text-white/90">
-              정가 {formatWon(PRICING.basic.regularPrice)} → 19,000원, {PRICING_BASIC_DISCOUNT_PERCENT}% 할인
+              월 구독료 {formatWon(PRICING.basic.price)}, 부가서비스는 필요할 때만 추가
             </p>
           </div>
 
@@ -783,13 +782,13 @@ export function PricingCalculatorModal({ onClose }: Props) {
               <span className="text-[13px] font-semibold text-dg-ink-soft">이후 매월 결제 금액</span>
               <span className="font-num text-[17px] font-bold text-dg-green-deep">{formatWon(monthlyTotal)}</span>
             </div>
-            <p className="mt-2 text-[11px] text-dg-ink-soft">프로모션 기간 중 기준 · VAT 포함</p>
+            <p className="mt-2 text-[11px] text-dg-ink-soft">VAT 포함</p>
             <p className="mt-1.5 text-[13.5px] font-extrabold leading-snug text-dg-green-deep">
               의무약정기간 없음. 1개월만도 사용가능!
             </p>
           </div>
 
-          {/* 프로모션 종료 후 예상 금액 — 접었다 펼치는 아코디언, 실시간 합계와 다른 톤 */}
+          {/* 홈피마케팅 1년 무료 종료 후 예상 금액 — 접었다 펼치는 아코디언, 실시간 합계와 다른 톤 */}
           <button
             type="button"
             onClick={() => setShowAfterPromo((v) => !v)}
@@ -797,7 +796,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
             className="mt-4 flex w-full items-center justify-between border border-dg-line bg-dg-bg px-4 py-3 text-[12.5px] font-semibold text-dg-ink-soft"
             style={{ borderRadius: 8 }}
           >
-            프로모션 종료 후 예상 금액 (참고용)
+            1년 후 예상 금액 (참고용)
             <span aria-hidden>{showAfterPromo ? '−' : '+'}</span>
           </button>
           {showAfterPromo && (
@@ -826,11 +825,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
 
           {/* 필수 안내 */}
           <div className="mt-4 space-y-1 text-[11px] leading-relaxed text-dg-ink-soft">
-            <p>현재 런칭 프로모션 적용가이며, 프로모션은 조기종료될 수 있습니다.</p>
-            <p>
-              프로모션 가입자는 프로모션 종료 후에도 할인 가격으로 계속 이용하실 수 있습니다. (단, 03번 홈피마케팅
-              상품은 가입 1년 후 월 9,900원으로 전환됩니다)
-            </p>
+            <p>03번 홈피마케팅 상품은 가입 1년간 무료이며, 이후 월 9,900원으로 자동 전환됩니다.</p>
             <p>모든 금액은 VAT 포함 가격입니다.</p>
           </div>
 
@@ -930,7 +925,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
           </p>
           <p className="mt-1.5 text-[13px] text-dg-ink-soft">
             이후 매월 <span className="font-num font-semibold text-dg-ink">{formatWon(monthlyTotal)}</span>씩
-            결제됩니다 (프로모션 기간 중 기준)
+            결제됩니다
           </p>
 
           <div className="mt-4 space-y-1.5 text-[13px] text-dg-ink-soft">
