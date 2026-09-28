@@ -1,6 +1,5 @@
-import Link from 'next/link'
 import BrandLogo from '@/components/BrandLogo'
-import { KAKAO_CONSULT_URL, SIGNUP_PATH } from '@/lib/landing-v5/config'
+import { DEMO_PLAY_URL, KAKAO_CONSULT_URL } from '@/lib/landing-v5/config'
 import ImageSlot from './ImageSlot'
 
 /** 실제 이미지가 준비되면 이 경로만 채운다. 비어 있으면 빈 박스로 표시된다. */
@@ -61,13 +60,13 @@ function CtaButtons({ light = false }: { light?: boolean }) {
 
   return (
     <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-      <Link
-        href={SIGNUP_PATH}
+      <a
+        href={DEMO_PLAY_URL}
         className={`inline-flex h-[60px] items-center justify-center px-8 text-[17px] font-bold transition-colors ${primary}`}
         style={{ borderRadius: 12 }}
       >
-        내 가게에 적용해보기
-      </Link>
+        체험하기
+      </a>
       <a
         href={KAKAO_CONSULT_URL}
         target="_blank"
