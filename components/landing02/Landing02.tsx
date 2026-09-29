@@ -423,13 +423,6 @@ export default function Landing02() {
             <p className="mt-14 text-[24px] font-extrabold leading-snug sm:text-[32px]">
               이미 온 손님이, 다음 손님에게 매장을 알립니다.
             </p>
-            <a
-              href={DEMO_PLAY_URL}
-              className="mt-8 inline-flex h-[60px] items-center justify-center bg-[#00C7A7] px-8 text-[17px] font-bold text-[#222222] transition-colors hover:bg-[#00b396]"
-              style={{ borderRadius: 12 }}
-            >
-              체험하기
-            </a>
           </div>
         </section>
 

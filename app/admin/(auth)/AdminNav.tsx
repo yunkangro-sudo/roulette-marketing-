@@ -73,6 +73,7 @@ export default function AdminNav({
         { href: '/admin/companies',           label: '업체 리스트' },
         { href: '/admin/super/subscriptions', label: '업체 구독관리' },
         { href: '/admin/super/leads',         label: '신청·문의 리스트' },
+        { href: '/admin/super/setup-requests', label: '세팅 접수' },
         { href: '/admin/super/demo-stores',   label: '샘플 레퍼런스' },
       ]
     : isAdvertiser
