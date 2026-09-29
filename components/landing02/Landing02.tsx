@@ -40,6 +40,19 @@ const FLOW_STEPS = [
 
 const DASHBOARD_METRICS = ['유입수', '게임 참여수', '쿠폰 현황', '재방문', '마케팅 분석 리포트']
 
+const OLD_FLOW = ['광고', '방문', '끝']
+
+/** key: true 인 단계는 "재방문 이후"의 핵심 결과라서 색을 달리해 강조한다. */
+const NEW_FLOW = [
+  { label: '광고', key: false },
+  { label: '방문', key: false },
+  { label: '게임', key: false },
+  { label: '쿠폰', key: false },
+  { label: '재방문', key: true },
+  { label: '단골', key: true },
+  { label: '매출', key: true },
+]
+
 const INDUSTRIES = [
   { name: '타이어 · 자동차', example: '게임하고 타이어 할인쿠폰 받기' },
   { name: '카페', example: '게임하고 다음 방문 쿠폰 받기' },
@@ -331,47 +344,98 @@ export default function Landing02() {
 
         {/* ── 8. BEFORE / AFTER ── */}
         <section className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
-          <div className="grid gap-5 md:grid-cols-2">
-            <article className="bg-[#EFECE4] p-8 sm:p-10" style={{ borderRadius: 20 }}>
-              <h2 className="text-[24px] font-extrabold leading-snug sm:text-[30px]">예전에는 여기서 끝났습니다.</h2>
-              <ol className="mt-8">
-                {['광고', '노출', '방문', '끝'].map((step, i, arr) => (
-                  <li key={step}>
-                    <span
-                      className={`inline-flex h-12 min-w-16 items-center justify-center px-4 text-[17px] font-bold ${
-                        i === arr.length - 1 ? 'bg-[#222222] text-white' : 'bg-white text-[#222222]/70'
-                      }`}
-                      style={{ borderRadius: 10 }}
-                    >
-                      {step}
-                    </span>
-                    {i < arr.length - 1 && (
-                      <span className="my-1 block pl-5 text-[18px] leading-none text-[#222222]/30">↓</span>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </article>
+          {/* 예전 방식 — 짧고 회색으로, "끝"만 진하게 */}
+          <article className="bg-[#EFECE4] p-7 sm:p-10" style={{ borderRadius: 20 }}>
+            <h2 className="text-[24px] font-extrabold leading-snug sm:text-[32px]">예전에는 여기서 끝났습니다.</h2>
+            <ol className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3 sm:gap-x-4">
+              {OLD_FLOW.map((step, i, arr) => (
+                <li key={step} className="flex items-center gap-2 sm:gap-4">
+                  <span
+                    className={`flex h-12 items-center px-5 text-[18px] font-bold sm:h-14 sm:px-7 sm:text-[22px] ${
+                      i === arr.length - 1 ? 'bg-[#222222] text-white' : 'bg-white text-[#222222]/60'
+                    }`}
+                    style={{ borderRadius: 12 }}
+                  >
+                    {step}
+                  </span>
+                  {i < arr.length - 1 && <span className="text-[20px] text-[#222222]/30">→</span>}
+                </li>
+              ))}
+            </ol>
+          </article>
 
-            <article className="bg-[#E3FBF6] p-8 sm:p-10" style={{ borderRadius: 20 }}>
-              <h2 className="text-[24px] font-extrabold leading-snug text-[#019c87] sm:text-[30px]">
-                단골팅은 그다음을 만듭니다.
-              </h2>
-              <ol className="mt-8 flex flex-wrap gap-2">
-                {['광고', '신규 손님', '방문', '게임', '쿠폰', '재방문', '단골', '매출'].map((step, i, arr) => (
-                  <li key={step} className="flex items-center gap-2">
-                    <span
-                      className="flex h-12 items-center bg-[#00C7A7] px-4 text-[16px] font-bold text-[#222222]"
-                      style={{ borderRadius: 10 }}
-                    >
-                      {step}
-                    </span>
-                    {i < arr.length - 1 && <span className="font-bold text-[#019c87]">→</span>}
-                  </li>
-                ))}
-              </ol>
-            </article>
+          {/* 두 방식을 잇는 전환 */}
+          <div className="flex flex-col items-center py-6" aria-hidden>
+            <span className="h-6 w-0.5 bg-[#00C7A7]" />
+            <span className="text-[26px] leading-none text-[#00C7A7]">↓</span>
           </div>
+
+          {/* 단골팅 방식 — 모바일은 세로 타임라인, PC는 가로 한 줄 */}
+          <article className="bg-[#E3FBF6] p-7 sm:p-12" style={{ borderRadius: 20 }}>
+            <h2 className="text-[26px] font-extrabold leading-snug text-[#019c87] sm:text-[38px]">
+              단골팅은 그다음을 만듭니다.
+            </h2>
+
+            <ol className="mt-8 md:hidden">
+              {NEW_FLOW.map((step, i, arr) => (
+                <li key={step.label} className="relative pb-6 pl-[68px] last:pb-0">
+                  {i < arr.length - 1 && (
+                    <span className="absolute bottom-0 left-[27px] top-14 w-0.5 bg-[#00C7A7]/40" aria-hidden />
+                  )}
+                  <span
+                    className={`absolute left-0 top-0 flex h-14 w-14 items-center justify-center rounded-full font-mono text-[20px] font-bold ${
+                      step.key ? 'bg-[#222222] text-white' : 'bg-[#00C7A7] text-[#222222]'
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <span
+                    className={`flex min-h-14 items-center text-[26px] font-extrabold ${
+                      step.key ? 'text-[#019c87]' : 'text-[#222222]'
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <ol className="mt-12 hidden md:flex">
+              {NEW_FLOW.map((step, i, arr) => (
+                <li key={step.label} className="relative flex flex-1 flex-col items-center gap-4">
+                  {i < arr.length - 1 && (
+                    <span
+                      className="absolute top-7 h-0.5 bg-[#00C7A7]/40"
+                      style={{ left: 'calc(50% + 40px)', width: 'calc(100% - 80px)' }}
+                      aria-hidden
+                    />
+                  )}
+                  <span
+                    className={`flex h-14 w-14 items-center justify-center rounded-full font-mono text-[20px] font-bold ${
+                      step.key ? 'bg-[#222222] text-white' : 'bg-[#00C7A7] text-[#222222]'
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <span
+                    className={`text-[24px] font-extrabold ${step.key ? 'text-[#019c87]' : 'text-[#222222]'}`}
+                  >
+                    {step.label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="mt-10 flex justify-center sm:mt-12">
+              <a
+                href={DEMO_PLAY_URL}
+                className="inline-flex h-[60px] w-full items-center justify-center bg-[#00C7A7] px-10 text-[17px] font-bold text-[#222222] transition-colors hover:bg-[#00b396] sm:w-auto"
+                style={{ borderRadius: 12 }}
+              >
+                체험하기
+              </a>
+            </div>
+          </article>
         </section>
 
         {/* ── 9. 업종별 예시 ── */}
