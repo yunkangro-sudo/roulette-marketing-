@@ -10,6 +10,7 @@ const IMAGES = {
   qr: '/landing02/qr.jpg',
   online: '/landing02/online.jpg',
   dashboard: '/landing02/dashboard.jpg',
+  revisit: '/landing02/revisit.jpg',
 }
 
 const HOME_URL = 'https://www.dgting.co.kr'
@@ -211,17 +212,8 @@ export default function Landing02() {
               <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">2. 쿠폰을 받음</figcaption>
             </figure>
             <figure className="flex flex-col">
-              <div
-                className="flex w-full flex-col justify-center bg-[#222222] px-6 text-white"
-                style={{ aspectRatio: '9 / 16', borderRadius: 16 }}
-              >
-                <p className="text-[15px] font-bold text-[#00C7A7]">3</p>
-                <p className="mt-3 text-[26px] font-extrabold leading-snug">
-                  그리고
-                  <br />
-                  다시 방문.
-                </p>
-              </div>
+              <ImageSlot src={IMAGES.revisit} alt="쿠폰함과 포인트로 다시 방문" ratio="9 / 16" label="다시 방문 화면" />
+              <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">3. 그리고 다시 방문</figcaption>
             </figure>
           </div>
         </section>
