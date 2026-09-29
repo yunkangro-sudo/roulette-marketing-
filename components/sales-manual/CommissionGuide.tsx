@@ -33,10 +33,10 @@ const BASIC = [
 
 const INCOME = ['단골팅 설치 수익', '단골팅 월 구독 수익', '당근마케팅 수익', 'AEO 미니홈피 수익']
 
-export default function CommissionGuide() {
+export default function CommissionGuide({ standalone = false }: { standalone?: boolean }) {
   return (
     <div className="min-h-screen bg-[#FAF7F0] text-[#222222]">
-      <ManualNav current="commission" />
+      {standalone ? null : <ManualNav current="commission" />}
       <main className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
         <p className="text-[14px] font-bold text-[#019c87]">영업자용</p>
         <h1 className="mt-3 text-[32px] font-extrabold leading-snug tracking-tight sm:text-[40px]">영업자 수수료 안내</h1>
