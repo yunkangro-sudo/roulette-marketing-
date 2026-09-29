@@ -201,16 +201,16 @@ export default function Landing02() {
             손님과 다시 만날 이유를 만드는 일입니다.
           </p>
 
-          <div className="mx-auto mt-14 grid max-w-4xl items-start gap-6 md:grid-cols-3">
-            <figure>
+          <div className="mx-auto mt-14 grid max-w-5xl items-start gap-8 md:grid-cols-3 md:gap-10">
+            <figure className="flex flex-col">
               <ImageSlot src={IMAGES.game} alt="인형뽑기 게임 화면" ratio="9 / 16" label="인형뽑기 게임 화면" />
               <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">1. 게임에 참여</figcaption>
             </figure>
-            <figure className="md:mt-10">
+            <figure className="flex flex-col">
               <ImageSlot src={IMAGES.coupon} alt="쿠폰 당첨 화면" ratio="9 / 16" label="쿠폰 당첨 화면" />
               <figcaption className="mt-3 text-[15px] font-semibold text-[#222222]/60">2. 쿠폰을 받음</figcaption>
             </figure>
-            <figure className="md:mt-20">
+            <figure className="flex flex-col">
               <div
                 className="flex w-full flex-col justify-center bg-[#222222] px-6 text-white"
                 style={{ aspectRatio: '9 / 16', borderRadius: 16 }}
