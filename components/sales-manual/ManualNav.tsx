@@ -2,6 +2,7 @@ const ITEMS = [
   { href: '/sales-manual', label: '상품 설명', id: 'product' },
   { href: '/sales-manual/pricing', label: '요금제 안내', id: 'pricing' },
   { href: '/setup-request', label: '세팅 접수', id: 'setup' },
+  { href: '/sales-manual/commission', label: '수수료', id: 'commission' },
 ] as const
 
 export default function ManualNav({ current }: { current: (typeof ITEMS)[number]['id'] }) {
@@ -11,7 +12,7 @@ export default function ManualNav({ current }: { current: (typeof ITEMS)[number]
         <div className="flex h-14 items-center">
           <p className="text-[15px] font-extrabold tracking-tight">단골팅 영업 메뉴얼</p>
         </div>
-        <nav className="grid grid-cols-3 gap-2 pb-3" aria-label="영업 메뉴얼 메뉴">
+        <nav className="grid grid-cols-2 gap-2 pb-3 sm:grid-cols-4" aria-label="영업 메뉴얼 메뉴">
           {ITEMS.map((item) => {
             const active = item.id === current
             return (
