@@ -11,6 +11,7 @@ const IMAGES = {
   online: '/landing02/online.jpg',
   dashboard: '/landing02/dashboard.jpg',
   revisit: '/landing02/revisit.jpg',
+  couponBox: '/landing02/coupon-box.jpg',
 }
 
 const HOME_URL = 'https://www.dgting.co.kr'
@@ -37,6 +38,42 @@ const FLOW_STEPS = [
   { no: '04', title: '가게를 기억합니다', body: '한 번 경험한 매장은 쉽게 잊히지 않습니다.' },
   { no: '05', title: '필요할 때 다시 방문합니다', body: '쿠폰이 다시 올 이유를 대신 말해줍니다.' },
 ]
+
+const COUPON_CONDITIONS = [
+  {
+    name: '당근 단골',
+    detail: '당근에 우리 가게 단골이 됩니다.',
+    className: 'bg-[#FF6F0F] text-white',
+    google: false,
+  },
+  {
+    name: '네이버 후기',
+    detail: '네이버에 후기가 쌓입니다.',
+    className: 'bg-[#03C75A] text-white',
+    google: false,
+  },
+  {
+    name: '구글 후기',
+    detail: '구글에 후기가 쌓입니다.',
+    className: 'border border-[#222222]/12 bg-white text-[#222222]',
+    google: true,
+  },
+]
+
+const COUPON_OUTCOMES = [
+  {
+    title: '다시 오는 손님',
+    body: '쿠폰이 있으니 다시 방문합니다. 한 번 온 손님이 단골이 되고, 그 방문이 매출로 이어집니다.',
+    className: 'bg-[#FFF3DE]',
+  },
+  {
+    title: '쌓이는 홍보',
+    body: '단골과 후기가 당근, 네이버, 구글에 남습니다. 다음 손님이 우리 매장을 고르는 기준이 됩니다.',
+    className: 'bg-[#E3FBF6]',
+  },
+]
+
+const GOOGLE_DOTS = ['#4285F4', '#EA4335', '#FBBC05', '#34A853']
 
 const DASHBOARD_METRICS = ['유입수', '게임 참여수', '쿠폰 현황', '재방문', '마케팅 분석 리포트']
 
@@ -303,6 +340,97 @@ export default function Landing02() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* ── 쿠폰 사용 조건: 재방문 + 홍보 ── */}
+        <section className="bg-white py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-5">
+            <h2 className="text-[30px] font-extrabold leading-snug tracking-tight sm:text-[44px]">
+              쿠폰 한 장이,
+              <br />
+              두 가지를 만듭니다.
+            </h2>
+            <p className="mt-6 text-[24px] font-extrabold leading-snug text-[#019c87] sm:text-[32px]">
+              재방문, 그리고 매장 홍보.
+            </p>
+            <p className="mt-3 text-[18px] font-bold leading-relaxed text-[#222222]/75 sm:text-[20px]">
+              쿠폰 하나로 둘 다 됩니다.
+            </p>
+
+            <div className="mt-12 grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
+              <div>
+                <p className="text-[15px] font-bold text-[#019c87]">쿠폰을 쓰는 조건</p>
+                <p className="mt-3 text-[22px] font-extrabold leading-snug sm:text-[28px]">
+                  손님이 쿠폰을 쓰려면,
+                  <br />
+                  단골이 되거나 후기를 남겨야 합니다.
+                </p>
+                <ul className="mt-8 grid gap-3">
+                  {COUPON_CONDITIONS.map((item) => (
+                    <li
+                      key={item.name}
+                      className={`flex min-h-[88px] items-center justify-between gap-4 px-6 py-4 ${item.className}`}
+                      style={{ borderRadius: 16 }}
+                    >
+                      <span>
+                        <span className="block text-[22px] font-extrabold sm:text-[24px]">{item.name}</span>
+                        <span
+                          className={`mt-1 block text-[15px] font-semibold ${
+                            item.google ? 'text-[#222222]/60' : 'text-white/85'
+                          }`}
+                        >
+                          {item.detail}
+                        </span>
+                      </span>
+                      {item.google && (
+                        <span className="flex shrink-0 gap-1.5" aria-hidden>
+                          {GOOGLE_DOTS.map((color) => (
+                            <span
+                              key={color}
+                              className="h-3 w-3 rounded-full"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <figure className="mx-auto w-full max-w-[300px] lg:mx-0 lg:ml-auto">
+                <ImageSlot
+                  src={IMAGES.couponBox}
+                  alt="당근 단골, 네이버 후기, 구글 후기가 보이는 쿠폰함 화면"
+                  ratio="502 / 1024"
+                  label="쿠폰함 화면"
+                />
+                <figcaption className="mt-3 text-center text-[14px] font-semibold text-[#222222]/50">
+                  실제 쿠폰함 화면
+                </figcaption>
+              </figure>
+            </div>
+
+            <div className="mt-16 grid gap-4 md:grid-cols-2">
+              {COUPON_OUTCOMES.map((item) => (
+                <article key={item.title} className={`p-7 sm:p-9 ${item.className}`} style={{ borderRadius: 20 }}>
+                  <h3 className="text-[24px] font-extrabold sm:text-[28px]">{item.title}</h3>
+                  <p className="mt-4 text-[17px] leading-relaxed text-[#222222]/75 sm:text-[18px]">{item.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <p className="mt-14 text-[24px] font-extrabold leading-snug sm:text-[32px]">
+              이미 온 손님이, 다음 손님에게 매장을 알립니다.
+            </p>
+            <a
+              href={DEMO_PLAY_URL}
+              className="mt-8 inline-flex h-[60px] items-center justify-center bg-[#00C7A7] px-8 text-[17px] font-bold text-[#222222] transition-colors hover:bg-[#00b396]"
+              style={{ borderRadius: 12 }}
+            >
+              체험하기
+            </a>
+          </div>
         </section>
 
         {/* ── 7. 관리자 대시보드 ── */}
