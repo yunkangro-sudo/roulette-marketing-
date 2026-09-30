@@ -10,22 +10,22 @@ const BASIC = [
     name: '단골팅 월 구독',
     price: '49,000원',
     priceNote: 'VAT 포함',
-    fee: '50%',
+    fee: '30%',
     feeNote: '부가세 제외 공급가액',
   },
   {
     name: '당근마켓 소식 발행·최적화',
     price: '330,000원',
     priceNote: 'VAT 포함',
-    fee: '90,000원',
+    fee: '100,000원',
     feeNote: '건당',
   },
   {
     name: 'AEO 미니홈피',
     price: '290,000원',
     priceNote: '세팅비',
-    fee: '50%',
-    feeNote: '부가세 제외 공급가액',
+    fee: '150,000원',
+    feeNote: '건당',
   },
 ]
 
@@ -74,11 +74,11 @@ export default function CommissionGuide() {
             </article>
             <article className="bg-[#E3FBF6] p-5" style={{ borderRadius: 16 }}>
               <p className="text-[14px] font-bold text-[#019c87]">영업자 수수료</p>
-              <p className="mt-2 text-[28px] font-extrabold">약 22,273원</p>
+              <p className="mt-2 text-[28px] font-extrabold">약 13,364원</p>
               <p className="mt-1 text-[14px] font-semibold">월</p>
             </article>
           </div>
-          <p className="mt-4 text-[16px] font-semibold leading-relaxed">영업자 수수료 = 부가세 제외 공급가액의 50%</p>
+          <p className="mt-4 text-[16px] font-semibold leading-relaxed">영업자 수수료 = 부가세 제외 공급가액의 30%</p>
           <p className="mt-2 text-[16px] leading-relaxed text-[#222222]/75">
             매장이 구독을 유지하고 실제 결제가 이루어지는 동안 월 수수료가 발생합니다.
           </p>
@@ -88,7 +88,7 @@ export default function CommissionGuide() {
           <h2 className="text-[26px] font-extrabold tracking-tight">당근마켓 소식 발행·최적화</h2>
           <div className="mt-5 bg-white p-6" style={{ borderRadius: 16 }}>
             <p className="text-[15px] font-bold text-[#222222]/50">판매가 330,000원 · VAT 포함</p>
-            <p className="mt-3 text-[32px] font-extrabold text-[#019c87]">90,000원</p>
+            <p className="mt-3 text-[32px] font-extrabold text-[#019c87]">100,000원</p>
             <p className="text-[15px] font-bold">건당</p>
           </div>
           <p className="mt-4 text-[16px] leading-relaxed text-[#222222]/75">
@@ -98,20 +98,12 @@ export default function CommissionGuide() {
 
         <section className="pt-14">
           <h2 className="text-[26px] font-extrabold tracking-tight">AEO 미니홈피</h2>
-          <p className="mt-3 text-[16px] font-semibold text-[#222222]/65">세팅비 290,000원(VAT 포함) 기준</p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <article className="bg-white p-5" style={{ borderRadius: 16 }}>
-              <p className="text-[14px] font-bold text-[#222222]/50">공급가액</p>
-              <p className="mt-2 text-[28px] font-extrabold">약 263,636원</p>
-            </article>
-            <article className="bg-[#E3FBF6] p-5" style={{ borderRadius: 16 }}>
-              <p className="text-[14px] font-bold text-[#019c87]">영업자 수수료</p>
-              <p className="mt-2 text-[28px] font-extrabold">약 131,818원</p>
-              <p className="mt-1 text-[14px] font-semibold">건당</p>
-            </article>
+          <div className="mt-5 bg-white p-6" style={{ borderRadius: 16 }}>
+            <p className="text-[15px] font-bold text-[#222222]/50">세팅비 290,000원 · VAT 포함</p>
+            <p className="mt-3 text-[32px] font-extrabold text-[#019c87]">150,000원</p>
+            <p className="text-[15px] font-bold">건당</p>
           </div>
-          <p className="mt-4 text-[16px] font-semibold leading-relaxed">영업자 수수료 = 부가세 제외 공급가액의 50%</p>
-          <p className="mt-2 text-[16px] leading-relaxed text-[#222222]/75">현재 구독료 면제 혜택이 적용됩니다.</p>
+          <p className="mt-4 text-[16px] leading-relaxed text-[#222222]/75">현재 구독료 면제 혜택이 적용됩니다.</p>
         </section>
 
         <section className="pt-14">
