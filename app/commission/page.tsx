@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function IndependentCommissionPage() {
-  return <CommissionGuide standalone />
+  return <CommissionGuide />
 }

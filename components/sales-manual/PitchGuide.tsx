@@ -83,15 +83,6 @@ const OBJECTIONS = [
   },
 ]
 
-const NEVER = [
-  '매출이 오른다고 말하기',
-  '재방문이 늘어난다고 단정하기',
-  '후기가 많이 생긴다고 보장하기',
-  '당근 상위 노출을 약속하기',
-  'AI가 매장을 추천한다고 말하기',
-  '효과가 확실하다고 말하기',
-]
-
 const CHECKS = ['가입이 끝났는가', '입금이 끝났는가', '경품 내용과 한 달 수량', '리워드와 방문 횟수', '당근 단골 주소']
 
 export default function PitchGuide() {
@@ -378,22 +369,9 @@ export default function PitchGuide() {
             </p>
           </div>
 
-          <div className="mt-4">
-            <h3 className="text-[20px] font-extrabold">이렇게는 말하지 않습니다</h3>
-            <ul className="mt-3 grid gap-2">
-              {NEVER.map((item) => (
-                <li key={item} className="bg-[#222222] px-5 py-4 text-[16px] font-semibold text-white" style={{ borderRadius: 12 }}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 bg-white p-5 text-[16px] font-semibold leading-relaxed" style={{ borderRadius: 14 }}>
-              대신 이렇게 말합니다. 손님이 그런 행동을 하도록 만드는 구조입니다. 결과는 업종, 손님, 매장 운영에 따라 달라집니다.
-            </p>
-            <p className="mt-3 bg-[#E3FBF6] p-5 text-[16px] font-semibold leading-relaxed" style={{ borderRadius: 14 }}>
-              AEO 미니홈피는 이렇게만 말합니다. 매장 정보를 검색과 AI가 읽기 쉽게 정리하는 시스템입니다.
-            </p>
-          </div>
+          <p className="mt-4 bg-[#E3FBF6] p-5 text-[16px] font-semibold leading-relaxed" style={{ borderRadius: 14 }}>
+            AEO 미니홈피는 이렇게만 말합니다. 매장 정보를 검색과 AI가 읽기 쉽게 정리하는 시스템입니다.
+          </p>
         </section>
 
         <section className="pt-16">
