@@ -30,17 +30,6 @@ export const PRICING = {
       'QR 하나로 시작 — 복잡한 세팅 없음',
     ],
   },
-  /** 랜딩 요금제 섹션(PricingSection)에는 더 이상 노출하지 않지만, 자리표시 페이지
-   *  /aeo가 여전히 이 값과 AeoWaitlistModal을 그대로 사용하므로 삭제하지 않는다. */
-  aeo: {
-    id: 'aeo',
-    name: 'AEO마케팅',
-    price: 270_000,
-    subheadline: 'AI 검색에도 우리 매장이 뜨게',
-    description:
-      '챗GPT, 퍼플렉시티 같은 AI 검색이 "우리 동네 맛집"을 물었을 때 매장이 답변에 등장하도록 만드는 홈페이지 제작 서비스입니다.',
-    launchNote: '약 1개월 후 출시 예정',
-  },
 } as const
 
 /** 단골마케팅 신청 시 오늘 결제할 총액 = 초기 세팅비(1회) + 첫 달 구독료. */
@@ -131,11 +120,13 @@ export const CONTENT_OPS_ADDONS = [
 ] as const
 
 /** 요금제 섹션의 "추가 서비스" 영역 — 이미 만들어져 있는 매장 공개 홈페이지(/b/[storeId])
- *  기능에 가격을 붙여 파는 상품. 초기 제작비(1회)와 월 유지비를 명확히 분리해서 보여준다. */
+ *  기능에 가격을 붙여 파는 상품(AEO 미니홈피). 세팅비(1회)와 월 구독료를 분리해서 보여주며,
+ *  구독료는 첫 6개월 무료 후 7개월차부터 청구한다.
+ *  수수료 안내 페이지(CommissionGuide)의 상품명·세팅비 표기와 같은 값을 유지해야 한다. */
 export const HOMEPAGE_SERVICE = {
-  name: '홈피마케팅',
+  name: 'AEO 미니홈피',
   setup: {
-    label: '초기 제작비',
+    label: '세팅비',
     price: 270_000,
     note: '최초 1회',
     title: '우리 매장의 검색되는 공식 공간을 만듭니다',
@@ -149,24 +140,17 @@ export const HOMEPAGE_SERVICE = {
       '모바일 최적화',
     ],
   },
-  maintenance: {
-    label: '월 유지비',
+  subscription: {
+    label: '월 구독료',
     price: 9_900,
-    note: '월',
-    /** 월 유지비에 포함된 항목을 간단히 한 줄로 안내 — 예전에는 체크리스트로 4개 항목을
-     *  나열했지만 초기 제작비 체크리스트와 중복돼 보여서 한 줄 요약으로 축약했다. */
+    freeMonths: 6,
+    freeLabel: '첫 6개월 무료',
+    resumeNote: '7개월차부터 월 9,900원',
+    /** 무료 기간(6개월) 동안 면제되는 구독료 합계 — 카드에서 원래 금액을 취소선으로 보여줄 때 쓴다. */
+    periodOriginal: 59_400,
+    badge: '한정 프로모션 · 지금 신청 시',
+    urgencyNote: '조기 종료 예정 · 혜택이 끝나기 전 신청하세요',
     includesNote: '독립 도메인 발급 포함, 구글 및 네이버 사이트 등록 포함',
-    /** 런칭 프로모션 — 월 유지비 첫 12개월 전액 면제. 기간이 끝나면 이 블록만 지우면 원래
-     *  가격(월 9,900원) 카드로 자연스럽게 돌아간다. */
-    promo: {
-      badge: '한정 프로모션 · 지금 신청 시',
-      headline: '첫 1년 유지비 무료',
-      freeMonths: 12,
-      description: '지금 신청하면 홈페이지 유지비를\n첫 1년 동안 부담 없이 시작할 수 있습니다.',
-      resumeNote: '13개월차부터 월 9,900원',
-      annualOriginal: 118_800,
-      urgencyNote: '조기 종료 예정 · 혜택이 끝나기 전 신청하세요',
-    },
   },
 } as const
 
@@ -187,12 +171,14 @@ export const CALCULATOR_PRODUCTS = [
   },
   {
     id: 3,
-    name: '홈피마케팅',
+    name: HOMEPAGE_SERVICE.name,
     setupFee: HOMEPAGE_SERVICE.setup.price,
     monthly: 0,
-    cardNote: `가입 후 1년간 무료, 이후 월 ${formatWon(HOMEPAGE_SERVICE.maintenance.price)}으로 자동 전환됩니다.`,
-    afterPromoNote: `가입 후 ${HOMEPAGE_SERVICE.maintenance.promo.freeMonths + 1}개월차부터 월 ${formatWon(
-      HOMEPAGE_SERVICE.maintenance.price
+    cardNote: `가입 후 ${HOMEPAGE_SERVICE.subscription.freeMonths}개월간 무료, 이후 월 ${formatWon(
+      HOMEPAGE_SERVICE.subscription.price
+    )}으로 자동 전환됩니다.`,
+    afterPromoNote: `가입 후 ${HOMEPAGE_SERVICE.subscription.freeMonths + 1}개월차부터 월 ${formatWon(
+      HOMEPAGE_SERVICE.subscription.price
     )} 자동 청구`,
   },
 ] as const

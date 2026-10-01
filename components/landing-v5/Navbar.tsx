@@ -145,7 +145,7 @@ export default function Navbar() {
                 onClick={close}
                 className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
               >
-                AEO 홈페이지 제작
+                AEO 미니홈피
               </Link>
               <Link
                 href={GROWTH_DANGGEUN_PATH}

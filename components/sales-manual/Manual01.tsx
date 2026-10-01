@@ -21,7 +21,7 @@ const INCLUDED = [
 
 const SETUP_ITEMS = PRICING.basic.setupIncludes
 
-const NOT_INCLUDED = ['당근마케팅', '홈피마케팅']
+const NOT_INCLUDED = ['당근마케팅', 'AEO 미니홈피']
 
 const NEVER_SAY = [
   '매출이 얼마 오른다는 숫자',

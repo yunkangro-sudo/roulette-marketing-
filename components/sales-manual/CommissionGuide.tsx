@@ -22,7 +22,7 @@ const BASIC = [
   },
   {
     name: 'AEO 미니홈피',
-    price: '290,000원',
+    price: '270,000원',
     priceNote: '세팅비',
     fee: '150,000원',
     feeNote: '건당',
@@ -60,7 +60,7 @@ export default function CommissionGuide() {
             ))}
           </div>
           <p className="mt-4 text-[15px] font-semibold leading-relaxed text-[#222222]/70">
-            AEO 미니홈피는 현재 구독료 면제 혜택이 적용됩니다.
+            AEO 미니홈피는 첫 6개월 구독료가 무료이며, 7개월차부터 월 9,900원이 청구됩니다.
           </p>
         </section>
 
@@ -99,11 +99,13 @@ export default function CommissionGuide() {
         <section className="pt-14">
           <h2 className="text-[26px] font-extrabold tracking-tight">AEO 미니홈피</h2>
           <div className="mt-5 bg-white p-6" style={{ borderRadius: 16 }}>
-            <p className="text-[15px] font-bold text-[#222222]/50">세팅비 290,000원 · VAT 포함</p>
+            <p className="text-[15px] font-bold text-[#222222]/50">세팅비 270,000원 · VAT 포함</p>
             <p className="mt-3 text-[32px] font-extrabold text-[#019c87]">150,000원</p>
             <p className="text-[15px] font-bold">건당</p>
           </div>
-          <p className="mt-4 text-[16px] leading-relaxed text-[#222222]/75">현재 구독료 면제 혜택이 적용됩니다.</p>
+          <p className="mt-4 text-[16px] leading-relaxed text-[#222222]/75">
+            고객은 첫 6개월 구독료가 무료이며, 7개월차부터 월 9,900원이 청구됩니다.
+          </p>
         </section>
 
         <section className="pt-14">

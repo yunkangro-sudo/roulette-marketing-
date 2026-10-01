@@ -940,7 +940,7 @@ export function PricingSection() {
           <p className="mt-1.5 text-[13px] leading-relaxed text-dg-ink-soft">
             단골팅은 단골마케팅 하나만으로도 충분히 시작할 수 있습니다.
             <br />
-            당근마케팅과 홈피마케팅은 필요할 때 하나씩 추가하는 선택 사항입니다.
+            당근마케팅과 AEO 미니홈피는 필요할 때 하나씩 추가하는 선택 사항입니다.
           </p>
         </div>
 
@@ -1050,11 +1050,11 @@ export function PricingSection() {
           <span className="h-px flex-1 bg-dg-ink/20" aria-hidden />
         </div>
 
-        {/* Section C — 부가서비스 2종: 당근마케팅 / 홈피마케팅. 서로 동일한 크기·톤으로
+        {/* Section C — 부가서비스 2종: 당근마케팅 / AEO 미니홈피. 서로 동일한 크기·톤으로
             배치해 "둘 다 동등한 선택 옵션"임을 전달한다. */}
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {/* 당근마케팅 — 정보 제공용 카드로, 실제 전환 유도는 페이지 전체의 메인 CTA로
-              통일한다(개별 상담 버튼 없음). 배경은 홈피마케팅 카드와 동일한 흰색으로 맞춰
+              통일한다(개별 상담 버튼 없음). 배경은 AEO 미니홈피 카드와 동일한 흰색으로 맞춰
               두 카드가 배경 톤에서 완전히 일치하도록 하고, 뱃지·헤드라인의 오렌지 톤만
               당근마케팅 고유의 색으로 유지한다. */}
           <article
@@ -1071,7 +1071,7 @@ export function PricingSection() {
             <h3 className="mt-4 text-[24px] font-bold text-dg-carrot sm:text-[26px]">{contentOps.name}</h3>
             <p className="mt-2 text-[14px] leading-relaxed text-dg-ink-soft">{contentOps.tagline}</p>
 
-            {/* 헤드라인 가격 — 홈피마케팅의 "270,000원"과 동일한 위치·크기·굵기.
+            {/* 헤드라인 가격 — AEO 미니홈피의 세팅비와 동일한 위치·크기·굵기.
                 바이럴 콘텐츠 운영 패키지 가격을 대표값으로 쓰고,
                 1회성 항목(비즈프로필 최적화 등)은 대표값으로 쓰지 않는다. */}
             <div className="mt-6">
@@ -1107,7 +1107,7 @@ export function PricingSection() {
             <p className="mt-4 text-[11.5px] text-dg-ink-soft">※ 모든 금액은 VAT 포함가입니다</p>
           </article>
 
-          {/* 홈피마케팅 — 기존 2박스(제작비+체크리스트 / 프로모션+유지비)를 1박스로 통합.
+          {/* AEO 미니홈피 — 세팅비와 6개월 구독료 무료 안내를 1박스로 통합.
               당근마케팅 카드와 동일한 패딩·보더로 시각적 무게를 맞춘다. */}
           <article className="relative border border-dg-line bg-white p-5 sm:p-7" style={{ borderRadius: 10 }}>
             <h3 className="text-[24px] font-bold text-dg-ink sm:text-[26px]">{HOMEPAGE_SERVICE.name}</h3>
@@ -1115,7 +1115,7 @@ export function PricingSection() {
               className="badge-glow-pulse mt-3 inline-block bg-dg-gold-deep px-3 py-1.5 text-[12.5px] font-extrabold text-white"
               style={{ borderRadius: 999 }}
             >
-              🔥 {HOMEPAGE_SERVICE.maintenance.promo.badge}
+              🔥 {HOMEPAGE_SERVICE.subscription.badge}
             </span>
 
             <div className="mt-4">
@@ -1128,17 +1128,16 @@ export function PricingSection() {
               </p>
 
               <p className="mt-3 text-[14px] font-bold text-dg-ink">
-                월 유지비{' '}
+                {HOMEPAGE_SERVICE.subscription.label}{' '}
                 <span className="font-num text-dg-ink-soft line-through">
-                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)}
+                  {formatWon(HOMEPAGE_SERVICE.subscription.price)}
                 </span>{' '}
                 → <span className="text-dg-green-deep">0원</span>
                 <span className="ml-1 text-[12px] font-normal text-dg-ink-soft">
-                  (첫 {HOMEPAGE_SERVICE.maintenance.promo.freeMonths}개월 무료, 13개월차부터{' '}
-                  {formatWon(HOMEPAGE_SERVICE.maintenance.price)})
+                  (첫 {HOMEPAGE_SERVICE.subscription.freeMonths}개월 무료, {HOMEPAGE_SERVICE.subscription.resumeNote})
                 </span>
               </p>
-              <p className="mt-1 text-[12px] text-dg-ink-soft">{HOMEPAGE_SERVICE.maintenance.includesNote}</p>
+              <p className="mt-1 text-[12px] text-dg-ink-soft">{HOMEPAGE_SERVICE.subscription.includesNote}</p>
             </div>
 
             <ul className="mt-6 space-y-1.5 border-t border-dg-line pt-5">
@@ -1152,9 +1151,9 @@ export function PricingSection() {
 
             <div className="mt-6 border-t border-dg-line pt-5">
               <p className="text-[14px] font-bold text-dg-ink">
-                1년 유지비{' '}
+                {HOMEPAGE_SERVICE.subscription.freeMonths}개월 구독료{' '}
                 <span className="font-num text-dg-ink-soft line-through">
-                  {formatWon(HOMEPAGE_SERVICE.maintenance.promo.annualOriginal)}
+                  {formatWon(HOMEPAGE_SERVICE.subscription.periodOriginal)}
                 </span>{' '}
                 → <span className="font-num text-dg-green-deep">0원</span>
               </p>
@@ -1162,7 +1161,7 @@ export function PricingSection() {
                 className="mt-2 inline-block bg-dg-cream px-2.5 py-1 text-[11.5px] font-bold text-dg-gold-deep"
                 style={{ borderRadius: 999 }}
               >
-                ⏰ {HOMEPAGE_SERVICE.maintenance.promo.urgencyNote}
+                ⏰ {HOMEPAGE_SERVICE.subscription.urgencyNote}
               </span>
             </div>
           </article>
@@ -1172,7 +1171,7 @@ export function PricingSection() {
         <p className="mx-auto mt-6 max-w-2xl text-center text-[13px] leading-relaxed text-dg-ink-soft">
           지금 당장 다 필요하지 않아요. 단골마케팅으로 먼저 시작하고,
           <br className="hidden sm:block" />
-          당근마케팅이나 홈피마케팅은 나중에 필요할 때 추가해도 늦지 않습니다.
+          당근마케팅이나 AEO 미니홈피는 나중에 필요할 때 추가해도 늦지 않습니다.
         </p>
 
         {/* 구분 — 요금제 안내와 별도 이벤트 참여는 다른 성격의 콘텐츠임을 명확히 */}

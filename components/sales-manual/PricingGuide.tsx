@@ -43,13 +43,13 @@ export default function PricingGuide() {
           이렇게 냅니다.
         </h1>
         <p className="mt-4 text-[18px] font-semibold leading-relaxed text-[#222222]/75">
-          매달 내는 돈과, 처음에 한 번만 내는 세팅비가 있습니다. 당근마케팅과 홈피마케팅은 필요할 때만 따로 추가합니다.
+          매달 내는 돈과, 처음에 한 번만 내는 세팅비가 있습니다. 당근마케팅과 AEO 미니홈피는 필요할 때만 따로 추가합니다.
         </p>
         <nav className="mt-6 grid grid-cols-3 gap-2 text-[15px] font-extrabold" aria-label="요금 바로가기">
           {[
             ['#basic', '단골'],
             ['#danggeun', '당근'],
-            ['#homepage', '홈피'],
+            ['#homepage', '미니홈피'],
           ].map(([href, label]) => (
             <a key={href} href={href} className="flex h-12 items-center justify-center bg-white" style={{ borderRadius: 12 }}>
               {label}
@@ -154,16 +154,16 @@ export default function PricingGuide() {
           <p className="mt-3 text-[18px] font-semibold leading-relaxed">매장 홈페이지를 만들어 주는 비용입니다.</p>
           <div className="mt-5 grid gap-3">
             <article className="bg-white p-6" style={{ borderRadius: 16 }}>
-              <p className="text-[15px] font-bold text-[#019c87]">제작비 · 한 번</p>
+              <p className="text-[15px] font-bold text-[#019c87]">{HOMEPAGE_SERVICE.setup.label} · 한 번</p>
               <p className="mt-2 text-[36px] font-extrabold leading-none tracking-tight">
                 {formatWon(HOMEPAGE_SERVICE.setup.price)}
               </p>
             </article>
             <article className="bg-[#E3FBF6] p-6" style={{ borderRadius: 16 }}>
-              <p className="text-[15px] font-bold text-[#019c87]">유지비</p>
-              <p className="mt-2 text-[32px] font-extrabold leading-snug">첫 1년 무료</p>
+              <p className="text-[15px] font-bold text-[#019c87]">{HOMEPAGE_SERVICE.subscription.label}</p>
+              <p className="mt-2 text-[32px] font-extrabold leading-snug">{HOMEPAGE_SERVICE.subscription.freeLabel}</p>
               <p className="mt-2 text-[16px] font-semibold leading-relaxed">
-                {HOMEPAGE_SERVICE.maintenance.promo.resumeNote}. 도메인 발급, 구글·네이버 등록이 포함됩니다.
+                {HOMEPAGE_SERVICE.subscription.resumeNote}. 도메인 발급, 구글·네이버 등록이 포함됩니다.
               </p>
             </article>
           </div>

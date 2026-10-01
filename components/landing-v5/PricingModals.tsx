@@ -6,6 +6,7 @@ import {
   BANK_ACCOUNT,
   CALCULATOR_PRODUCTS,
   CONTENT_OPS_ADDONS,
+  HOMEPAGE_SERVICE,
   PRICING,
   WELCOME_GIFT_LABEL,
   formatWon,
@@ -427,12 +428,12 @@ export function HomepageServiceModal({ onClose }: Props) {
     <ModalShell
       onClose={onClose}
       labelId="homepage-service-title"
-      title={phase === 'done' ? '신청 완료' : '홈피마케팅 신청'}
+      title={phase === 'done' ? '신청 완료' : 'AEO 미니홈피 신청'}
     >
       {phase !== 'done' ? (
         <div className="space-y-4">
           <p className="text-[13px] leading-relaxed text-dg-ink-soft">
-            매장 정보를 남겨주시면, 담당자가 홈피마케팅 제작과 첫 1년 유지비 무료 혜택 안내를 위해 연락드려요.
+            매장 정보를 남겨주시면, 담당자가 AEO 미니홈피 제작과 첫 {HOMEPAGE_SERVICE.subscription.freeMonths}개월 구독료 무료 혜택 안내를 위해 연락드려요.
           </p>
           <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
           <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />
@@ -552,13 +553,16 @@ const REASSURANCE_ITEMS = [
 /** 요금제 계산기 팝업 — 햄버거 「가입 신청하기」, 또는 요금제 페이지의 「요금제 계산 안내」
  *  버튼으로 열린다. 상품 데이터는 CALCULATOR_PRODUCTS(=PRICING/CONTENT_OPS/HOMEPAGE_SERVICE를
  *  그대로 참조) 하나만 쓰기 때문에 요금제 카드와 숫자가 어긋날 일이 없다. */
-export function PricingCalculatorModal({ onClose }: Props) {
+export function PricingCalculatorModal({
+  onClose,
+  initialHomepage = false,
+}: Props & { initialHomepage?: boolean }) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<CalcPhase>('select')
   /** 01번(단골팅 쿠폰 게임 시스템)은 기본 상품이라 항상 포함되고 체크박스가 없다.
    *  02번은 4개 항목(CONTENT_OPS_ADDONS)이 독립적으로 선택되고, 03번(홈피 제작)만
    *  기존처럼 단일 토글이라 이 두 종류를 하나의 문자열 키 Record로 함께 관리한다. */
-  const [selected, setSelected] = useState<Record<string, boolean>>({ homepage: false })
+  const [selected, setSelected] = useState<Record<string, boolean>>({ homepage: initialHomepage })
   const [showAfterPromo, setShowAfterPromo] = useState(false)
   const [storeName, setStoreName] = useState('')
   const [ownerName, setOwnerName] = useState('')
@@ -730,7 +734,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
               </div>
             </div>
 
-            {/* 03. 홈피마케팅 — 기존과 동일한 단일 토글 카드 */}
+            {/* 03. AEO 미니홈피 — 기존과 동일한 단일 토글 카드 */}
             <button
               type="button"
               onClick={() => toggle('homepage')}
@@ -753,13 +757,13 @@ export function PricingCalculatorModal({ onClose }: Props) {
                 <div className="min-w-0 flex-1">
                   <p className="text-[14px] font-bold text-dg-ink">03. {homepageProduct.name}</p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-num text-[13px] text-dg-ink-soft">
-                    <span>제작비용 {formatWon(homepageProduct.setupFee)} (1회)</span>
+                    <span>세팅비 {formatWon(homepageProduct.setupFee)} (1회)</span>
                   </div>
                   <span
                     className="mt-2 inline-block bg-dg-gold-deep px-2.5 py-1 text-[11px] font-bold text-white"
                     style={{ borderRadius: 999 }}
                   >
-                    1년 구독료 전액 무료
+                    {HOMEPAGE_SERVICE.subscription.freeMonths}개월 구독료 전액 무료
                   </span>
                   {homepageProduct.cardNote && (
                     <p className="mt-2 text-[11.5px] leading-relaxed text-dg-ink-soft">{homepageProduct.cardNote}</p>
@@ -788,7 +792,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
             </p>
           </div>
 
-          {/* 홈피마케팅 1년 무료 종료 후 예상 금액 — 접었다 펼치는 아코디언, 실시간 합계와 다른 톤 */}
+          {/* AEO 미니홈피 무료 기간 종료 후 예상 금액 — 접었다 펼치는 아코디언, 실시간 합계와 다른 톤 */}
           <button
             type="button"
             onClick={() => setShowAfterPromo((v) => !v)}
@@ -796,7 +800,7 @@ export function PricingCalculatorModal({ onClose }: Props) {
             className="mt-4 flex w-full items-center justify-between border border-dg-line bg-dg-bg px-4 py-3 text-[12.5px] font-semibold text-dg-ink-soft"
             style={{ borderRadius: 8 }}
           >
-            1년 후 예상 금액 (참고용)
+            {HOMEPAGE_SERVICE.subscription.freeMonths}개월 후 예상 금액 (참고용)
             <span aria-hidden>{showAfterPromo ? '−' : '+'}</span>
           </button>
           {showAfterPromo && (
@@ -825,7 +829,10 @@ export function PricingCalculatorModal({ onClose }: Props) {
 
           {/* 필수 안내 */}
           <div className="mt-4 space-y-1 text-[11px] leading-relaxed text-dg-ink-soft">
-            <p>03번 홈피마케팅 상품은 가입 1년간 무료이며, 이후 월 9,900원으로 자동 전환됩니다.</p>
+            <p>
+              03번 {homepageProduct.name}는 가입 {HOMEPAGE_SERVICE.subscription.freeMonths}개월간 구독료가 무료이며,{' '}
+              {HOMEPAGE_SERVICE.subscription.resumeNote}으로 자동 전환됩니다.
+            </p>
             <p>모든 금액은 VAT 포함 가격입니다.</p>
           </div>
 
