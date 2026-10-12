@@ -90,19 +90,63 @@ const NEW_FLOW = [
   { label: '매출', key: true },
 ]
 
-/** 샘플 레퍼런스 10업종. 음식점만 실제 매장(정육집) 공개 페이지로 연결하고, 나머지는 샘플 게임으로 연다. */
+/** 업종 카드. 음식점은 실제 매장 정육집 게임, 나머지는 샘플 게임. */
 const INDUSTRIES = [
-  { name: '음식점', example: '게임하고 다음 방문 혜택 받기', href: '/b/cj-02', cta: '실제 매장 보기' },
-  { name: '카페', example: '게임하고 디저트 쿠폰 받기', href: '/play/demo-cafe-cream', cta: '샘플 게임 해보기' },
-  { name: '미용실', example: '게임하고 다음 시술 혜택 받기', href: '/play/demo-hair-salon', cta: '샘플 게임 해보기' },
-  { name: '네일샵', example: '게임하고 다음 시술 쿠폰 받기', href: '/play/demo-nail', cta: '샘플 게임 해보기' },
-  { name: '피트니스', example: '게임하고 운동 혜택 받기', href: '/play/demo-gym', cta: '샘플 게임 해보기' },
-  { name: '피부관리', example: '게임하고 다음 관리 혜택 받기', href: '/play/demo-esthetic', cta: '샘플 게임 해보기' },
-  { name: '베이커리', example: '게임하고 빵 쿠폰 받기', href: '/play/demo-bakery', cta: '샘플 게임 해보기' },
-  { name: '세차', example: '게임하고 다음 세차 쿠폰 받기', href: '/play/demo-carwash', cta: '샘플 게임 해보기' },
-  { name: '키즈카페', example: '게임하고 놀이 혜택 받기', href: '/play/demo-kidscafe', cta: '샘플 게임 해보기' },
-  { name: '반려동물 미용', example: '게임하고 다음 미용 혜택 받기', href: '/play/demo-petsalon', cta: '샘플 게임 해보기' },
+  { name: '음식점', emoji: '🥩', example: '게임하고 다음 방문 혜택 받기', href: '/play/cj-02', real: true },
+  { name: '카페', emoji: '☕', example: '게임하고 디저트 쿠폰 받기', href: '/play/demo-cafe-cream', real: false },
+  { name: '미용실', emoji: '✂️', example: '게임하고 다음 시술 혜택 받기', href: '/play/demo-hair-salon', real: false },
+  { name: '네일샵', emoji: '💅', example: '게임하고 다음 시술 쿠폰 받기', href: '/play/demo-nail', real: false },
+  { name: '피트니스', emoji: '💪', example: '게임하고 운동 혜택 받기', href: '/play/demo-gym', real: false },
+  { name: '피부관리', emoji: '✨', example: '게임하고 다음 관리 혜택 받기', href: '/play/demo-esthetic', real: false },
+  { name: '베이커리', emoji: '🥐', example: '게임하고 빵 쿠폰 받기', href: '/play/demo-bakery', real: false },
+  { name: '세차', emoji: '🚗', example: '게임하고 다음 세차 쿠폰 받기', href: '/play/demo-carwash', real: false },
+  { name: '키즈카페', emoji: '🎈', example: '게임하고 놀이 혜택 받기', href: '/play/demo-kidscafe', real: false },
+  { name: '반려동물 미용', emoji: '🐶', example: '게임하고 다음 미용 혜택 받기', href: '/play/demo-petsalon', real: false },
 ]
+
+function IndustryShowcase() {
+  return (
+    <section className="l2-industry relative overflow-hidden py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <p className="text-[13px] font-bold tracking-wide text-[#019c87]">업종별 게임</p>
+        <h2 className="mt-3 text-[30px] font-extrabold leading-snug tracking-tight sm:text-[44px]">
+          우리 가게에도
+          <br />
+          사용할 수 있을까요?
+        </h2>
+        <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-[#222222]/70 sm:text-[18px]">
+          업종을 누르면 그 가게 게임이 바로 열립니다. 한 판 해보고, 우리 매장에 넣는 그림을 떠올려 보세요.
+        </p>
+        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {INDUSTRIES.map((item) => (
+            <li key={item.name}>
+              <a
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="l2-card flex h-full flex-col bg-white p-5"
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E7FBF6] text-[24px]" aria-hidden>
+                    {item.emoji}
+                  </span>
+                  {item.real && <span className="l2-live rounded-full bg-[#222222] px-2.5 py-1 text-[11px] font-bold text-white">실제 매장</span>}
+                </span>
+                <h3 className="mt-4 break-keep text-[18px] font-extrabold">{item.name}</h3>
+                <p className="mt-2 flex-1 break-keep text-[14px] leading-relaxed text-[#222222]/60">
+                  &ldquo;{item.example}&rdquo;
+                </p>
+                <span className="l2-cta mt-4 inline-flex h-11 items-center justify-center text-[14px] font-bold text-[#222222]">
+                  바로 해보기 →
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
 
 function CtaButtons({ light = false }: { light?: boolean }) {
   const primary = light
@@ -144,6 +188,61 @@ function CtaButtons({ light = false }: { light?: boolean }) {
 export default function Landing02() {
   return (
     <div className="landing02 bg-[#FAF7F0] text-[#222222]">
+      <style>{`
+        .l2-industry {
+          background:
+            radial-gradient(900px 420px at 10% -10%, rgba(0, 199, 167, 0.28), transparent 60%),
+            radial-gradient(700px 380px at 100% 0%, rgba(255, 196, 87, 0.28), transparent 55%),
+            linear-gradient(180deg, #ffffff 0%, #f3fffb 100%);
+        }
+        .l2-card {
+          position: relative;
+          overflow: hidden;
+          border: 1px solid rgba(34, 34, 34, 0.08);
+          border-radius: 18px;
+          box-shadow: 0 10px 30px rgba(34, 34, 34, 0.05);
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .l2-card::after {
+          content: "";
+          position: absolute;
+          inset: 0 auto 0 -40%;
+          width: 40%;
+          background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+          transform: translateX(-120%);
+          pointer-events: none;
+        }
+        .l2-card:hover {
+          transform: translateY(-6px);
+          border-color: #00c7a7;
+          box-shadow: 0 18px 40px rgba(0, 199, 167, 0.28);
+        }
+        .l2-card:hover::after {
+          animation: l2-shine 0.7s ease;
+        }
+        .l2-cta {
+          border-radius: 999px;
+          background: #00c7a7;
+          box-shadow: 0 8px 18px rgba(0, 199, 167, 0.35);
+        }
+        .l2-card:hover .l2-cta {
+          background: #00b396;
+        }
+        .l2-live {
+          animation: l2-pulse 1.8s ease-out infinite;
+        }
+        @keyframes l2-shine {
+          to { transform: translateX(380%); }
+        }
+        @keyframes l2-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(0, 199, 167, 0.55); }
+          70% { box-shadow: 0 0 0 8px rgba(0, 199, 167, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(0, 199, 167, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .l2-card, .l2-card::after, .l2-live { animation: none; transition: none; }
+        }
+      `}</style>
       {/* ── 상단 바 ── */}
       <header className="sticky top-0 z-50 border-b border-[#222222]/10 bg-[#FAF7F0]/90 backdrop-blur">
         <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-5">
@@ -185,6 +284,8 @@ export default function Landing02() {
             <ImageSlot src={IMAGES.hero} alt="게임하고 단골되는 즐거운 마케팅" ratio="1 / 1" label="대표 이미지" />
           </div>
         </section>
+
+        <IndustryShowcase />
 
         {/* ── 2. PROBLEM ── */}
         <section className="bg-[#222222] py-20 text-white sm:py-28">
@@ -560,39 +661,6 @@ export default function Landing02() {
               </a>
             </div>
           </article>
-        </section>
-
-        {/* ── 9. 업종별 예시 ── */}
-        <section className="bg-white py-20 sm:py-28">
-          <div className="mx-auto max-w-6xl px-5">
-            <h2 className="text-[30px] font-extrabold leading-snug tracking-tight sm:text-[44px]">
-              우리 가게에도
-              <br />
-              사용할 수 있을까요?
-            </h2>
-            <p className="mt-5 text-[18px] leading-relaxed text-[#222222]/70">
-              손님이 다시 찾아올 수 있는 가게라면 어디든 가능합니다.
-            </p>
-            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {INDUSTRIES.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-full flex-col border border-[#222222]/10 p-5 transition-colors hover:border-[#00C7A7] hover:bg-[#FAF7F0]"
-                    style={{ borderRadius: 16 }}
-                  >
-                    <h3 className="break-keep text-[18px] font-extrabold">{item.name}</h3>
-                    <p className="mt-3 flex-1 break-keep text-[15px] leading-relaxed text-[#222222]/65">
-                      &ldquo;{item.example}&rdquo;
-                    </p>
-                    <span className="mt-4 text-[14px] font-bold text-[#019c87]">{item.cta} →</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
         </section>
 
         {/* ── 10. FINAL CTA ── */}
