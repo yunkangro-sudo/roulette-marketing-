@@ -348,7 +348,7 @@ async function wipeExisting(client, storeId) {
 
 async function seedStore(client, def) {
   const storeId = def.slug
-  const storeName = `(샘플) ${def.name}`
+  const storeName = def.name
 
   await wipeExisting(client, storeId)
 

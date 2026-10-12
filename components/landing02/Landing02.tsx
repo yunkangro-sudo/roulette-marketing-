@@ -90,15 +90,18 @@ const NEW_FLOW = [
   { label: '매출', key: true },
 ]
 
+/** 샘플 레퍼런스 10업종. 음식점만 실제 매장(정육집) 공개 페이지로 연결하고, 나머지는 샘플 게임으로 연다. */
 const INDUSTRIES = [
-  { name: '타이어 · 자동차', example: '게임하고 타이어 할인쿠폰 받기' },
-  { name: '카페', example: '게임하고 다음 방문 쿠폰 받기' },
-  { name: '음식점', example: '게임하고 다음 방문 혜택 받기' },
-  { name: '미용실', example: '게임하고 다음 방문 할인받기' },
-  { name: '네일샵', example: '게임하고 다음 시술 쿠폰 받기' },
-  { name: '학원', example: '게임하고 상담 혜택 받기' },
-  { name: '세차', example: '게임하고 다음 세차 쿠폰 받기' },
-  { name: '청소', example: '게임하고 다음 이용 혜택 받기' },
+  { name: '음식점', example: '게임하고 다음 방문 혜택 받기', href: '/b/cj-02', cta: '실제 매장 보기' },
+  { name: '카페', example: '게임하고 디저트 쿠폰 받기', href: '/play/demo-cafe-cream', cta: '샘플 게임 해보기' },
+  { name: '미용실', example: '게임하고 다음 시술 혜택 받기', href: '/play/demo-hair-salon', cta: '샘플 게임 해보기' },
+  { name: '네일샵', example: '게임하고 다음 시술 쿠폰 받기', href: '/play/demo-nail', cta: '샘플 게임 해보기' },
+  { name: '피트니스', example: '게임하고 운동 혜택 받기', href: '/play/demo-gym', cta: '샘플 게임 해보기' },
+  { name: '피부관리', example: '게임하고 다음 관리 혜택 받기', href: '/play/demo-esthetic', cta: '샘플 게임 해보기' },
+  { name: '베이커리', example: '게임하고 빵 쿠폰 받기', href: '/play/demo-bakery', cta: '샘플 게임 해보기' },
+  { name: '세차', example: '게임하고 다음 세차 쿠폰 받기', href: '/play/demo-carwash', cta: '샘플 게임 해보기' },
+  { name: '키즈카페', example: '게임하고 놀이 혜택 받기', href: '/play/demo-kidscafe', cta: '샘플 게임 해보기' },
+  { name: '반려동물 미용', example: '게임하고 다음 미용 혜택 받기', href: '/play/demo-petsalon', cta: '샘플 게임 해보기' },
 ]
 
 function CtaButtons({ light = false }: { light?: boolean }) {
@@ -570,11 +573,22 @@ export default function Landing02() {
             <p className="mt-5 text-[18px] leading-relaxed text-[#222222]/70">
               손님이 다시 찾아올 수 있는 가게라면 어디든 가능합니다.
             </p>
-            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {INDUSTRIES.map((item) => (
-                <li key={item.name} className="border border-[#222222]/10 p-6" style={{ borderRadius: 16 }}>
-                  <h3 className="text-[18px] font-extrabold">{item.name}</h3>
-                  <p className="mt-3 text-[15px] leading-relaxed text-[#222222]/65">&ldquo;{item.example}&rdquo;</p>
+                <li key={item.name}>
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-full flex-col border border-[#222222]/10 p-5 transition-colors hover:border-[#00C7A7] hover:bg-[#FAF7F0]"
+                    style={{ borderRadius: 16 }}
+                  >
+                    <h3 className="break-keep text-[18px] font-extrabold">{item.name}</h3>
+                    <p className="mt-3 flex-1 break-keep text-[15px] leading-relaxed text-[#222222]/65">
+                      &ldquo;{item.example}&rdquo;
+                    </p>
+                    <span className="mt-4 text-[14px] font-bold text-[#019c87]">{item.cta} →</span>
+                  </a>
                 </li>
               ))}
             </ul>
