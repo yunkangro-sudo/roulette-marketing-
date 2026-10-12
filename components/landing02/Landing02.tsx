@@ -90,9 +90,9 @@ const NEW_FLOW = [
   { label: '매출', key: true },
 ]
 
-/** 업종 카드. 음식점은 실제 매장 정육집 게임, 나머지는 샘플 게임. */
+/** 업종 카드. 음식점은 실제 매장 서울불고기 게임, 나머지는 샘플 게임. */
 const INDUSTRIES = [
-  { name: '음식점', emoji: '🥩', example: '게임하고 다음 방문 혜택 받기', href: '/play/cj-02', real: true },
+  { name: '음식점', emoji: '🥩', example: '게임하고 다음 방문 혜택 받기', href: '/play/ca-01', real: true },
   { name: '카페', emoji: '☕', example: '게임하고 디저트 쿠폰 받기', href: '/play/demo-cafe-cream', real: false },
   { name: '미용실', emoji: '✂️', example: '게임하고 다음 시술 혜택 받기', href: '/play/demo-hair-salon', real: false },
   { name: '네일샵', emoji: '💅', example: '게임하고 다음 시술 쿠폰 받기', href: '/play/demo-nail', real: false },

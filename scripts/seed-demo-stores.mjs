@@ -428,6 +428,16 @@ async function seedStore(client, def) {
   }
 
   await client.query(
+    `insert into store_addons (store_id, homepage_feature_enabled, homepage_feature_enabled_at)
+     values ($1, true, now())
+     on conflict (store_id) do update
+     set homepage_feature_enabled = true,
+         homepage_feature_enabled_at = coalesce(store_addons.homepage_feature_enabled_at, now()),
+         updated_at = now()`,
+    [storeId],
+  )
+
+  await client.query(
     `insert into business_entity
        (store_id, homepage_enabled, online_play_enabled, show_trust_metrics,
         category, description, tagline, game_cta_label, business_hours,
