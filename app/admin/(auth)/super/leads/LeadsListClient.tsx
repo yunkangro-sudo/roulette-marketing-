@@ -23,6 +23,7 @@ const SOURCE_LABEL: Record<string, string> = {
   landing_v5_pricing_homepage: 'AEO 미니홈피 신청',
   landing_v5_pricing_calculator: '요금제 계산기',
   landing_v5_growth_danggeun: '당근마케팅 상담(성장페이지)',
+  landing_v5_franchise: '당근 프랜차이즈 마케팅 상담',
   signup_self: '회원가입(계정 생성)',
 }
 

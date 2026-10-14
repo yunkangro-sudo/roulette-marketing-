@@ -307,7 +307,20 @@ type ContentOpsPhase = 'form' | 'submitting' | 'done'
 
 /** "당근마케팅" 상담 신청 — 즉시 결제가 아닌 리드 수집이라
  *  단골마케팅 신청과 동일한 signup_inquiries 테이블을 쓰되 source로 구분한다. */
-export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_ops' }: Props & { source?: string }) {
+export function ContentOpsModal({
+  onClose,
+  source = 'landing_v5_pricing_content_ops',
+  title = '당근마케팅 상담',
+  description = '매장 정보를 남겨주시면, 담당자가 당근마케팅 상담을 위해 연락드려요.',
+  nameLabel = '매장명',
+  namePlaceholder = '예: 단골팅 카페',
+}: Props & {
+  source?: string
+  title?: string
+  description?: string
+  nameLabel?: string
+  namePlaceholder?: string
+}) {
   useModalChrome(onClose)
   const [phase, setPhase] = useState<ContentOpsPhase>('form')
   const [storeName, setStoreName] = useState('')
@@ -317,7 +330,7 @@ export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_
 
   async function submit() {
     if (!storeName.trim() || !ownerName.trim() || !phone.trim()) {
-      setError('매장명, 담당자명, 연락처를 모두 입력해주세요')
+      setError(`${nameLabel}, 담당자명, 연락처를 모두 입력해주세요`)
       return
     }
     setError(null)
@@ -346,14 +359,12 @@ export function ContentOpsModal({ onClose, source = 'landing_v5_pricing_content_
     <ModalShell
       onClose={onClose}
       labelId="content-ops-title"
-      title={phase === 'done' ? '상담 신청 완료' : '당근마케팅 상담'}
+      title={phase === 'done' ? '상담 신청 완료' : title}
     >
       {phase !== 'done' ? (
         <div className="space-y-4">
-          <p className="text-[13px] leading-relaxed text-dg-ink-soft">
-            매장 정보를 남겨주시면, 담당자가 당근마케팅 상담을 위해 연락드려요.
-          </p>
-          <Field label="매장명" value={storeName} onChange={setStoreName} placeholder="예: 단골팅 카페" />
+          <p className="text-[13px] leading-relaxed text-dg-ink-soft">{description}</p>
+          <Field label={nameLabel} value={storeName} onChange={setStoreName} placeholder={namePlaceholder} />
           <Field label="담당자명" value={ownerName} onChange={setOwnerName} placeholder="예: 홍길동" />
           <Field label="연락처" value={phone} onChange={setPhone} placeholder="010-0000-0000" type="tel" />
           {error && <p className="text-[13px] text-dg-danger">{error}</p>}

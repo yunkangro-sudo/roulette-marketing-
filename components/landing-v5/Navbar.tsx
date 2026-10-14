@@ -10,6 +10,7 @@ import { PricingCalculatorModal } from './PricingModals'
 const LOGIN_PATH = '/admin/login'
 const AEO_PATH = '/aeo'
 const GROWTH_DANGGEUN_PATH = '/growth/danggeun'
+const FRANCHISE_PATH = '/franchise'
 const GUIDES_PATH = '/guides'
 
 export default function Navbar() {
@@ -153,6 +154,13 @@ export default function Navbar() {
                 className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
               >
                 당근으로 매장 키우기
+              </Link>
+              <Link
+                href={FRANCHISE_PATH}
+                onClick={close}
+                className="rounded-lg px-3 py-3 text-[16px] font-semibold text-dg-ink transition-colors hover:bg-dg-bg"
+              >
+                당근 프랜차이즈 마케팅
               </Link>
               <Link
                 href={GUIDES_PATH}
