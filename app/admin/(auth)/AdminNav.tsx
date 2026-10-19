@@ -75,6 +75,7 @@ export default function AdminNav({
         { href: '/admin/super/leads',         label: '신청·문의 리스트' },
         { href: '/admin/super/setup-requests', label: '세팅 접수' },
         { href: '/admin/super/demo-stores',   label: '샘플 레퍼런스' },
+        ...(role === 'super_admin' ? [{ href: '/admin/super/participants', label: '참여자 번호' }] : []),
       ]
     : isAdvertiser
     ? [
