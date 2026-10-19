@@ -21,7 +21,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { checkSendPermission, type AlimtalkPayload } from '@/lib/alimtalk/send'
+import { sendAlimtalk } from '@/lib/alimtalk/send'
 
 const DAYS_STAGES = [7, 3, 1] as const
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
     // KST 기준 targetDate 당일(00:00 ~ 익일 00:00) 범위로 비교
     const { data: coupons, error: couponErr } = await supabase
       .from('coupons')
-      .select('id, store_id, kakao_user_id, amount, valid_until, short_code')
+      .select('id, store_id, kakao_user_id, amount, label, valid_until, short_code')
         .in('status', ['issued', 'pending_verify', 'pending_apply'])
       .gte('valid_until', `${targetDate}T00:00:00+09:00`)
       .lt( 'valid_until', `${nextDate}T00:00:00+09:00`)
@@ -80,57 +80,34 @@ export async function GET(req: NextRequest) {
         .eq('coupon_id', coupon.id)
         .eq('days_remaining', days)
         .eq('message_type', 'expiry_reminder')
-        .maybeSingle()
+        .in('status', ['sent', 'pending'])
+        .limit(1)
 
-      if (existingLog) {
+      if (existingLog && existingLog.length > 0) {
         stageResult.skipped_dup++
         continue
       }
-
-      // ── 3. 8-1 발송규칙 체크 ─────────────────────────────
-      const payload: AlimtalkPayload = {
-        storeId:     coupon.store_id,
-        kakaoUserId: coupon.kakao_user_id,
-        messageType: 'expiry_reminder',
-        data: {},
-      }
-      const { allowed: permitted } = await checkSendPermission(payload)
-
-      if (!permitted) {
+      if (!coupon.kakao_user_id) {
         stageResult.skipped_rule++
         continue
       }
 
-      // ── 4. 발송 + message_log 기록 ────────────────────────
-      // 실제 발송: Alimtalk 대행사 연동 후 sendAlimtalk 내부 채우면 됨
-      // 현재: log만 남기는 stub 상태
-      const validStr = coupon.valid_until
-        ? new Date(coupon.valid_until).toLocaleDateString('ko-KR', {
-            year: 'numeric', month: 'long', day: 'numeric',
-          })
-        : ''
-
-      // stub 로그 (실제 발송 없음)
-      console.log(
-        `[expiry-reminder] D-${days} 발송 시도 → kakao_user_id=${coupon.kakao_user_id}`,
-        `| 코드=${coupon.short_code ?? coupon.id.slice(0,8)} | 만료=${validStr}`,
-      )
-
-      // message_log INSERT (중복방지 기록)
-      const { error: logErr } = await supabase.from('message_log').insert({
-        store_id:      coupon.store_id,
-        kakao_user_id: coupon.kakao_user_id,
-        message_type:  'expiry_reminder',
-        sent_at:       new Date().toISOString(),
-        coupon_id:     coupon.id,
-        days_remaining: days,
+      const result = await sendAlimtalk({
+        storeId: coupon.store_id,
+        kakaoUserId: coupon.kakao_user_id,
+        messageType: 'expiry_reminder',
+        data: {
+          couponId: coupon.id,
+          daysRemaining: days,
+          shortCode: coupon.short_code,
+          amount: coupon.amount,
+          label: coupon.label,
+          validUntil: coupon.valid_until,
+        },
       })
 
-      if (logErr) {
-        console.error(`[expiry-reminder] message_log 기록 실패:`, logErr.message)
-      } else {
-        stageResult.sent++
-      }
+      if (result.status === 'sent') stageResult.sent++
+      else stageResult.skipped_rule++
     }
 
     results.push(stageResult)

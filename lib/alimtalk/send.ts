@@ -9,13 +9,14 @@
  *  5. 동일 message_type 재발송 허용 간격 이내 → 차단
  *  → 5단계 모두 통과 시에만 실제 발송 + message_log INSERT
  *
- * 현재 상태: 실제 발송 없이 message_log 기록만 (stub)
- * 실제 발송 연동 방법:
- *   KAKAO_ALIMTALK_SENDER_KEY 입력 후 sendKakaoAlimtalk() 내 주석 해제
+ * 만료 리마인드(expiry_reminder)만 솔라피 알림톡으로 실제 발송한다.
+ * 다른 메시지 종류는 message_log 기록만 남긴다.
  */
 
 import { createServerClient } from '@/lib/supabase/server'
 import { isDemoStore } from '@/lib/store/isDemoStore'
+import { decryptPhone } from '@/lib/crypto/phoneEncryption'
+import { sendSolapiAlimtalk } from '@/lib/alimtalk/solapi'
 
 export type MessageType =
   | 'coupon_issued'
@@ -131,14 +132,60 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
   return { allowed: true }
 }
 
+export type SendResult =
+  | { status: 'sent' }
+  | { status: 'skipped'; reason: string }
+  | { status: 'failed'; reason: string }
+
+function formatKoreanDate(value: unknown): string {
+  if (!value || typeof value !== 'string') return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+/** 만료 리마인드만 솔라피로 보낸다. 다른 종류는 기존처럼 기록만 남긴다. */
+async function deliverExpiryReminder(
+  payload: AlimtalkPayload,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = createServerClient()
+  const [{ data: loyalty }, { data: contract }] = await Promise.all([
+    supabase
+      .from('customer_loyalty')
+      .select('phone_encrypted')
+      .eq('store_id', payload.storeId)
+      .eq('kakao_user_id', payload.kakaoUserId)
+      .maybeSingle(),
+    supabase
+      .from('store_contracts')
+      .select('store_name')
+      .eq('store_id', payload.storeId)
+      .maybeSingle(),
+  ])
+
+  const phone = loyalty?.phone_encrypted ? decryptPhone(loyalty.phone_encrypted) : null
+  if (!phone) return { ok: false, error: '손님 전화번호 없음' }
+
+  const amount = payload.data.amount
+  return sendSolapiAlimtalk({
+    to: phone,
+    variables: {
+      '#{매장명}': String(contract?.store_name || '매장'),
+      '#{쿠폰명}': String(payload.data.label || '쿠폰'),
+      '#{금액}': typeof amount === 'number' ? amount.toLocaleString('ko-KR') : String(amount ?? ''),
+      '#{만료일}': formatKoreanDate(payload.data.validUntil),
+      '#{쿠폰코드}': String(payload.data.shortCode || '-'),
+    },
+  })
+}
+
 /**
  * 알림톡 발송 메인 함수
- * 5단계 체크 → message_log 기록 → 실제 발송(stub)
+ * 5단계 체크 → message_log 기록 → 만료 리마인드는 솔라피 발송
  */
-export async function sendAlimtalk(payload: AlimtalkPayload): Promise<void> {
+export async function sendAlimtalk(payload: AlimtalkPayload): Promise<SendResult> {
   const supabase = createServerClient()
 
-  // ── 5단계 체크 ───────────────────────────────────────────
   const check = await checkSendPermission(payload)
 
   if (!check.allowed) {
@@ -147,14 +194,14 @@ export async function sendAlimtalk(payload: AlimtalkPayload): Promise<void> {
       kakao_user_id: payload.kakaoUserId,
       message_type:  payload.messageType,
       payload:       payload.data,
+      coupon_id:     payload.data.couponId ?? null,
+      days_remaining: payload.data.daysRemaining ?? null,
       status:        'skipped',
       error_message: `차단 사유: ${check.reason}`,
     })
-    console.log(`[alimtalk] 발송 차단 (${check.reason}): ${payload.kakaoUserId}@${payload.storeId}`)
-    return
+    return { status: 'skipped', reason: check.reason ?? 'unknown' }
   }
 
-  // ── message_log 기록 ─────────────────────────────────────
   const { data: logRow, error: logErr } = await supabase
     .from('message_log')
     .insert({
@@ -162,6 +209,8 @@ export async function sendAlimtalk(payload: AlimtalkPayload): Promise<void> {
       kakao_user_id: payload.kakaoUserId,
       message_type:  payload.messageType,
       payload:       payload.data,
+      coupon_id:     payload.data.couponId ?? null,
+      days_remaining: payload.data.daysRemaining ?? null,
       status:        'pending',
     })
     .select('id')
@@ -169,31 +218,30 @@ export async function sendAlimtalk(payload: AlimtalkPayload): Promise<void> {
 
   if (logErr || !logRow) {
     console.error('[alimtalk] message_log 기록 실패:', logErr?.message)
-    return
+    return { status: 'failed', reason: '발송 기록 저장 실패' }
   }
 
-  // ── 실제 발송 (stub — KAKAO_ALIMTALK_SENDER_KEY 설정 후 아래 활성화) ──
-  const senderKey = process.env.KAKAO_ALIMTALK_SENDER_KEY
-  if (!senderKey) {
-    console.log(
-      `[alimtalk STUB] ${payload.messageType} → ${payload.kakaoUserId} | 데이터:`,
-      payload.data,
-    )
-    // pending 유지 (대행사 미연결)
-    return
+  if (payload.messageType !== 'expiry_reminder') {
+    return { status: 'skipped', reason: '이 메시지 종류는 아직 실발송하지 않음' }
   }
 
-  // TODO: 대행사 연동 시 아래 주석 해제
-  // try {
-  //   await callAlimtalkProviderApi(senderKey, payload)
-  //   await supabase.from('message_log')
-  //     .update({ status: 'sent', sent_at: new Date().toISOString() })
-  //     .eq('id', logRow.id)
-  // } catch (err) {
-  //   await supabase.from('message_log')
-  //     .update({ status: 'failed', error_message: String(err) })
-  //     .eq('id', logRow.id)
-  // }
+  if (!process.env.SOLAPI_API_KEY || !process.env.SOLAPI_PF_ID || !process.env.SOLAPI_TEMPLATE_ID) {
+    return { status: 'skipped', reason: '솔라피 키 없음' }
+  }
+
+  try {
+    const result = await deliverExpiryReminder(payload)
+    if (!result.ok) {
+      await supabase.from('message_log').update({ status: 'failed', error_message: result.error }).eq('id', logRow.id)
+      return { status: 'failed', reason: result.error }
+    }
+    await supabase.from('message_log').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', logRow.id)
+    return { status: 'sent' }
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : '발송 중 오류'
+    await supabase.from('message_log').update({ status: 'failed', error_message: reason }).eq('id', logRow.id)
+    return { status: 'failed', reason }
+  }
 }
 
 /**
