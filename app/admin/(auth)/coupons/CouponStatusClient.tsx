@@ -130,8 +130,11 @@ export default function CouponStatusClient({
       })
       const data = await res.json()
       if (!res.ok) { setRemindResult(data.error ?? '발송 실패'); return }
-      const failNote = data.failed ? ` · 실패 ${data.failed}건` : ''
-      setRemindResult(`발송 완료 ${data.sent}건 · 제외 ${data.skipped}건${failNote}`)
+      const failReason = data.failedReasons ? Object.keys(data.failedReasons)[0] : ''
+      const skipReason = data.skippedReasons ? Object.keys(data.skippedReasons)[0] : ''
+      const failNote = data.failed ? ` · 실패 ${data.failed}건${failReason ? ` (${failReason})` : ''}` : ''
+      const skipNote = data.skipped && skipReason ? ` (${skipReason})` : ''
+      setRemindResult(`발송 완료 ${data.sent}건 · 제외 ${data.skipped}건${skipNote}${failNote}`)
       setSelected(new Set())
     } catch {
       setRemindResult('네트워크 오류가 발생했습니다')
