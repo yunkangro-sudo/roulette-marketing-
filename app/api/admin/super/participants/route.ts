@@ -24,6 +24,20 @@ function kstDayEndExclusiveUtc(ymd: string): string | null {
   return new Date(new Date(start).getTime() + 24 * 60 * 60 * 1000).toISOString()
 }
 
+/** +82 10-2937-1548 → 010-2937-1548 */
+function formatKoreanMobile(raw: string): string {
+  let digits = raw.replace(/\D/g, '')
+  if (digits.startsWith('82')) digits = `0${digits.slice(2)}`
+  if (digits.startsWith('10')) digits = `0${digits}`
+  if (digits.length === 11 && digits.startsWith('010')) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+  }
+  if (digits.length === 10 && digits.startsWith('01')) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  return digits || raw
+}
+
 function formatKst(iso: string): string {
   return new Date(iso).toLocaleString('ko-KR', {
     timeZone: 'Asia/Seoul',
@@ -94,7 +108,7 @@ export async function GET(request: Request) {
       .in('kakao_user_id', chunk)
     for (const row of loyalties ?? []) {
       const phone = row.phone_encrypted ? decryptPhone(row.phone_encrypted) : null
-      if (phone) phoneByKey.set(`${row.store_id}::${row.kakao_user_id}`, phone)
+      if (phone) phoneByKey.set(`${row.store_id}::${row.kakao_user_id}`, formatKoreanMobile(phone))
     }
   }
 
