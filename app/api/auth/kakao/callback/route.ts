@@ -15,6 +15,7 @@ import { getCustomerSession } from '@/lib/auth/session'
 import { encryptPhone, hashPhone } from '@/lib/crypto/phoneEncryption'
 import { createServerClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/activity/log'
+import { grantConsent } from '@/lib/alimtalk/send'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
@@ -70,9 +71,13 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // ── 3-1. 전화번호 저장 (암호화) ─────────────────────────────
+    // ── 3-1. 전화번호 저장 (암호화) + 알림 수신 동의 ──────────────
+    // 로그인 화면의 전화번호 동의는 "알림 수신용"이다. 번호가 오면 수신 동의로 기록한다.
     if (profile.phone_number && storeId) {
       await savePhoneNumber(profile.id, storeId, profile.phone_number)
+      await grantConsent(storeId, profile.id).catch((err) => {
+        console.warn('[kakao callback] 수신 동의 기록 실패 (무시):', err)
+      })
     }
 
     // ── 4. 세션 저장 ──────────────────────────────────────────

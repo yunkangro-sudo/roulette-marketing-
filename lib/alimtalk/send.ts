@@ -1,9 +1,12 @@
 /**
  * 알림톡 발송 유틸리티
  *
- * ── 발송 전 5단계 체크 (v2.1 8-1단계, 결정 D: 카카오 채널 친구추가 = 동의) ──
- *  1. message_consent 레코드 없음 → 차단
- *  2. consented = false → 차단
+ * ── 발송 전 체크 ──
+ *  수신 동의 = 게임 후 카카오 로그인에서 전화번호(알림 수신용)에 동의한 것.
+ *  채널 친구추가는 보지 않는다.
+ *  1. 동의 철회(consented=false) → 차단
+ *  2. 동의 기록이 없으면, 저장된 전화번호가 있을 때만 동의로 보고 기록을 남긴다
+ *     전화번호도 없으면 차단
  *  3. 오늘 이미 발송 있음 → 차단 (하루 1회 제한, KST 기준)
  *  4. 최근 7일 내 동일 매장 3회 초과 → 차단
  *  5. 동일 message_type 재발송 허용 간격 이내 → 차단
@@ -70,7 +73,9 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     return { allowed: false, reason: 'demo_store' }
   }
 
-  // ── 1·2단계: 동의 여부 ────────────────────────────────────
+  // ── 1·2단계: 수신 동의 ────────────────────────────────────
+  // 채널 친구추가 기록이 아니라, 게임 후 카카오 전화번호 동의를 본다.
+  // 전화번호가 저장돼 있으면 이미 "알림 수신용"에 동의한 손님이다.
   const { data: consent } = await supabase
     .from('message_consent')
     .select('consented')
@@ -78,8 +83,22 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     .eq('kakao_user_id', payload.kakaoUserId)
     .maybeSingle()
 
-  if (!consent)                    return { allowed: false, reason: 'no_consent_record' }
-  if (!consent.consented)          return { allowed: false, reason: 'consented_false' }
+  if (consent && !consent.consented) return { allowed: false, reason: 'consented_false' }
+
+  if (!consent?.consented) {
+    const { data: loyalty } = await supabase
+      .from('customer_loyalty')
+      .select('phone_encrypted')
+      .eq('store_id', payload.storeId)
+      .eq('kakao_user_id', payload.kakaoUserId)
+      .maybeSingle()
+
+    if (!loyalty?.phone_encrypted) return { allowed: false, reason: 'no_consent_record' }
+
+    await grantConsent(payload.storeId, payload.kakaoUserId).catch((err) => {
+      console.error('[alimtalk] 전화번호 동의 기록 실패:', err)
+    })
+  }
 
   // 이하 체크는 status IN ('sent', 'pending') 만 카운트
   // skipped / failed 는 실제 발송 아니므로 제외
@@ -237,8 +256,8 @@ export async function sendAlimtalk(payload: AlimtalkPayload): Promise<SendResult
 }
 
 /**
- * 동의 등록/갱신 (카카오 채널 친구추가 완료 콜백에서 호출)
- * consented=true로 upsert
+ * 수신 동의 등록/갱신.
+ * 게임 후 카카오 전화번호 동의가 확인되면 consented=true로 upsert한다.
  */
 export async function grantConsent(storeId: string, kakaoUserId: string): Promise<void> {
   const supabase = createServerClient()
