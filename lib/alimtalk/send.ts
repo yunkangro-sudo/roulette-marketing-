@@ -149,19 +149,12 @@ async function deliverExpiryReminder(
   payload: AlimtalkPayload,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createServerClient()
-  const [{ data: loyalty }, { data: contract }] = await Promise.all([
-    supabase
-      .from('customer_loyalty')
-      .select('phone_encrypted')
-      .eq('store_id', payload.storeId)
-      .eq('kakao_user_id', payload.kakaoUserId)
-      .maybeSingle(),
-    supabase
-      .from('store_contracts')
-      .select('store_name')
-      .eq('store_id', payload.storeId)
-      .maybeSingle(),
-  ])
+  const { data: loyalty } = await supabase
+    .from('customer_loyalty')
+    .select('phone_encrypted')
+    .eq('store_id', payload.storeId)
+    .eq('kakao_user_id', payload.kakaoUserId)
+    .maybeSingle()
 
   const phone = loyalty?.phone_encrypted ? decryptPhone(loyalty.phone_encrypted) : null
   if (!phone) return { ok: false, error: '손님 전화번호 없음' }
@@ -170,7 +163,6 @@ async function deliverExpiryReminder(
   return sendSolapiAlimtalk({
     to: phone,
     variables: {
-      '#{매장명}': String(contract?.store_name || '매장'),
       '#{쿠폰명}': String(payload.data.label || '쿠폰'),
       '#{금액}': typeof amount === 'number' ? amount.toLocaleString('ko-KR') : String(amount ?? ''),
       '#{만료일}': formatKoreanDate(payload.data.validUntil),

@@ -4,7 +4,7 @@
  * 발송: POST /messages/v4/send-many/detail  type=ATA
  *
  * 템플릿 변수 이름은 솔라피에 등록한 문구와 글자까지 같아야 한다.
- *   #{매장명} #{쿠폰명} #{금액} #{만료일} #{쿠폰코드}
+ *   #{쿠폰명} #{금액} #{만료일} #{쿠폰코드}
  */
 
 import { createHmac, randomBytes } from 'crypto'
