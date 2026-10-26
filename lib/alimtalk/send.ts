@@ -100,8 +100,8 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     })
   }
 
-  // 이하 체크는 status IN ('sent', 'pending') 만 카운트
-  // skipped / failed 는 실제 발송 아니므로 제외
+  // 실제 솔라피 발송 성공(sent)만 횟수에 넣는다.
+  // pending은 게임 당첨 기록처럼 아직 나가지 않은 줄도 있어서, 넣으면 하루 1회에 잘못 걸린다.
   const now = new Date()
 
   // ── 3단계: 오늘 발송 여부 (KST 00:00 기준) ────────────────
@@ -115,7 +115,7 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     .select('id', { count: 'exact', head: true })
     .eq('store_id',      payload.storeId)
     .eq('kakao_user_id', payload.kakaoUserId)
-    .in('status', ['sent', 'pending'])
+    .eq('status', 'sent')
     .gte('created_at',   kstMidnight.toISOString())
 
   if ((todayCount ?? 0) >= 1) return { allowed: false, reason: 'daily_limit' }
@@ -128,7 +128,7 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     .select('id', { count: 'exact', head: true })
     .eq('store_id',      payload.storeId)
     .eq('kakao_user_id', payload.kakaoUserId)
-    .in('status', ['sent', 'pending'])
+    .eq('status', 'sent')
     .gte('created_at',   sevenDaysAgo.toISOString())
 
   if ((weeklyCount ?? 0) >= 3) return { allowed: false, reason: 'weekly_limit' }
@@ -143,7 +143,7 @@ export async function checkSendPermission(payload: AlimtalkPayload): Promise<Che
     .eq('store_id',      payload.storeId)
     .eq('kakao_user_id', payload.kakaoUserId)
     .eq('message_type',  payload.messageType)
-    .in('status', ['sent', 'pending'])
+    .eq('status', 'sent')
     .gte('created_at',   intervalAgo.toISOString())
 
   if ((typeCount ?? 0) >= 1) return { allowed: false, reason: 'resend_interval' }
@@ -233,10 +233,18 @@ export async function sendAlimtalk(payload: AlimtalkPayload): Promise<SendResult
   }
 
   if (payload.messageType !== 'expiry_reminder') {
+    await supabase.from('message_log').update({
+      status: 'skipped',
+      error_message: '이 메시지 종류는 아직 실발송하지 않음',
+    }).eq('id', logRow.id)
     return { status: 'skipped', reason: '이 메시지 종류는 아직 실발송하지 않음' }
   }
 
   if (!process.env.SOLAPI_API_KEY || !process.env.SOLAPI_PF_ID || !process.env.SOLAPI_TEMPLATE_ID) {
+    await supabase.from('message_log').update({
+      status: 'skipped',
+      error_message: '솔라피 키 없음',
+    }).eq('id', logRow.id)
     return { status: 'skipped', reason: '솔라피 키 없음' }
   }
 
