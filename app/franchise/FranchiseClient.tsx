@@ -123,26 +123,24 @@ const MONTHLY_SERVICES = [
 ]
 
 const PROCESS = [
-  { n: '01', title: '본사가 광고 예산 결정', desc: '지점당 월 광고비 3만~10만 원 기준' },
+  { n: '01', title: '본사가 광고 예산 결정', desc: '지점당 월 광고비 3만 원~ 협의' },
   { n: '02', title: '당근 광고 운영', desc: '브랜드·지역·상품·가맹 모집 홍보' },
   { n: '03', title: '단골팅 게임 이벤트', desc: 'QR 참여와 혜택으로 고객 참여 유도' },
   { n: '04', title: '결과 확인 및 운영 관리', desc: '지점별 광고·이벤트 현황 확인' },
 ]
 
-/** 지점 수별 요금표. 단골팅 지점당 월 3만 원 + 광고비 지점당 월 2만 원 가정(제안서 기준) */
+/** 지점 수별 요금표. 단골팅 지점당 월 3만 원 + 당근 광고비는 본사 예산에 맞춰 협의(지점당 월 3만 원~) */
 const PRICE_COLS = [
-  { branches: '10개 지점', service: '30만 원', ad: '20만 원', monthly: '50만 원', setup: '50만 원', first: '100만 원' },
-  { branches: '20개 지점', service: '60만 원', ad: '40만 원', monthly: '100만 원', setup: '50만 원', first: '150만 원' },
-  { branches: '50개 지점', service: '150만 원', ad: '100만 원', monthly: '250만 원', setup: '50만 원', first: '300만 원' },
-  { branches: '100개 지점', service: '300만 원', ad: '200만 원', monthly: '500만 원', setup: '50만 원', first: '550만 원', best: true },
+  { branches: '10개 지점', service: '월 30만 원', ad: '협의', setup: '50만 원' },
+  { branches: '20개 지점', service: '월 60만 원', ad: '협의', setup: '50만 원' },
+  { branches: '50개 지점', service: '월 150만 원', ad: '협의', setup: '50만 원' },
+  { branches: '100개 지점', service: '월 300만 원', ad: '협의', setup: '50만 원', best: true },
 ]
 
-const PRICE_ROWS: { label: string; key: 'service' | 'ad' | 'monthly' | 'setup' | 'first'; strong?: boolean }[] = [
-  { label: '단골팅 이용요금', key: 'service' },
-  { label: '당근 광고비', key: 'ad' },
-  { label: '월 예상 합계', key: 'monthly', strong: true },
-  { label: '최초 운영 세팅비', key: 'setup' },
-  { label: '첫 달 예상 합계', key: 'first', strong: true },
+const PRICE_ROWS: { label: string; key: 'service' | 'ad' | 'setup'; strong?: boolean }[] = [
+  { label: '단골팅 이용요금', key: 'service', strong: true },
+  { label: '당근 광고비 (지점당 월 3만 원~)', key: 'ad' },
+  { label: '최초 운영 세팅비 (1회)', key: 'setup' },
 ]
 
 const FORECAST_FUNNEL = [
@@ -922,10 +920,10 @@ export default function FranchiseClient() {
                   <>
                     100개 지점이어도
                     <br />
-                    <Mark>월 500만 원대로 시작</Mark>
+                    <Mark>지점당 월 3만 원으로 시작</Mark>
                   </>
                 }
-                desc="단골팅 지점당 월 30,000원 + 당근 광고비(지점당 월 2만 원 가정). 부가세 별도."
+                desc="단골팅 지점당 월 30,000원 + 당근 광고비는 본사 예산에 맞춰 협의(지점당 월 3만 원~). 부가세 별도."
               />
             </Reveal>
 
@@ -1155,7 +1153,7 @@ export default function FranchiseClient() {
                   </table>
                 </div>
                 <p className="mt-3 text-[11.5px] leading-relaxed text-dg-ink-soft/70">
-                  ※ 월 1만 원은 클릭당 비용을 이해하기 위한 계산 예시이며, 실제 광고 집행 최소 예산은 지점당 월 2만 원입니다. 노출·클릭은 과거 공유된
+                  ※ 월 1만 원은 클릭당 비용을 이해하기 위한 계산 예시이며, 실제 광고 예산은 지점당 월 3만 원부터 협의합니다. 노출·클릭은 과거 공유된
                   업종별 참고 범위를 예산에 비례해 환산한 추정치이며, 업종·지역·소재·입찰 조건에 따라 실제 결과가 달라집니다. 매출·방문·가맹 계약 수는
                   전환율 데이터가 없어 수치로 단정하지 않았습니다.
                 </p>
