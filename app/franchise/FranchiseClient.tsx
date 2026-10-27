@@ -1081,7 +1081,7 @@ export default function FranchiseClient() {
               <Fold title="100개 지점 광고 효과 예상" sub="노출·클릭 추정치와 클릭당 250원 계산 예시">
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   {[
-                    { k: '월 광고 예산', v: '300만~1,000만 원', s: '본사 결정 예산' },
+                    { k: '월 광고 예산', v: '지점당 월 3만 원~', s: '본사와 협의' },
                     { k: '예상 노출', v: '약 60만~370만 회', s: '업종 참고치 환산' },
                     { k: '예상 클릭', v: '약 3,900~57,000회', s: '업종 참고치 환산' },
                     { k: '대상 규모', v: '100개 지점', s: '본사 통합 운영' },
@@ -1095,7 +1095,7 @@ export default function FranchiseClient() {
                 </div>
 
                 <div className="mt-5 p-5" style={{ borderRadius: 12, background: ORANGE_TINT }}>
-                  <p className="text-center text-[14px] font-extrabold text-dg-ink">예상 광고 퍼널 · 지점당 월 3만~10만 원 기준</p>
+                  <p className="text-center text-[14px] font-extrabold text-dg-ink">예상 광고 퍼널 · 지점당 월 3만 원~ 협의 기준</p>
                   <div className="mt-4 space-y-2">
                     {FORECAST_FUNNEL.map((f, i) => (
                       <div
