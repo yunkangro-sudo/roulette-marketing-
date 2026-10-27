@@ -1161,21 +1161,21 @@ export default function FranchiseClient() {
                 </p>
               </Fold>
 
-              <Fold title="100개 지점 통합 운영 견적 요약" sub="월 예상 600만~1,300만 원 (부가세 별도)">
+              <Fold title="100개 지점 통합 운영 견적 요약" sub="지점당 월 3만 원 + 광고비 협의 (부가세 별도)">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="p-5" style={{ borderRadius: 12, background: ORANGE_TINT }}>
-                    <p className="text-[13px] text-dg-ink-soft">월 예상 합계 (서비스비 + 광고비)</p>
+                    <p className="text-[13px] text-dg-ink-soft">단골팅 이용요금</p>
                     <p className="font-num mt-1 text-[24px] font-bold" style={{ color: ORANGE_DEEP }}>
-                      600만~1,300만 원
+                      지점당 월 3만 원
                     </p>
-                    <p className="mt-1 text-[12px] text-dg-ink-soft">서비스비 300만 원 + 광고비 300만~1,000만 원 (지점당 월 3만~10만 원)</p>
+                    <p className="mt-1 text-[12px] text-dg-ink-soft">부가세 별도 · 브랜드 전체 최초 세팅비 50만 원 (1회)</p>
                   </div>
                   <div className="p-5" style={{ borderRadius: 12, background: ORANGE_TINT }}>
-                    <p className="text-[13px] text-dg-ink-soft">첫 달 예상 합계 (+ 세팅비 50만 원)</p>
+                    <p className="text-[13px] text-dg-ink-soft">+ 당근 광고비</p>
                     <p className="font-num mt-1 text-[24px] font-bold" style={{ color: ORANGE_DEEP }}>
-                      650만~1,350만 원
+                      지점당 월 3만 원~ 협의
                     </p>
-                    <p className="mt-1 text-[12px] text-dg-ink-soft">부가세 별도 · 견적 유효기간 발행일로부터 30일</p>
+                    <p className="mt-1 text-[12px] text-dg-ink-soft">본사 예산에 맞춰 결정 · 견적 유효기간 발행일로부터 30일</p>
                   </div>
                 </div>
                 <button
